@@ -1,0 +1,287 @@
+/* JRS Digital — shared site stylesheet */
+
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('fonts/playfair-display-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/plus-jakarta-sans-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('fonts/plus-jakarta-sans-600.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('fonts/space-grotesk-500.woff2') format('woff2');
+}
+
+:root {
+  color-scheme: light dark;
+  --bg: #FDFDFB;
+  --surface: #F3F1EC;
+  --text: #14141C;
+  --text-muted: #5A5A6B;
+  --border: rgba(20, 20, 28, 0.12);
+  --accent: #8a6d3b;
+  --accent-strong: #6e5527;
+  --shadow: rgba(20, 20, 28, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0B0B11;
+    --surface: #14141C;
+    --text: #EDEDF2;
+    --text-muted: #9797A8;
+    --border: rgba(237, 237, 242, 0.1);
+    --accent: #C8A96E;
+    --accent-strong: #DDC28C;
+    --shadow: rgba(0, 0, 0, 0.35);
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; }
+
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+.container {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+a { color: var(--accent); text-decoration-color: var(--border); text-underline-offset: 2px; }
+a:hover { color: var(--accent-strong); }
+
+h1, h2, h3 {
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 0.5rem;
+}
+
+.figure {
+  font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
+  font-weight: 500;
+}
+
+.site-header {
+  padding: 28px 0;
+}
+.site-header .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.brand {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--text);
+  text-decoration: none;
+}
+.brand:hover { color: var(--text); }
+.site-header nav a {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-left: 1.5rem;
+}
+
+.hero {
+  padding: 56px 0 40px;
+}
+.hero h1 {
+  font-size: clamp(2rem, 5vw, 2.75rem);
+}
+.hero .tagline {
+  font-size: 1.15rem;
+  color: var(--text-muted);
+  max-width: 46ch;
+  margin: 0;
+}
+.eyebrow {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.75rem;
+}
+
+section { padding: 40px 0; }
+section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.app-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.app-list-item {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.app-list-item .app-name {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: 1.2rem;
+  margin-right: 0.75rem;
+}
+.app-list-item .app-desc {
+  color: var(--text-muted);
+  flex: 1 1 320px;
+  margin: 0;
+}
+.app-list-item .app-link {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.card {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 8px 24px var(--shadow);
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.feature h3 {
+  font-size: 1.05rem;
+  margin-bottom: 0.4rem;
+}
+.feature p {
+  color: var(--text-muted);
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.4rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+.btn-primary {
+  background: var(--accent);
+  color: #0B0B11;
+}
+.btn-primary:hover { background: var(--accent-strong); color: #0B0B11; }
+.btn-disabled {
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--text-muted);
+  cursor: default;
+  pointer-events: none;
+}
+
+.cta {
+  text-align: center;
+  padding: 48px 24px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+.cta h2 { margin-bottom: 0.5rem; }
+.cta p { color: var(--text-muted); margin-top: 0; }
+.cta .btn { margin-top: 1rem; }
+
+.mockup {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 20px;
+  max-width: 280px;
+  margin: 0 auto;
+}
+.mockup .screen {
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 18px;
+  border: 1px solid var(--border);
+}
+.mockup .row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.mockup .row:last-child { border-bottom: none; }
+.mockup .label { font-size: 0.85rem; color: var(--text-muted); }
+.mockup .price { font-family: 'Space Grotesk', sans-serif; font-weight: 500; }
+.mockup .badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 2px 8px;
+  margin-top: 6px;
+}
+.mockup-caption {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.75rem;
+}
+
+.site-footer {
+  margin-top: 48px;
+  padding: 32px 0 64px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 560px) {
+  .site-header .container { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .site-header nav a { margin-left: 0; margin-right: 1.25rem; }
+  .app-list-item { flex-direction: column; align-items: flex-start; }
+  .app-list-item .app-desc { flex: 0 0 auto; }
+}
