@@ -29,28 +29,33 @@
   src: url('fonts/space-grotesk-500.woff2') format('woff2');
 }
 
+/* Dark is the primary/default theme — it's the studio's actual product identity
+   (matches the real PriceMinder app exactly), not just a media-query override.
+   Light stays available for anyone with a light system preference. */
 :root {
-  color-scheme: light dark;
-  --bg: #FDFDFB;
-  --surface: #F3F1EC;
-  --text: #14141C;
-  --text-muted: #5A5A6B;
-  --border: rgba(20, 20, 28, 0.12);
-  --accent: #8a6d3b;
-  --accent-strong: #6e5527;
-  --shadow: rgba(20, 20, 28, 0.08);
+  color-scheme: dark light;
+  --bg: #0B0B11;
+  --surface: #14141C;
+  --text: #EDEDF2;
+  --text-muted: #9797A8;
+  --border: rgba(237, 237, 242, 0.1);
+  --accent: #C8A96E;
+  --accent-strong: #DDC28C;
+  --shadow: rgba(0, 0, 0, 0.35);
+  --focus-ring: #C8A96E;
 }
 
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   :root {
-    --bg: #0B0B11;
-    --surface: #14141C;
-    --text: #EDEDF2;
-    --text-muted: #9797A8;
-    --border: rgba(237, 237, 242, 0.1);
-    --accent: #C8A96E;
-    --accent-strong: #DDC28C;
-    --shadow: rgba(0, 0, 0, 0.35);
+    --bg: #FDFDFB;
+    --surface: #F3F1EC;
+    --text: #14141C;
+    --text-muted: #5A5A6B;
+    --border: rgba(20, 20, 28, 0.12);
+    --accent: #8a6d3b;
+    --accent-strong: #6e5527;
+    --shadow: rgba(20, 20, 28, 0.08);
+    --focus-ring: #6e5527;
   }
 }
 
@@ -74,6 +79,20 @@ body {
 
 a { color: var(--accent); text-decoration-color: var(--border); text-underline-offset: 2px; }
 a:hover { color: var(--accent-strong); }
+a:focus-visible, button:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 
 h1, h2, h3 {
   font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
@@ -143,6 +162,31 @@ h1, h2, h3 {
   margin-bottom: 0.75rem;
 }
 
+/* ---------- homepage hero: asymmetric, phone-forward ---------- */
+.hero-asym {
+  position: relative;
+  min-height: 620px;
+  padding: 32px 0 24px;
+}
+.hero-asym .hero-text {
+  position: relative;
+  z-index: 3;
+  max-width: 480px;
+  padding-left: 40px;
+}
+.hero-asym .hero-text h1 {
+  font-size: clamp(2.4rem, 6vw, 3.6rem);
+  max-width: 11ch;
+}
+.hero-asym .hero-phone-stage {
+  position: absolute;
+  top: 0;
+  right: -20px;
+  width: min(34vw, 250px);
+  z-index: 2;
+}
+.hero-asym .hero-phone-stage .phone-frame { --rest: -6deg; }
+
 .stats {
   display: flex;
   flex-wrap: wrap;
@@ -160,11 +204,196 @@ h1, h2, h3 {
   letter-spacing: 0.05em;
 }
 
+/* Leader-line callout: a visual enhancement layered on the SAME .stat markup
+   used elsewhere, not a separate decorative-only element. The connecting line
+   is aria-hidden; .stat-value/.stat-label stay real, visible, announced text. */
+.stats.stats-callout {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  display: block;
+  gap: 0;
+  margin-top: 0;
+}
+.stats-callout .stat {
+  position: absolute;
+  right: 108%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.stats-callout .stat-value {
+  font-size: 0.95rem;
+  order: 0;
+}
+.stats-callout .stat-label {
+  order: 1;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+.stats-callout .callout-line {
+  order: 2;
+  width: 34px;
+  height: 1px;
+  background: var(--border);
+  flex: none;
+}
+.stats-callout .callout-dot {
+  order: 3;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex: none;
+}
+
 section { padding: 40px 0; }
 section h2 {
   font-size: 1.5rem;
   margin-bottom: 1.5rem;
 }
+
+/* ---------- rotated edge label (hero) ---------- */
+.rotated-label {
+  position: absolute;
+  left: 4px;
+  top: 140px;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: 'Space Grotesk', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.rotated-label::before {
+  content: "";
+  display: block;
+  width: 1px;
+  height: 60px;
+  background: var(--border);
+}
+
+/* ---------- asymmetric pull-quote (About) ---------- */
+.pull-quote {
+  display: grid;
+  grid-template-columns: 0.8fr 2fr;
+  gap: 32px;
+  align-items: start;
+}
+.pull-quote .label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.pull-quote blockquote {
+  margin: 0;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: clamp(1.6rem, 3.4vw, 2.4rem);
+  line-height: 1.25;
+}
+.pull-quote .note {
+  margin: 22px 0 0;
+  max-width: 48ch;
+  color: var(--text-muted);
+}
+
+/* ---------- phone-frame: real screenshot or CSS-drawn content, same shell ---------- */
+.phone-frame {
+  width: 100%;
+  aspect-ratio: 9 / 19.3;
+  border-radius: 36px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: 0 40px 80px -28px var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  padding: 14px 10px;
+  position: relative;
+}
+.phone-frame__notch {
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 58px;
+  height: 15px;
+  border-radius: 10px;
+  background: var(--text);
+  opacity: 0.14;
+  z-index: 1;
+}
+.phone-screen {
+  position: relative;
+  margin-top: 24px;
+  height: calc(100% - 32px);
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--bg);
+}
+.phone-screen-media {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+.phone-screen-content {
+  padding: 16px 14px;
+  height: 100%;
+  box-sizing: border-box;
+}
+.phone-screen-media + .phone-screen-content { display: none; }
+
+.phone-frame--tilt {
+  transform: rotate(var(--rest, -6deg)) rotateX(var(--ry, 0deg)) rotateY(var(--rx, 0deg));
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.5s ease;
+  will-change: transform;
+}
+.phone-frame--tilt.tilting {
+  box-shadow: 0 60px 100px -26px var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+@media (prefers-reduced-motion: reduce) {
+  .phone-frame--tilt {
+    transform: rotate(var(--rest, -6deg));
+    transition: none;
+  }
+}
+.phone-stage {
+  position: relative;
+  perspective: 1600px;
+}
+.phone-stage--solo {
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+.phone-caption {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 14px;
+}
+
+/* ---------- phone-gallery (Work page cascade) ---------- */
+.phone-gallery {
+  position: relative;
+  height: 600px;
+  perspective: 1600px;
+}
+.phone-gallery .phone-stage {
+  position: absolute;
+  width: 190px;
+}
+.phone-gallery .p-back { top: 0; left: 8%; z-index: 1; }
+.phone-gallery .p-back .phone-frame { --rest: -10deg; opacity: 0.92; }
+.phone-gallery .p-front { top: 64px; left: 40%; z-index: 2; width: 210px; }
+.phone-gallery .p-front .phone-frame { --rest: 5deg; }
 
 .app-list {
   list-style: none;
@@ -274,40 +503,6 @@ section h2 {
 .cta p { color: var(--text-muted); margin-top: 0; }
 .cta .btn { margin-top: 1rem; }
 
-.mockup {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: 20px;
-  padding: 20px;
-  max-width: 280px;
-  margin: 0 auto;
-}
-.mockup .screen {
-  background: var(--bg);
-  border-radius: 12px;
-  padding: 18px;
-  border: 1px solid var(--border);
-}
-.mockup .row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border);
-}
-.mockup .row:last-child { border-bottom: none; }
-.mockup .label { font-size: 0.85rem; color: var(--text-muted); }
-.mockup .price { font-family: 'Space Grotesk', sans-serif; font-weight: 500; }
-.mockup .badge {
-  display: inline-block;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--accent);
-  border: 1px solid var(--accent);
-  border-radius: 999px;
-  padding: 2px 8px;
-  margin-top: 6px;
-}
 .mockup-caption {
   text-align: center;
   font-size: 0.8rem;
@@ -364,6 +559,46 @@ section h2 {
   padding: 0.1em 0.35em;
   border-radius: 4px;
   font-size: 0.9em;
+}
+
+/* Tablet: the hero phone stops bleeding past the container, the rotated edge
+   label and leader-line callouts (which assume a lot of open side margin)
+   step aside, and the Work page's phone cascade tightens up. */
+@media (max-width: 900px) {
+  .rotated-label { display: none; }
+  .hero-asym .hero-text { padding-left: 0; max-width: 100%; }
+  .hero-asym .hero-phone-stage {
+    position: static;
+    width: 220px;
+    margin: 32px auto 0;
+  }
+  .hero-asym .hero-phone-stage .phone-frame { --rest: -3deg; }
+  .stats.stats-callout { position: static; left: auto; width: auto; display: flex; flex-wrap: wrap; gap: 2rem; }
+  .stats-callout .stat {
+    position: static;
+    display: block;
+    white-space: normal;
+  }
+  .stats-callout .stat-value { display: block; order: 0; }
+  .stats-callout .stat-label {
+    order: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+  .stats-callout .callout-line, .stats-callout .callout-dot { display: none; }
+  .pull-quote { grid-template-columns: 1fr; }
+  .phone-gallery {
+    height: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 28px;
+    justify-content: center;
+  }
+  .phone-gallery .phone-stage { position: static; width: 200px; }
+  .phone-gallery .p-back .phone-frame,
+  .phone-gallery .p-front .phone-frame { --rest: -3deg; }
 }
 
 @media (max-width: 560px) {

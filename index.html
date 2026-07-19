@@ -21,25 +21,42 @@
   </header>
 
   <main class="container">
-    <section class="hero">
-      <p class="eyebrow">Software studio</p>
-      <h1>Small, focused apps, built with intention.</h1>
-      <p class="tagline">JRS Digital builds simple tools that do one job well and keep
-        your data on your device, not ours.</p>
+    <section class="hero hero-asym">
+      <p class="rotated-label" aria-hidden="true">Software studio</p>
 
-      <div class="stats">
-        <div class="stat">
-          <span class="stat-value figure">1</span>
-          <span class="stat-label">App in development</span>
+      <div class="hero-text">
+        <p class="eyebrow">Software studio</p>
+        <h1>Small, focused apps, built with intention.</h1>
+        <p class="tagline">JRS Digital builds simple tools that do one job well and keep
+          your data on your device, not ours.</p>
+      </div>
+
+      <div class="hero-phone-stage" data-tilt-stage>
+        <div class="stats stats-callout" style="top: 4%;">
+          <div class="stat">
+            <span class="stat-value figure">100%</span>
+            <span class="stat-label">On-device data</span>
+            <span class="callout-line" aria-hidden="true"></span>
+            <span class="callout-dot" aria-hidden="true"></span>
+          </div>
         </div>
-        <div class="stat">
-          <span class="stat-value figure">0</span>
-          <span class="stat-label">Accounts required</span>
+        <div class="stats stats-callout" style="top: 62%;">
+          <div class="stat">
+            <span class="stat-value figure">0</span>
+            <span class="stat-label">Accounts required</span>
+            <span class="callout-line" aria-hidden="true"></span>
+            <span class="callout-dot" aria-hidden="true"></span>
+          </div>
         </div>
-        <div class="stat">
-          <span class="stat-value figure">100%</span>
-          <span class="stat-label">On-device data</span>
+        <div class="phone-frame phone-frame--tilt" data-tilt>
+          <div class="phone-frame__notch" aria-hidden="true"></div>
+          <div class="phone-screen">
+            <img class="phone-screen-media" src="/assets/img/priceminder-library.webp"
+              alt="PriceMinder's library screen showing 11 tracked subscriptions and a
+                $370.91 monthly spend total">
+          </div>
         </div>
+        <p class="phone-caption">PriceMinder — in development.</p>
       </div>
     </section>
 
@@ -49,8 +66,9 @@
         <li class="app-list-item">
           <div class="app-desc">
             <span class="app-name">PriceMinder</span>
-            <span>— a private, on-device tracker for what you pay on internet and mobile
-              plans, so you never miss a promo expiring.</span>
+            <span>— a private, on-device tracker for every subscription you pay for, with
+              a live comparison of NBN and mobile plans so you never overpay or miss a
+              promo expiring.</span>
           </div>
           <a class="app-link" href="/priceminder/">Learn more →</a>
         </li>
@@ -68,5 +86,7 @@
       </div>
     </div>
   </footer>
+
+  <script src="/assets/hero-effects.js" defer></script>
 </body>
 </html>
