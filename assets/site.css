@@ -333,11 +333,9 @@ section h2 {
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
   padding: 7px;
   position: relative;
-  /* Baseline 3D lean applied to every phone mockup, not just the
-     interactive ones — a flat, dead-on rectangle reads as a flat image no
-     matter how good the shadow is. perspective() here scopes the
-     foreshortening to this element, so no ancestor setup is required. */
-  transform: perspective(1200px) rotateY(-14deg) rotateX(5deg);
+  /* Straight-on, like the reference mockup — the realism there comes from
+     the bezel shading, buttons and grounded shadow, not from rotating the
+     device. Kept flat here rather than the earlier baked-in 3D lean. */
 }
 /* Soft, grounded contact shadow directly under the device — the reference
    mockup's realism comes as much from this as from the bezel itself; a
@@ -412,49 +410,17 @@ section h2 {
 }
 .phone-screen-media + .phone-screen-content { display: none; }
 
-/* Same baseline 3D lean as .phone-frame, plus the mouse-driven nudge
-   (--rx/--ry, set by hero-effects.js) layered on top via calc() and the
-   per-instance 2D --rest rotation for compositional variety (fanned
-   phones in a gallery, etc). */
+/* No rotation here anymore (see .phone-frame, above) — just a subtle
+   shadow deepen on hover, toggled by hero-effects.js via the .tilting
+   class, so the mockup still feels a little alive without ever tilting. */
 .phone-frame--tilt {
-  transform:
-    perspective(1200px)
-    rotateY(calc(-14deg + var(--rx, 0deg)))
-    rotateX(calc(5deg + var(--ry, 0deg)))
-    rotate(var(--rest, 0deg));
-  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.5s ease;
-  will-change: transform;
+  transition: box-shadow 0.5s ease;
 }
 .phone-frame--tilt.tilting {
   box-shadow:
     0 20px 34px -18px rgba(0, 0, 0, 0.55),
     0 60px 100px -26px var(--shadow),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
-}
-@media (prefers-reduced-motion: reduce) {
-  .phone-frame--tilt {
-    transform: perspective(1200px) rotateY(-14deg) rotateX(5deg) rotate(var(--rest, 0deg));
-    transition: none;
-  }
-}
-
-/* Touch/no-hover fallback for the 3D tilt: since there's no pointer to
-   drive rotation from, loop a gentle auto-tilt instead of showing a static
-   phone. Applied by hero-effects.js when (hover: hover)/(pointer: fine)
-   doesn't match. */
-.phone-frame--auto {
-  animation: phone-auto-tilt 6s ease-in-out infinite;
-}
-@keyframes phone-auto-tilt {
-  0%   { transform: perspective(1200px) rotateY(-19deg) rotateX(2deg) rotate(var(--rest, 0deg)); }
-  50%  { transform: perspective(1200px) rotateY(-9deg)  rotateX(8deg) rotate(var(--rest, 0deg)); }
-  100% { transform: perspective(1200px) rotateY(-19deg) rotateX(2deg) rotate(var(--rest, 0deg)); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .phone-frame--auto {
-    animation: none;
-    transform: perspective(1200px) rotateY(-14deg) rotateX(5deg) rotate(var(--rest, 0deg));
-  }
 }
 .phone-stage {
   position: relative;
@@ -482,9 +448,8 @@ section h2 {
   width: 190px;
 }
 .phone-gallery .p-back { top: 0; left: 8%; z-index: 1; }
-.phone-gallery .p-back .phone-frame { --rest: -10deg; opacity: 0.92; }
+.phone-gallery .p-back .phone-frame { opacity: 0.92; }
 .phone-gallery .p-front { top: 64px; left: 40%; z-index: 2; width: 210px; }
-.phone-gallery .p-front .phone-frame { --rest: 5deg; }
 
 .app-list {
   list-style: none;
@@ -688,8 +653,6 @@ section h2 {
     justify-content: center;
   }
   .phone-gallery .phone-stage { position: static; width: 200px; }
-  .phone-gallery .p-back .phone-frame,
-  .phone-gallery .p-front .phone-frame { --rest: -3deg; }
 }
 
 @media (max-width: 560px) {
