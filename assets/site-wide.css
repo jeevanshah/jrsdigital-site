@@ -47,6 +47,8 @@ body.wide-theme {
   justify-content: space-between;
   align-items: center;
   padding: 30px 0;
+  flex-wrap: wrap;
+  gap: 14px;
 }
 .w-brand {
   font-family: 'Space Grotesk', sans-serif;
@@ -54,8 +56,13 @@ body.wide-theme {
   font-size: 1.15rem;
   color: var(--w-ink);
   text-decoration: none;
+  /* Without this, the flex row was squeezing the brand into two lines
+     ("JRS" / "Digital") on narrow phones instead of ever giving up its
+     own width — one of the more obviously broken things on mobile. */
+  white-space: nowrap;
+  flex-shrink: 0;
 }
-.w-nav { display: flex; gap: 30px; }
+.w-nav { display: flex; gap: 12px 24px; flex-wrap: wrap; }
 .w-nav a { font-size: 0.9rem; color: var(--w-ink-70); text-decoration: none; }
 .w-nav a:hover { color: var(--w-ink); }
 .w-nav a.active { color: var(--w-ink); font-weight: 700; }
