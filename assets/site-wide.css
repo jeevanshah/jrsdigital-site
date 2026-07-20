@@ -16,18 +16,27 @@
   --w-surface: #E3E8E8;
   --w-ink: #1B2224;
   --w-ink-70: rgba(27, 34, 36, 0.68);
-  --w-ink-50: rgba(27, 34, 36, 0.46);
+  /* Was 0.46 — measured out at ~2.8:1 against --w-bg, below the 4.5:1 WCAG AA
+     floor for normal-size text, yet this token drives real (non-decorative)
+     copy: footer text, captions, stat labels, .w-prose .meta. 0.66 lands
+     ~5:1 while still reading as visibly muted next to --w-ink-70. */
+  --w-ink-50: rgba(27, 34, 36, 0.66);
   --w-border: rgba(27, 34, 36, 0.14);
-  --w-accent: #5C7C93;      /* muted slate blue — single accent, used deliberately */
-  --w-accent-strong: #4A6577;
+  /* Was #5C7C93 — fine as a button fill, but used bare as *text* (the
+     "In development" tag, the belief numerals, prose links) it only hit
+     ~3.9:1 against --w-bg, below AA. Darkened to the old --w-accent-strong
+     value, which measures ~5.4:1 as text and ~6.1:1 for white text on top
+     of it as a button fill — passes AA in both directions. */
+  --w-accent: #4A6577;
+  --w-accent-strong: #37495A;
   --w-accent-ink: #FFFFFF;
   --w-radius: 16px;         /* friendlier, rounder than the sharp dev-tool 4px */
 
   /* Override the shared --accent used by the phone-frame component (rim,
      camera dot, chin bar) so the device itself picks up this same color
      instead of the default gold defined in site.css. */
-  --accent: #5C7C93;
-  --accent-strong: #4A6577;
+  --accent: #4A6577;
+  --accent-strong: #37495A;
 }
 
 body.wide-theme {
@@ -222,7 +231,10 @@ body.wide-theme {
   font-size: 1.5rem;
   margin: 10px 0 12px;
 }
-.w-work-card p { color: var(--w-ink-70); margin: 0 0 18px; font-size: 0.98rem; }
+/* max-width added: on wide desktop viewports this column has no natural
+   cap, so the paragraph was stretching well past 75 characters per line —
+   past the readable range — before it wraps. */
+.w-work-card p { color: var(--w-ink-70); margin: 0 0 18px; font-size: 0.98rem; max-width: 48ch; }
 .w-work-card a { color: var(--w-ink); font-weight: 700; font-size: 0.92rem; text-decoration: none; }
 .w-work-card a:hover { text-decoration: underline; }
 
