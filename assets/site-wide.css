@@ -439,12 +439,13 @@ body.wide-theme .mockup-caption { color: var(--w-ink-50); }
 
 /* The one primary action, floating on the image itself rather than living
    in a text block below it — filled/solid, never ghost-style, since this
-   is the action the page actually wants taken. */
+   is the action the page actually wants taken. Bottom-right corner, not
+   center: dead-center over the stage lands right on top of the phone
+   that's the actual subject of the photo, covering it. */
 .bonsai-overlay-cta {
   position: absolute;
-  left: 50%;
-  bottom: 22px;
-  transform: translateX(-50%);
+  right: 20px;
+  bottom: 20px;
   display: inline-flex;
   align-items: center;
   gap: 10px;
