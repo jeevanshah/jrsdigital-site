@@ -131,14 +131,22 @@ body.wide-theme {
 /* Sized up from the original 168/200px — at that size the 750px-wide source
    screenshots were downscaled 5x, crushing the UI text into an illegible,
    soft-looking mess. This size keeps the downscale mild enough that the
-   screen still reads as a real, sharp screenshot rather than a smudge. */
+   screen still reads as a real, sharp screenshot rather than a smudge.
+   Deliberately NOT overriding the frame's own border-color/background here
+   — the device shell stays dark hardware regardless of page theme, only
+   the size and shadow are tuned per-placement. */
 .w-filmstrip .phone-frame {
   width: clamp(200px, 15vw, 260px);
-  border-color: var(--w-border);
-  background: var(--w-surface);
-  box-shadow: 0 40px 70px -28px rgba(23,40,31,0.22);
+  box-shadow:
+    0 14px 22px -14px rgba(23, 40, 31, 0.4),
+    0 40px 70px -28px rgba(23, 40, 31, 0.22);
 }
-.w-filmstrip .film-item:nth-child(2) .phone-frame { width: clamp(230px, 18vw, 300px); box-shadow: 0 50px 90px -26px rgba(23,40,31,0.3); }
+.w-filmstrip .film-item:nth-child(2) .phone-frame {
+  width: clamp(230px, 18vw, 300px);
+  box-shadow:
+    0 16px 26px -14px rgba(23, 40, 31, 0.45),
+    0 50px 90px -26px rgba(23, 40, 31, 0.3);
+}
 .w-filmstrip .film-item { text-align: center; }
 .w-filmstrip .cap { font-size: 0.72rem; color: var(--w-ink-50); margin-top: 10px; font-family: 'Space Grotesk', sans-serif; }
 
