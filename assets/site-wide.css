@@ -37,10 +37,10 @@ body.wide-theme {
   line-height: 1.65;
 }
 
-/* Full-bleed shell: much wider than the previous ~980px centered column, so
-   the layout actually uses horizontal space on a desktop monitor instead of
-   leaving large dead margins either side. */
-.w-shell { max-width: 1360px; margin: 0 auto; padding: 0 40px; }
+/* Full-bleed shell: fluid width instead of a flat cap, so a 2000px+ monitor
+   actually gets used instead of leaving 1000px of dead margin either side.
+   Scales with the viewport up to a sane reading-width ceiling. */
+.w-shell { max-width: min(94vw, 1680px); margin: 0 auto; padding: 0 clamp(24px, 3vw, 56px); }
 
 .w-header {
   display: flex;
@@ -128,13 +128,17 @@ body.wide-theme {
   justify-content: flex-end;
   align-items: flex-end;
 }
+/* Sized up from the original 168/200px — at that size the 750px-wide source
+   screenshots were downscaled 5x, crushing the UI text into an illegible,
+   soft-looking mess. This size keeps the downscale mild enough that the
+   screen still reads as a real, sharp screenshot rather than a smudge. */
 .w-filmstrip .phone-frame {
-  width: 168px;
+  width: clamp(200px, 15vw, 260px);
   border-color: var(--w-border);
   background: var(--w-surface);
   box-shadow: 0 40px 70px -28px rgba(23,40,31,0.22);
 }
-.w-filmstrip .film-item:nth-child(2) .phone-frame { width: 200px; box-shadow: 0 50px 90px -26px rgba(23,40,31,0.3); }
+.w-filmstrip .film-item:nth-child(2) .phone-frame { width: clamp(230px, 18vw, 300px); box-shadow: 0 50px 90px -26px rgba(23,40,31,0.3); }
 .w-filmstrip .film-item { text-align: center; }
 .w-filmstrip .cap { font-size: 0.72rem; color: var(--w-ink-50); margin-top: 10px; font-family: 'Space Grotesk', sans-serif; }
 
