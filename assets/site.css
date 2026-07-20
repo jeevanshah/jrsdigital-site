@@ -317,16 +317,19 @@ section h2 {
   padding: 14px 10px;
   position: relative;
 }
+/* Neutral device bezel detail — a plain speaker slit rather than an
+   iPhone-specific notch/Dynamic-Island shape, so the mockup reads as
+   "a phone" rather than one specific brand's phone. */
 .phone-frame__notch {
   position: absolute;
-  top: 11px;
+  top: 14px;
   left: 50%;
   transform: translateX(-50%);
-  width: 58px;
-  height: 15px;
-  border-radius: 10px;
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
   background: var(--text);
-  opacity: 0.14;
+  opacity: 0.16;
   z-index: 1;
 }
 .phone-screen {
@@ -363,6 +366,25 @@ section h2 {
   .phone-frame--tilt {
     transform: rotate(var(--rest, -6deg));
     transition: none;
+  }
+}
+
+/* Touch/no-hover fallback for the 3D tilt: since there's no pointer to
+   drive rotation from, loop a gentle auto-tilt instead of showing a static
+   phone. Applied by hero-effects.js when (hover: hover)/(pointer: fine)
+   doesn't match. */
+.phone-frame--auto {
+  animation: phone-auto-tilt 6s ease-in-out infinite;
+}
+@keyframes phone-auto-tilt {
+  0%   { transform: rotate(var(--rest, -6deg)) rotateX(-3deg) rotateY(-5deg); }
+  50%  { transform: rotate(var(--rest, -6deg)) rotateX(3deg) rotateY(5deg); }
+  100% { transform: rotate(var(--rest, -6deg)) rotateX(-3deg) rotateY(-5deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .phone-frame--auto {
+    animation: none;
+    transform: rotate(var(--rest, -6deg));
   }
 }
 .phone-stage {

@@ -1,9 +1,17 @@
 (function () {
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) return;
+
   var fineHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-  if (reduce || !fineHover) return;
 
   document.querySelectorAll('[data-tilt]').forEach(function (phone) {
+    // No mouse to drive rotation from (touch/mobile) — loop a subtle
+    // auto-tilt via CSS instead of leaving the mockup static.
+    if (!fineHover) {
+      phone.classList.add('phone-frame--auto');
+      return;
+    }
+
     var wrap = phone.closest('[data-tilt-stage]') || phone.parentElement;
     if (!wrap) return;
     wrap.addEventListener('mousemove', function (e) {
