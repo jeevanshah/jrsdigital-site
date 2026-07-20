@@ -49,7 +49,8 @@
 
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
-    camera.position.set(0.9, 0.35, 6.2);
+    // Distance tuned so the full phone (with a margin to spare) fits in
+    // frame — see the fit calc below, after we know the geometry's real size.
     camera.lookAt(0, 0, 0);
 
     // ---- studio 3-point rig + a violet accent light matching the app's
@@ -69,8 +70,10 @@
     rim.position.set(-2, 2, -4);
     scene.add(rim);
 
-    var glow = new THREE.PointLight(0x5852ff, 3.2, 8, 2);
-    glow.position.set(0.2, -0.1, 1.6);
+    // Softer + farther than the first pass, which produced a small blown-out
+    // hotspot on the metal body instead of a gentle ambient bleed.
+    var glow = new THREE.PointLight(0x5852ff, 1.6, 10, 1.6);
+    glow.position.set(0.3, -0.2, 2.4);
     scene.add(glow);
 
     // ---- rounded phone slab, built from an extruded rounded-rect shape
@@ -99,6 +102,14 @@
     });
     bodyGeo.center();
 
+    // bevelEnabled adds bevelThickness *on top of* `depth` at the front
+    // face — positioning the screen at depth/2 (ignoring the bevel) buried
+    // it just behind the body's own front surface, so only the metal body
+    // was ever visible. Read the geometry's real bounding box instead of
+    // hand-computing it, so this can't drift out of sync again.
+    bodyGeo.computeBoundingBox();
+    var frontZ = bodyGeo.boundingBox.max.z;
+
     var bodyMat = new THREE.MeshPhysicalMaterial({
       color: 0x1b1b20,
       metalness: 0.85,
@@ -116,7 +127,7 @@
     var screenGeo = new THREE.PlaneGeometry(w - 0.16, h - 0.16);
     var screenMat = new THREE.MeshBasicMaterial({ map: texture });
     var screen = new THREE.Mesh(screenGeo, screenMat);
-    screen.position.z = depth / 2 + 0.01;
+    screen.position.z = frontZ + 0.005;
     scene.add(screen);
 
     // Punch-hole camera, same visual language as the CSS phone-frame shell.
@@ -124,7 +135,7 @@
       new THREE.CircleGeometry(0.035, 20),
       new THREE.MeshStandardMaterial({ color: 0x050506, roughness: 0.6 })
     );
-    cam.position.set(0, h / 2 - 0.14, depth / 2 + 0.012);
+    cam.position.set(0, h / 2 - 0.14, frontZ + 0.006);
     scene.add(cam);
 
     var group = new THREE.Group();
@@ -132,6 +143,14 @@
     group.rotation.y = -0.32;
     group.rotation.x = 0.08;
     scene.add(group);
+
+    // Fit the camera distance to the phone's actual height so the whole
+    // device sits inside the frame with breathing room, instead of the
+    // fixed guessed distance that was cropping the top/bottom off.
+    var vFov = (camera.fov * Math.PI) / 180;
+    var fitDistance = (h * 1.35) / (2 * Math.tan(vFov / 2));
+    camera.position.set(fitDistance * 0.14, fitDistance * 0.05, fitDistance);
+    camera.lookAt(0, 0, 0);
 
     function size() {
       var w0 = mount.clientWidth, h0 = mount.clientHeight;
