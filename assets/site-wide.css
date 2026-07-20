@@ -460,8 +460,27 @@ body.wide-theme .mockup-caption { color: var(--w-ink-50); }
   box-shadow: 0 14px 30px -10px rgba(0, 0, 0, 0.55);
   z-index: 6;
 }
-.bonsai-overlay-cta:hover { opacity: 0.9; }
 .bonsai-overlay-cta .w-stroke { background: var(--w-accent-ink); }
+
+/* Hidden until the card is hovered (or the link itself gets keyboard
+   focus, so tabbing to it still reveals it rather than clicking blind) —
+   but only on devices that actually have hover. Touch/coarse-pointer
+   devices have no hover gesture, so the button stays visible there;
+   otherwise there'd be no way to reach it. Same pattern hero-effects.js
+   uses for the phone-tilt effect. */
+@media (hover: hover) and (pointer: fine) {
+  .bonsai-overlay-cta {
+    opacity: 0;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    transform: translateY(4px);
+  }
+  .bonsai-showcase:hover .bonsai-overlay-cta,
+  .bonsai-overlay-cta:focus-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.bonsai-overlay-cta:hover { background: var(--w-accent-strong); }
 
 .bonsai-popover {
   position: absolute;
@@ -516,8 +535,4 @@ body.wide-theme .mockup-caption { color: var(--w-ink-50); }
 @media (max-width: 640px) {
   .bonsai-stage { height: clamp(320px, 68vh, 560px); }
   .bonsai-overlay-cta { font-size: 0.85rem; padding: 11px 18px; }
-}
-
-@media (max-width: 640px) {
-  .bonsai-showcase { padding: 32px 22px; }
 }
