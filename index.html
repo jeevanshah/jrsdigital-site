@@ -81,30 +81,62 @@
     </div>
 
     <section class="w-section">
-      <h2><span class="w-stroke"></span>Featured work</h2>
-      <div class="w-work-row">
-        <div class="w-work-card">
-          <span class="tag">In development</span>
-          <h3>PriceMinder</h3>
-          <p>Tracks every subscription and bill you pay for, compares NBN and mobile
-            plans, and catches expiring promos before they quietly cost you more.
-            Runs entirely on your device — nothing to sign up for, nothing to sell.</p>
-          <a href="/priceminder/">Learn more →</a>
+      <div class="bonsai-showcase" data-bonsai>
+        <span class="bonsai-tag">Interactive — tap the fruit</span>
+        <h2><span class="w-stroke"></span>Featured work</h2>
+        <p class="bonsai-intro">One app is growing on the tree so far — PriceMinder.
+          Tap the fruit to pluck it, or open the app directly below.</p>
+
+        <div class="bonsai-controls">
+          <button type="button" class="bonsai-ghost-btn" data-bonsai-wind>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9.6 4.6A2 2 0 1 1 11 8H2M12.6 19.4A2 2 0 1 0 14 16H2M17.7 7.7A2.5 2.5 0 1 1 19.5 12H2"/>
+            </svg>
+            Wind gust
+          </button>
+          <button type="button" class="bonsai-ghost-btn" data-bonsai-regrow hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16m0 5v-5h5"/>
+            </svg>
+            <span data-bonsai-regrow-label>Regrow</span>
+          </button>
         </div>
-        <div class="w-work-media">
-          <div class="phone-frame phone-frame--tilt" data-tilt>
-            <div class="phone-frame__notch" aria-hidden="true"></div>
-            <div class="phone-frame__cam" aria-hidden="true"></div>
-            <div class="phone-frame__chin" aria-hidden="true"></div>
-            <div class="phone-screen">
-              <img class="phone-screen-media" src="/assets/img/priceminder-dashboard.webp"
-                alt="PriceMinder's dashboard showing a monthly spending breakdown across
-                  11 subscriptions, totalling $370.91">
+
+        <div class="bonsai-stage" data-bonsai-stage>
+          <div class="bonsai-canvas-mask">
+            <canvas data-bonsai-canvas role="img"
+              aria-label="Illustration of a bonsai tree with a single fruit representing PriceMinder. Select it to open the app.">
+              Illustration of a bonsai tree with a single fruit representing PriceMinder.
+            </canvas>
+            <div class="bonsai-fallback" data-bonsai-fallback hidden>
+              <div class="phone-frame">
+                <div class="phone-frame__notch" aria-hidden="true"></div>
+                <div class="phone-frame__cam" aria-hidden="true"></div>
+                <div class="phone-frame__chin" aria-hidden="true"></div>
+                <div class="phone-screen">
+                  <img class="phone-screen-media" src="/assets/img/priceminder-dashboard.webp"
+                    alt="PriceMinder's dashboard showing a monthly spending breakdown across
+                      11 subscriptions, totalling $370.91">
+                </div>
+              </div>
             </div>
           </div>
+          <div class="bonsai-popover" data-bonsai-popover hidden>
+            <strong>PriceMinder</strong>
+            <span class="bonsai-popover-status" data-bonsai-popover-status>On the tree</span>
+            <p>Tracks every subscription and bill, compares NBN and mobile plans, and
+              catches expiring promos before they quietly cost you more. In development —
+              nothing stored anywhere but your device.</p>
+            <span class="bonsai-popover-action" data-bonsai-popover-action>Tap to pluck it off the branch</span>
+          </div>
         </div>
+
+        <a class="w-cta bonsai-launch" href="/priceminder/" data-bonsai-launch>
+          <span class="w-stroke"></span>Open PriceMinder</a>
       </div>
-      <p class="w-more-note">More apps in the works — this row will grow.</p>
+      <p class="w-more-note">More apps in the works — the tree will grow.</p>
     </section>
 
     <div class="w-footer">
@@ -114,5 +146,6 @@
   </div>
 
   <script src="/assets/hero-effects.js" defer></script>
+  <script src="/assets/bonsai-scene.js" defer></script>
 </body>
 </html>
