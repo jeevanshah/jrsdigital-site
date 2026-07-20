@@ -31,6 +31,11 @@
 }
 
 body.wide-theme {
+  /* This theme is deliberately always-light, unlike site.css's dark/light
+     pair — without this, a visitor with a dark OS preference still gets
+     dark-styled native UI (scrollbar, form controls) on an otherwise
+     always-light page. */
+  color-scheme: light;
   background: var(--w-bg);
   color: var(--w-ink);
   font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
@@ -309,8 +314,36 @@ body.wide-theme {
 .w-contact-card h2 { margin: 0 0 8px; }
 .w-contact-card p { color: var(--w-ink-70); margin: 0; max-width: 42ch; }
 
-/* ---------- phone gallery (Work page) recolored for this theme ---------- */
-body.wide-theme .phone-gallery .phone-caption { color: var(--w-ink-50); }
+/* ---------- prose content (Privacy Policy) — was the one page still on the
+   old dark/serif theme with its own accent color, so it looked like a
+   different site depending on the visitor's OS color scheme. Now shares the
+   same shell, fonts and tokens as every other page. ---------- */
+.w-prose { max-width: 720px; padding: 4px 0 64px; }
+.w-prose h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  font-size: clamp(1.8rem, 3vw, 2.3rem);
+  line-height: 1.2;
+  margin: 0 0 8px;
+}
+.w-prose .meta { color: var(--w-ink-50); font-size: 0.9rem; margin: 0 0 28px; }
+.w-prose h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  font-size: 1.15rem;
+  margin: 2.1rem 0 0.7rem;
+}
+.w-prose p { color: var(--w-ink-70); margin: 0 0 1rem; max-width: 68ch; }
+.w-prose strong { color: var(--w-ink); }
+.w-prose a { color: var(--w-accent); }
+
+/* ---------- phone gallery / solo mockup captions, recolored for this theme
+   ---------- these still referenced the old dark-theme --text-muted token,
+   which only gets remapped for OS light mode — on a visitor with a dark OS
+   preference this caption would render in a color designed to sit on a
+   near-black background, at low contrast on this always-light page. */
+body.wide-theme .phone-gallery .phone-caption,
+body.wide-theme .mockup-caption { color: var(--w-ink-50); }
 
 /* ---------- Visual engineering: live 3D render section ----------
    A real-time WebGL object, not a video or GIF — see assets/hero-3d.js.

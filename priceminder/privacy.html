@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PriceMinder — Privacy Policy</title>
 <link rel="stylesheet" href="/assets/site.css">
+<link rel="stylesheet" href="/assets/site-wide.css">
 <meta name="description" content="How PriceMinder handles your data: no accounts, no analytics, and everything you enter stays on your device.">
 <link rel="icon" href="/assets/img/favicon.ico" sizes="32x32">
 <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
@@ -21,76 +22,75 @@
 <meta name="twitter:description" content="How PriceMinder handles your data: no accounts, no analytics, and everything you enter stays on your device.">
 <meta name="twitter:image" content="https://jrsdigital.net/assets/img/og-default.png">
 </head>
-<body>
-  <header class="site-header">
-    <div class="container">
-      <a class="brand" href="/">JRS Digital</a>
-      <nav>
+<body class="wide-theme">
+  <div class="w-shell">
+    <header class="w-header">
+      <a class="w-brand" href="/">JRS Digital</a>
+      <nav class="w-nav">
         <a href="/">Home</a>
         <a href="/about.html">About</a>
         <a href="/work.html">Work</a>
         <a href="/contact.html">Contact</a>
         <a href="/priceminder/">PriceMinder</a>
       </nav>
+    </header>
+
+    <section class="w-intro">
+      <p class="w-eyebrow"><span class="w-stroke"></span>Privacy</p>
+    </section>
+
+    <main class="w-prose">
+      <h1>PriceMinder — Privacy Policy</h1>
+      <p class="meta">Last updated: 19 July 2026</p>
+
+      <p>PriceMinder is developed by JRS Digital. This page explains what data the app
+      collects and how it is handled. In short: <strong>your financial data never leaves
+      your device.</strong></p>
+
+      <h2>Data we do not collect</h2>
+      <p>PriceMinder has no account system, no sign-in, and no analytics or tracking
+      SDKs of any kind. Everything you enter — subscriptions, bills, prices, promo end
+      dates — is stored only in the app's local storage on your device. We have no
+      server that receives this information, so we cannot see it, sell it, or lose it
+      in a breach. If you uninstall the app without exporting first, that data is
+      gone — we don't have a copy either.</p>
+
+      <h2>The one thing the app does fetch</h2>
+      <p>PriceMinder downloads a public, anonymous catalog of current NBN and mobile
+      plan offers (provider names, prices, plan details) over HTTPS so you can compare
+      it against what you pay. This is the same static file for every user — the
+      request does not include your name, your subscriptions, your device ID, or any
+      other identifying or personal information.</p>
+
+      <h2>App detection</h2>
+      <p>To help match offers to services you may already use, PriceMinder checks
+      whether a small, fixed list of specific telco and NBN provider apps are
+      installed on your device. This uses Android's package-visibility APIs against
+      an explicit, hard-coded allowlist — the app never scans or has visibility into
+      your full list of installed apps.</p>
+
+      <h2>Export and backup</h2>
+      <p>If you use the app's export feature, PriceMinder creates a file and hands it
+      to the share sheet or file picker you choose (e.g. your own cloud storage,
+      email, or files app). That file goes wherever you send it — we never receive a
+      copy.</p>
+
+      <h2>Children's privacy</h2>
+      <p>PriceMinder is not directed at children and, since the app collects no
+      personal data from any user, this does not change based on age.</p>
+
+      <h2>Changes to this policy</h2>
+      <p>If our data practices ever change, we'll update this page and change the
+      "Last updated" date above.</p>
+
+      <h2>Contact</h2>
+      <p>Questions about this policy: <a href="mailto:dev@jrsdigital.net">dev@jrsdigital.net</a></p>
+    </main>
+
+    <div class="w-footer">
+      <span>© 2026 JRS Digital.</span>
+      <span><a href="mailto:dev@jrsdigital.net">dev@jrsdigital.net</a> · <a href="/priceminder/privacy.html">Privacy Policy</a></span>
     </div>
-  </header>
-
-  <main class="container prose">
-  <h1>PriceMinder — Privacy Policy</h1>
-  <p class="meta">Last updated: 19 July 2026</p>
-
-  <p>PriceMinder is developed by JRS Digital. This page explains what data the app
-  collects and how it is handled. In short: <strong>your financial data never leaves
-  your device.</strong></p>
-
-  <h2>Data we do not collect</h2>
-  <p>PriceMinder has no account system, no sign-in, and no analytics or tracking
-  SDKs of any kind. Everything you enter — subscriptions, bills, prices, promo end
-  dates — is stored only in the app's local storage on your device. We have no
-  server that receives this information, so we cannot see it, sell it, or lose it
-  in a breach. If you uninstall the app without exporting first, that data is
-  gone — we don't have a copy either.</p>
-
-  <h2>The one thing the app does fetch</h2>
-  <p>PriceMinder downloads a public, anonymous catalog of current NBN and mobile
-  plan offers (provider names, prices, plan details) over HTTPS so you can compare
-  it against what you pay. This is the same static file for every user — the
-  request does not include your name, your subscriptions, your device ID, or any
-  other identifying or personal information.</p>
-
-  <h2>App detection</h2>
-  <p>To help match offers to services you may already use, PriceMinder checks
-  whether a small, fixed list of specific telco and NBN provider apps are
-  installed on your device. This uses Android's package-visibility APIs against
-  an explicit, hard-coded allowlist — the app never scans or has visibility into
-  your full list of installed apps.</p>
-
-  <h2>Export and backup</h2>
-  <p>If you use the app's export feature, PriceMinder creates a file and hands it
-  to the share sheet or file picker you choose (e.g. your own cloud storage,
-  email, or files app). That file goes wherever you send it — we never receive a
-  copy.</p>
-
-  <h2>Children's privacy</h2>
-  <p>PriceMinder is not directed at children and, since the app collects no
-  personal data from any user, this does not change based on age.</p>
-
-  <h2>Changes to this policy</h2>
-  <p>If our data practices ever change, we'll update this page and change the
-  "Last updated" date above.</p>
-
-  <h2>Contact</h2>
-  <p>Questions about this policy: <a href="mailto:dev@jrsdigital.net">dev@jrsdigital.net</a></p>
-  </main>
-
-  <footer class="site-footer">
-    <div class="container footer-grid">
-      <div>&copy; 2026 JRS Digital.</div>
-      <div class="footer-links">
-        <a href="/priceminder/privacy.html">Privacy Policy</a>
-        <a href="mailto:dev@jrsdigital.net">dev@jrsdigital.net</a>
-      </div>
-    </div>
-  </footer>
+  </div>
 </body>
 </html>
