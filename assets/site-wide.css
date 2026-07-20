@@ -435,14 +435,18 @@ body.wide-theme .mockup-caption { color: var(--w-ink-50); }
 
 .bonsai-stage {
   position: relative;
-  max-width: 640px;
-  aspect-ratio: 4 / 3;
+  max-width: 720px;
+  /* Matches the real backdrop photo's own dimensions (1376x768) so
+     object-fit: cover never has to crop it — the fractional coordinates
+     bonsai-scene.js uses to place the icon on the branch line up exactly
+     with what's visible, regardless of container size. */
+  aspect-ratio: 1376 / 768;
   margin: 0 auto;
 }
 /* Clipping lives on this inner wrapper, not on .bonsai-stage itself — the
    popover is a sibling of this, so when it renders above the fruit (which
    sits near the top of the canvas) it isn't cut off by the rounded-corner
-   mask the canvas needs. */
+   mask the photo/canvas need. */
 .bonsai-canvas-mask {
   position: absolute;
   inset: 0;
@@ -450,6 +454,19 @@ body.wide-theme .mockup-caption { color: var(--w-ink-50); }
   overflow: hidden;
   background: #101414;
   touch-action: none;
+}
+.bonsai-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  /* Grayscale backdrop, colored icon — same trick the reference image
+     uses: the tree/phone/skyline recede into monochrome so the one
+     colored, interactive element (the icon) is unmistakably the focus. */
+  filter: grayscale(1) contrast(1.05);
+  opacity: 0.9;
 }
 .bonsai-canvas-mask canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 

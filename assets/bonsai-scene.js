@@ -1,17 +1,17 @@
 /* Bonsai showcase — vanilla-JS port of a React/Canvas "living tree" component.
-   Ported down to a single fruit (PriceMinder is the only app JRS Digital has
+   Ported down to a single icon (PriceMinder is the only app JRS Digital has
    right now) and to plain Canvas2D + Web Audio, since this site has no build
    step, no React, and no bundler to compile JSX/TSX.
 
-   The tree itself (trunk, branches, leaf clusters) is drawn procedurally —
-   the original leaned on a photographed backdrop image that doesn't exist in
-   this repo. Drop a real photo at /assets/img/bonsai-backdrop.jpg and wire it
-   into drawBackdrop() below (grayscale, object-fit: cover) if you'd rather
-   use that than the generated one.
+   The backdrop is the real photo (/assets/img/bonsai-backdrop.webp) — a
+   bonsai growing out of a phone in moss, city skyline behind it — laid in
+   as a plain <img> (grayscale via CSS) behind this transparent canvas. The
+   canvas only draws the interactive icon, its glow, its connecting stem,
+   and a few wind-blown particles on top of that photo.
 
    Respects prefers-reduced-motion (renders one static frame, no physics/
-   particles/sway) and falls back to a plain link if canvas isn't supported.
-   Pauses the render loop when scrolled off-screen. */
+   particles) and falls back to the phone-mockup card if canvas isn't
+   supported. Pauses the render loop when scrolled off-screen. */
 (function () {
   var root = document.querySelector('[data-bonsai]');
   if (!root) return;
@@ -40,8 +40,8 @@
 
   var width = 0, height = 0;
   var time = 0;
-  var windSpeed = 1.2;
-  var windSwayAngle = 0;
+  var windSpeed = 1;
+  var windSway = 0;
   var shakeIntensity = 0;
   var running = false;
   var rafId = null;
@@ -104,101 +104,67 @@
 
   function mapCoords(px, py) { return { x: px * width, y: py * height }; }
 
-  // ---------- single fruit (PriceMinder) ----------
-  var fruit = {
-    x: 0, y: 0, vx: 0, vy: 0, radius: 26, bounceCount: 0,
+  // The one spot on the real photo's left-hand blossom branch where the
+  // icon sits — measured against the actual bonsai-backdrop.webp (1376x768).
+  // .bonsai-stage's aspect-ratio matches that photo exactly, so this
+  // fraction always lines up with the same physical point on the branch
+  // regardless of how big the card renders.
+  var anchorFrac = { x: 0.40, y: 0.47 };
+  var anchor = { x: 0, y: 0 };
+
+  var icon = {
+    x: 0, y: 0, vx: 0, vy: 0, size: 24, bounceCount: 0,
     rotation: 0, rotVelocity: 0, pulseTimer: 0,
     isAttached: true, isHovered: false
   };
-  var isFruitGrown = true;
+  var isIconGrown = true;
   var isCompiling = false;
 
-  // ---------- procedurally generated tree (computed once per resize, not per frame) ----------
-  var tree = null;
-  function buildTree() {
-    var base = mapCoords(0.5, 0.84);
-    var fork = mapCoords(0.48, 0.56);
-    var apex = mapCoords(0.52, 0.30);
-    var left = mapCoords(0.28, 0.46);
-    var right = mapCoords(0.70, 0.50);
-
-    function seededLeaves(anchor, count, spread, seed) {
-      var out = [];
-      for (var i = 0; i < count; i++) {
-        // Deterministic pseudo-random so leaf clusters don't jitter frame to frame.
-        var s = Math.sin(seed * 999 + i * 57.13) * 43758.5453;
-        var r1 = s - Math.floor(s);
-        var s2 = Math.sin(seed * 471 + i * 12.9898) * 12543.7;
-        var r2 = s2 - Math.floor(s2);
-        out.push({
-          dx: (r1 - 0.5) * spread,
-          dy: (r2 - 0.5) * spread * 0.7,
-          w: 7 + r1 * 6,
-          h: 3 + r2 * 3,
-          rot: r1 * Math.PI,
-          shade: 0.35 + r2 * 0.35
-        });
-      }
-      return out;
-    }
-
-    tree = {
-      base: base, fork: fork, apex: apex, left: left, right: right,
-      leaves: seededLeaves(apex, 10, 46, 1).concat(
-        seededLeaves(left, 9, 40, 2).map(function (l) { return { dx: l.dx - 6, dy: l.dy, w: l.w, h: l.h, rot: l.rot, shade: l.shade }; }),
-        seededLeaves(right, 9, 40, 3)
-      )
-    };
+  function isOverIcon(mx, my) {
+    return Math.hypot(icon.x - mx, icon.y - my) <= icon.size + 12;
   }
 
-  // ---------- particles (wind-blown leaves/petals + ambient fireflies) ----------
+  // ---------- particles: a light scatter of blossom petals on pluck/gust ----------
   var particles = [];
   function spawnGroundDust(x, y) {
     for (var i = 0; i < 6; i++) {
       particles.push({
         x: x, y: y, vx: (Math.random() - 0.5) * 3, vy: -Math.random() * 2 - 0.5,
-        radius: 1.5 + Math.random() * 2, alpha: 0.75, color: 'rgba(255,255,255,0.35)',
-        life: 0, maxLife: 40 + Math.random() * 30, type: 'dust'
+        radius: 1.5 + Math.random() * 2, alpha: 0.7, color: 'rgba(255,255,255,0.4)',
+        life: 0, maxLife: 40 + Math.random() * 30
       });
     }
   }
   function triggerShake() {
-    shakeIntensity = 14;
-    var apex = tree.apex;
-    for (var i = 0; i < 8; i++) {
+    shakeIntensity = 10;
+    for (var i = 0; i < 7; i++) {
       var angle = -Math.PI / 4 - Math.random() * (Math.PI / 2);
-      var speed = 1 + Math.random() * 2;
+      var speed = 1 + Math.random() * 1.8;
       particles.push({
-        x: apex.x + (Math.random() * 100 - 50),
-        y: apex.y + (Math.random() * 40 - 10),
+        x: anchor.x + (Math.random() * 60 - 30),
+        y: anchor.y + (Math.random() * 30 - 10),
         vx: Math.cos(angle) * speed + windSpeed * 0.4,
-        vy: Math.sin(angle) * speed + (Math.random() * 1.4 + 0.4),
-        radius: 3 + Math.random() * 5, alpha: 0.85,
-        color: Math.random() > 0.4 ? '#e9e9e9' : '#5a5a5a',
-        life: 0, maxLife: 110 + Math.random() * 70,
-        angle: Math.random() * Math.PI * 2, spin: (Math.random() - 0.5) * 0.08,
-        type: Math.random() > 0.5 ? 'petal' : 'leaf'
+        vy: Math.sin(angle) * speed + (Math.random() * 1.2 + 0.3),
+        radius: 2.5 + Math.random() * 3.5, alpha: 0.85, color: '#f2f2f2',
+        life: 0, maxLife: 90 + Math.random() * 60,
+        angle: Math.random() * Math.PI * 2, spin: (Math.random() - 0.5) * 0.08
       });
     }
   }
   function windGust() {
-    windSpeed = 3.4;
+    windSpeed = 2.6;
     playSound('rustle');
-    for (var i = 0; i < 16; i++) {
+    for (var i = 0; i < 12; i++) {
       particles.push({
-        x: tree.apex.x + Math.random() * width * 0.25 - width * 0.05,
-        y: tree.apex.y + Math.random() * height * 0.2,
-        vx: 1.8 + Math.random() * 2.2, vy: Math.random() * 0.7 - 0.2,
-        radius: 2.5 + Math.random() * 3, alpha: 0.85,
-        color: Math.random() > 0.4 ? '#eaeaea' : '#585858',
-        life: 0, maxLife: 130 + Math.random() * 90, type: 'petal'
+        x: anchor.x + Math.random() * width * 0.3 - width * 0.05,
+        y: anchor.y + Math.random() * height * 0.25,
+        vx: 1.4 + Math.random() * 1.8, vy: Math.random() * 0.6 - 0.15,
+        radius: 2 + Math.random() * 2.6, alpha: 0.8, color: '#f0f0f0',
+        life: 0, maxLife: 110 + Math.random() * 70
       });
     }
-    setTimeout(function () { windSpeed = 1.2; }, 1600);
+    setTimeout(function () { windSpeed = 1; }, 1500);
   }
-
-  function distanceToFruit(mx, my) { return Math.hypot(fruit.x - mx, fruit.y - my); }
-  function isOverFruit(mx, my) { return distanceToFruit(mx, my) <= fruit.radius + 10; }
 
   // ---------- popover ----------
   function showPopover() {
@@ -206,41 +172,41 @@
     popover.hidden = false;
     var statusEl = popover.querySelector('[data-bonsai-popover-status]');
     var actionEl = popover.querySelector('[data-bonsai-popover-action]');
-    if (statusEl) statusEl.textContent = fruit.isAttached ? 'On the tree' : 'Harvested';
-    if (actionEl) actionEl.textContent = fruit.isAttached ? 'Tap to pluck it off the branch' : 'Tap again to open PriceMinder';
+    if (statusEl) statusEl.textContent = icon.isAttached ? 'On the tree' : 'Harvested';
+    if (actionEl) actionEl.textContent = icon.isAttached ? 'Tap to pluck it off the branch' : 'Tap again to open PriceMinder';
     positionPopover();
   }
   function hidePopover() { if (popover) popover.hidden = true; }
   function positionPopover() {
     if (!popover || popover.hidden) return;
-    popover.style.left = fruit.x + 'px';
-    popover.style.top = (fruit.y - 26) + 'px';
+    popover.style.left = icon.x + 'px';
+    popover.style.top = (icon.y - icon.size - 10) + 'px';
   }
 
   // ---------- pointer interaction ----------
   var hovering = false;
   function handleMove(mx, my) {
-    var over = isOverFruit(mx, my);
+    var over = isOverIcon(mx, my);
     if (over && !hovering) {
       hovering = true;
-      fruit.isHovered = true;
+      icon.isHovered = true;
       playSound('rustle');
       showPopover();
     } else if (!over && hovering) {
       hovering = false;
-      fruit.isHovered = false;
+      icon.isHovered = false;
       hidePopover();
     } else if (over) {
       positionPopover();
     }
   }
   function handleTap(mx, my) {
-    if (!isOverFruit(mx, my)) return;
-    if (fruit.isAttached) {
-      fruit.isAttached = false;
-      fruit.vy = -1.1;
-      fruit.vx = (Math.random() - 0.5) * 4 + windSpeed * 0.4;
-      fruit.rotVelocity = (Math.random() - 0.5) * 0.22;
+    if (!isOverIcon(mx, my)) return;
+    if (icon.isAttached) {
+      icon.isAttached = false;
+      icon.vy = -1;
+      icon.vx = (Math.random() - 0.5) * 3.4 + windSpeed * 0.4;
+      icon.rotVelocity = (Math.random() - 0.5) * 0.2;
       playSound('pluck');
       triggerShake();
       showPopover();
@@ -251,7 +217,7 @@
   }
 
   function regrow() {
-    if (isCompiling || isFruitGrown) return;
+    if (isCompiling || isIconGrown) return;
     isCompiling = true;
     if (regrowBtn) regrowBtn.disabled = true;
     playSound('sweep');
@@ -262,137 +228,69 @@
       if (progress >= 100) {
         clearInterval(interval);
         isCompiling = false;
-        isFruitGrown = true;
+        isIconGrown = true;
         if (regrowBtn) { regrowBtn.disabled = false; regrowBtn.hidden = true; }
-        fruit.isAttached = true;
-        fruit.vx = 0; fruit.vy = 0; fruit.rotation = 0; fruit.rotVelocity = 0; fruit.bounceCount = 0;
+        icon.isAttached = true;
+        icon.vx = 0; icon.vy = 0; icon.rotation = 0; icon.rotVelocity = 0; icon.bounceCount = 0;
       }
     }, 45);
   }
 
-  // ---------- render ----------
-  function drawBackdrop() {
-    var g = ctx.createLinearGradient(0, 0, 0, height);
-    g.addColorStop(0, '#1c2224');
-    g.addColorStop(1, '#101414');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, width, height);
-
-    // soft ground mist / moss platform
-    var moss = ctx.createRadialGradient(width * 0.5, height * 0.9, 4, width * 0.5, height * 0.9, width * 0.42);
-    moss.addColorStop(0, 'rgba(255,255,255,0.05)');
-    moss.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = moss;
-    ctx.fillRect(0, 0, width, height);
-  }
-
-  function drawTree(sway) {
-    ctx.save();
-    ctx.translate(tree.base.x, tree.base.y);
-    ctx.rotate(sway);
-    ctx.translate(-tree.base.x, -tree.base.y);
-
-    // trunk (tapered fill, curving from base to fork)
-    var trunkGrad = ctx.createLinearGradient(tree.base.x, tree.base.y, tree.fork.x, tree.fork.y);
-    trunkGrad.addColorStop(0, '#2b2b2b');
-    trunkGrad.addColorStop(1, '#4a4a4a');
-    ctx.fillStyle = trunkGrad;
+  // ---------- drawing ----------
+  function roundedSquarePath(cx, cy, half, r) {
     ctx.beginPath();
-    ctx.moveTo(tree.base.x - 13, tree.base.y);
-    ctx.quadraticCurveTo(tree.base.x - 9, (tree.base.y + tree.fork.y) / 2, tree.fork.x - 5, tree.fork.y);
-    ctx.lineTo(tree.fork.x + 5, tree.fork.y);
-    ctx.quadraticCurveTo(tree.base.x + 9, (tree.base.y + tree.fork.y) / 2, tree.base.x + 13, tree.base.y);
+    ctx.moveTo(cx - half + r, cy - half);
+    ctx.arcTo(cx + half, cy - half, cx + half, cy + half, r);
+    ctx.arcTo(cx + half, cy + half, cx - half, cy + half, r);
+    ctx.arcTo(cx - half, cy + half, cx - half, cy - half, r);
+    ctx.arcTo(cx - half, cy - half, cx + half, cy - half, r);
     ctx.closePath();
-    ctx.fill();
-
-    // three branches forking out from the same point
-    [
-      { to: tree.apex, w0: 5, w1: 2 },
-      { to: tree.left, w0: 4.5, w1: 1.6 },
-      { to: tree.right, w0: 4.5, w1: 1.6 }
-    ].forEach(function (b) {
-      var midX = (tree.fork.x + b.to.x) / 2 + (b.to.x - tree.fork.x) * 0.15;
-      var midY = (tree.fork.y + b.to.y) / 2 - 10;
-      var grad = ctx.createLinearGradient(tree.fork.x, tree.fork.y, b.to.x, b.to.y);
-      grad.addColorStop(0, '#454545');
-      grad.addColorStop(1, '#5c5c5c');
-      ctx.strokeStyle = grad;
-      ctx.lineWidth = b.w0;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(tree.fork.x, tree.fork.y);
-      ctx.quadraticCurveTo(midX, midY, b.to.x, b.to.y);
-      ctx.stroke();
-    });
-
-    // leaf clusters (precomputed, just placed — no per-frame randomness)
-    tree.leaves.forEach(function (l, i) {
-      var anchor = i < 10 ? tree.apex : (i < 19 ? tree.left : tree.right);
-      var gray = Math.round(70 + l.shade * 70);
-      ctx.fillStyle = 'rgba(' + gray + ',' + gray + ',' + gray + ',0.85)';
-      ctx.save();
-      ctx.translate(anchor.x + l.dx, anchor.y + l.dy);
-      ctx.rotate(l.rot);
-      ctx.beginPath();
-      ctx.ellipse(0, 0, l.w, l.h, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    });
-
-    ctx.restore();
   }
 
-  function drawStem(sway) {
-    if (!fruit.isAttached) return;
-    var apex = tree.apex;
-    var sx = apex.x + Math.sin(sway) * 18;
-    var sy = apex.y;
-    ctx.save();
-    ctx.strokeStyle = '#4a4a4a';
-    ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(sx, sy);
-    ctx.quadraticCurveTo((sx + fruit.x) / 2, (sy + fruit.y) / 2 - 6, fruit.x, fruit.y - fruit.radius + 4);
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  function drawFruit() {
-    var pulse = Math.sin(fruit.pulseTimer) * 0.15 + 0.95;
-    var glowRadius = fruit.radius * 2.1 * pulse;
+  function drawIcon() {
+    var pulse = Math.sin(icon.pulseTimer) * 0.15 + 0.95;
+    var glowRadius = icon.size * 2.6 * pulse;
 
     ctx.save();
-    var glow = ctx.createRadialGradient(fruit.x, fruit.y, 1, fruit.x, fruit.y, glowRadius);
+    var glow = ctx.createRadialGradient(icon.x, icon.y, 1, icon.x, icon.y, glowRadius);
     glow.addColorStop(0, 'rgba(92,124,147,0.55)');
     glow.addColorStop(0.4, 'rgba(92,124,147,0.16)');
     glow.addColorStop(1, 'rgba(92,124,147,0)');
     ctx.fillStyle = glow;
     ctx.beginPath();
-    ctx.arc(fruit.x, fruit.y, glowRadius, 0, Math.PI * 2);
+    ctx.arc(icon.x, icon.y, glowRadius, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
     ctx.save();
-    ctx.translate(fruit.x, fruit.y);
-    ctx.rotate(fruit.rotation);
-    ctx.beginPath();
-    ctx.fillStyle = '#4A6577';
-    ctx.arc(0, 0, fruit.radius, 0, Math.PI * 2);
+    ctx.translate(icon.x, icon.y);
+    ctx.rotate(icon.rotation);
+
+    roundedSquarePath(0, 0, icon.size, icon.size * 0.32);
+    var body = ctx.createLinearGradient(-icon.size, -icon.size, icon.size, icon.size);
+    body.addColorStop(0, '#5C7C93');
+    body.addColorStop(1, '#3d5566');
+    ctx.fillStyle = body;
     ctx.fill();
 
-    var hi = ctx.createRadialGradient(-5, -5, 1, 0, 0, fruit.radius);
-    hi.addColorStop(0, 'rgba(255,255,255,0.4)');
-    hi.addColorStop(0.5, 'rgba(255,255,255,0.05)');
-    hi.addColorStop(1, 'rgba(0,0,0,0.25)');
-    ctx.beginPath();
+    var hi = ctx.createLinearGradient(-icon.size, -icon.size, 0, 0);
+    hi.addColorStop(0, 'rgba(255,255,255,0.32)');
+    hi.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = hi;
-    ctx.arc(0, 0, fruit.radius, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.strokeStyle = fruit.isHovered ? '#ffffff' : 'rgba(255,255,255,0.32)';
-    ctx.lineWidth = fruit.isHovered ? 2.4 : 1.4;
+    ctx.strokeStyle = icon.isHovered ? '#ffffff' : 'rgba(255,255,255,0.4)';
+    ctx.lineWidth = icon.isHovered ? 2 : 1.2;
+    roundedSquarePath(0, 0, icon.size, icon.size * 0.32);
     ctx.stroke();
+
+    // "$" glyph — PriceMinder is a subscription/price tracker, not a generic mark.
+    ctx.fillStyle = '#F4F7F8';
+    ctx.font = '600 ' + Math.round(icon.size * 1.15) + "px 'Space Grotesk', sans-serif";
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('$', 0, icon.size * 0.06);
+
     ctx.restore();
   }
 
@@ -408,58 +306,52 @@
       ctx.translate(p.x, p.y);
       if (p.angle !== undefined) ctx.rotate(p.angle);
       ctx.globalAlpha = Math.max(0, a);
-      ctx.fillStyle = p.type === 'leaf' ? '#5a5a5a' : p.color;
+      ctx.fillStyle = p.color;
       ctx.beginPath();
-      if (p.type === 'petal') ctx.ellipse(0, 0, p.radius * 1.4, p.radius * 0.85, 0, 0, Math.PI * 2);
-      else if (p.type === 'leaf') ctx.ellipse(0, 0, p.radius * 1.5, p.radius * 0.6, Math.PI / 4, 0, Math.PI * 2);
-      else ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
+      ctx.ellipse(0, 0, p.radius * 1.3, p.radius * 0.8, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
       return p.life < p.maxLife && p.y < height + 30 && p.x > -50 && p.x < width + 50;
     });
-    if (Math.random() < 0.05) {
-      particles.push({
-        x: width * 0.5 + (Math.random() * 220 - 110), y: height * 0.88,
-        vx: (Math.random() - 0.5) * 0.5, vy: -0.35 - Math.random() * 0.5,
-        radius: 1 + Math.random() * 1.4, alpha: 0.75, color: 'rgba(200,200,200,0.4)',
-        life: 0, maxLife: 100 + Math.random() * 70, type: 'spark'
-      });
-    }
   }
 
-  function updateFruit(sway) {
-    fruit.pulseTimer += 0.04;
-    if (fruit.isAttached) {
-      var apex = tree.apex;
-      var swing = Math.sin(time * 2.2 + fruit.pulseTimer) * 4 * (windSpeed * 0.5);
-      fruit.x = apex.x + Math.sin(sway) * 18 + swing;
-      fruit.y = apex.y + 24 + Math.abs(swing) * 0.2;
-      fruit.rotation = swing * 0.02;
+  function updateIcon() {
+    icon.pulseTimer += 0.04;
+    if (icon.isAttached) {
+      // Small sway, on purpose — this icon is "hanging" on a real, static
+      // photo of a branch, so it should stay close to that exact point
+      // rather than swinging far enough to look detached from it.
+      var swing = Math.sin(time * 2 + icon.pulseTimer) * 2.2 * windSpeed;
+      icon.x = anchor.x + swing;
+      icon.y = anchor.y + Math.abs(swing) * 0.15;
+      icon.rotation = swing * 0.012;
       return;
     }
-    fruit.vy += 0.32;
-    fruit.vx *= 0.99;
-    fruit.x += fruit.vx;
-    fruit.y += fruit.vy;
-    fruit.rotation += fruit.rotVelocity;
-    fruit.rotVelocity *= 0.98;
+    icon.vy += 0.3;
+    icon.vx *= 0.99;
+    icon.x += icon.vx;
+    icon.y += icon.vy;
+    icon.rotation += icon.rotVelocity;
+    icon.rotVelocity *= 0.98;
 
-    var groundY = height * 0.86;
-    if (fruit.y + fruit.radius >= groundY) {
-      fruit.y = groundY - fruit.radius;
-      fruit.vy = -fruit.vy * 0.32;
-      fruit.vx *= 0.55;
-      fruit.rotVelocity = fruit.vx * 0.03;
-      if (Math.abs(fruit.vy) < 0.8) fruit.vy = 0;
-      if (fruit.bounceCount < 3) {
-        fruit.bounceCount++;
+    // Lands roughly on the moss bed around the phone in the photo, not the
+    // very bottom edge of the frame.
+    var groundY = height * 0.74;
+    if (icon.y + icon.size >= groundY) {
+      icon.y = groundY - icon.size;
+      icon.vy = -icon.vy * 0.3;
+      icon.vx *= 0.5;
+      icon.rotVelocity = icon.vx * 0.03;
+      if (Math.abs(icon.vy) < 0.8) icon.vy = 0;
+      if (icon.bounceCount < 3) {
+        icon.bounceCount++;
         playSound('thud');
-        spawnGroundDust(fruit.x, groundY);
+        spawnGroundDust(icon.x, groundY);
       }
     }
-    if (fruit.y > height + 60) {
-      fruit.y = height + 50; fruit.vy = 0;
-      isFruitGrown = false;
+    if (icon.y > height + 60) {
+      icon.y = height + 50; icon.vy = 0;
+      isIconGrown = false;
       if (regrowBtn) regrowBtn.hidden = false;
     }
   }
@@ -470,15 +362,12 @@
     width = canvas.width / dpr;
     height = canvas.height / dpr;
 
-    windSwayAngle = Math.sin(time * 1.4) * (windSpeed * 0.01);
+    windSway = Math.sin(time * 1.2) * (windSpeed * 0.01);
     if (shakeIntensity > 0.05) shakeIntensity *= 0.88; else shakeIntensity = 0;
 
     ctx.clearRect(0, 0, width, height);
-    drawBackdrop();
-    updateFruit(windSwayAngle);
-    drawTree(windSwayAngle);
-    drawStem(windSwayAngle);
-    drawFruit();
+    updateIcon();
+    drawIcon();
     drawParticles();
 
     if (hovering) positionPopover();
@@ -490,12 +379,9 @@
     width = canvas.width / dpr;
     height = canvas.height / dpr;
     ctx.clearRect(0, 0, width, height);
-    drawBackdrop();
-    fruit.x = tree.apex.x;
-    fruit.y = tree.apex.y + 24;
-    drawTree(0);
-    drawStem(0);
-    drawFruit();
+    icon.x = anchor.x;
+    icon.y = anchor.y;
+    drawIcon();
   }
 
   function resize() {
@@ -505,9 +391,9 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     width = rect.width;
     height = rect.height;
-    buildTree();
-    fruit.x = tree.apex.x;
-    fruit.y = tree.apex.y + 24;
+    anchor = mapCoords(anchorFrac.x, anchorFrac.y);
+    icon.size = Math.max(18, Math.min(30, width * 0.045));
+    if (icon.isAttached) { icon.x = anchor.x; icon.y = anchor.y; }
     if (reduceMotion) renderStaticFrame();
   }
 
@@ -536,7 +422,7 @@
       canvas.style.cursor = hovering ? 'pointer' : 'default';
     });
     canvas.addEventListener('pointerleave', function () {
-      hovering = false; fruit.isHovered = false; hidePopover();
+      hovering = false; icon.isHovered = false; hidePopover();
     });
     canvas.addEventListener('pointerdown', function (e) {
       var r = canvas.getBoundingClientRect();
