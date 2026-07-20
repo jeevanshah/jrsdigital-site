@@ -3,68 +3,64 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="PriceMinder is a private, on-device subscription and bill tracker — a memory for price rises.">
+<meta name="description" content="PriceMinder tracks every subscription and bill, catches price hikes and expiring promos, and stores everything on your device — not ours.">
 <title>PriceMinder — JRS Digital</title>
 <link rel="stylesheet" href="/assets/site.css">
+<link rel="stylesheet" href="/assets/site-wide.css">
 </head>
-<body>
-  <header class="site-header">
-    <div class="container">
-      <a class="brand" href="/">JRS Digital</a>
-      <nav>
+<body class="wide-theme">
+  <div class="w-shell">
+    <header class="w-header">
+      <a class="w-brand" href="/">JRS Digital</a>
+      <nav class="w-nav">
         <a href="/">Home</a>
         <a href="/about.html">About</a>
         <a href="/work.html" class="active">Work</a>
         <a href="/contact.html">Contact</a>
         <a href="/priceminder/privacy.html">Privacy</a>
       </nav>
-    </div>
-  </header>
+    </header>
 
-  <main class="container">
-    <section class="hero">
-      <p class="eyebrow">PriceMinder</p>
-      <h1>A memory for price rises.</h1>
-      <p class="tagline">PriceMinder remembers exactly what every subscription costs you —
-        streaming, software, memberships, NBN, mobile — especially the promo price, and
-        the day it quietly expires.</p>
+    <section class="w-intro">
+      <p class="w-eyebrow"><span class="w-stroke"></span>PriceMinder</p>
+      <h1>Catch every price hike before it costs you.</h1>
+      <p>PriceMinder tracks what every subscription and bill actually costs you —
+        streaming, software, memberships, NBN, mobile — and remembers the exact day a
+        promo quietly expires, so you can act first instead of finding out on the
+        invoice.</p>
     </section>
 
-    <section>
-      <h2>What it does</h2>
-      <div class="feature-grid">
-        <div class="feature card">
-          <div class="feature-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          </div>
+    <section class="w-section" style="padding-top: 8px;">
+      <h2><span class="w-stroke"></span>What it does</h2>
+      <div class="w-belief-row">
+        <div class="w-belief">
+          <span class="num">01</span>
+          <h3>Never miss a price hike</h3>
+          <p>Checks your internet and mobile plans against a public, anonymous
+            catalog of current offers, so you know the moment you're overpaying.</p>
+        </div>
+        <div class="w-belief">
+          <span class="num">02</span>
           <h3>One library, every subscription</h3>
-          <p>Streaming, software, gym memberships, cloud storage, NBN, mobile — everything
-            you pay for, with what it costs and when it renews.</p>
+          <p>Streaming, software, gym memberships, cloud storage, NBN, mobile —
+            everything you pay for, what it costs, and when it renews.</p>
         </div>
-        <div class="feature card">
-          <div class="feature-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>
-          </div>
-          <h3>Compares NBN &amp; mobile plans</h3>
-          <p>Checks your internet and mobile plans against a public, anonymous catalog of
-            current offers, so you know if you're overpaying.</p>
-        </div>
-        <div class="feature card">
-          <div class="feature-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-          </div>
+        <div class="w-belief">
+          <span class="num">03</span>
           <h3>Private by design</h3>
-          <p>No accounts, no sign-in, no analytics. Your financial data is stored only on
-            your device.</p>
+          <p>No accounts, no sign-in, no analytics. Your financial data is stored
+            only on your device.</p>
         </div>
       </div>
     </section>
 
-    <section>
-      <h2>See it in action</h2>
+    <section class="w-section" style="padding-top: 0;">
+      <h2><span class="w-stroke"></span>See it in action</h2>
       <div class="phone-stage phone-stage--solo">
         <div class="phone-frame">
           <div class="phone-frame__notch" aria-hidden="true"></div>
+          <div class="phone-frame__cam" aria-hidden="true"></div>
+          <div class="phone-frame__chin" aria-hidden="true"></div>
           <div class="phone-screen">
             <img class="phone-screen-media" src="/assets/img/priceminder-dashboard.webp"
               alt="PriceMinder's dashboard showing a monthly spending breakdown across
@@ -75,35 +71,30 @@
       <p class="mockup-caption">The Dashboard — a real screen from the app, currently in development.</p>
     </section>
 
-    <section>
-      <h2>Privacy, actually</h2>
-      <p>Everything you enter stays in local storage on your phone. There's no server
-        collecting your subscriptions, bills, or prices — so there's nothing for us to
-        see, sell, or lose in a breach. Read the full
-        <a href="/priceminder/privacy.html">privacy policy</a>.</p>
+    <section class="w-section" style="padding-top: 0;">
+      <h2><span class="w-stroke"></span>Privacy, actually</h2>
+      <p style="max-width: 62ch; color: var(--w-ink-70);">Everything you enter stays in
+        local storage on your phone. There's no server collecting your subscriptions,
+        bills, or prices — so there's nothing for us to see, sell, or lose in a breach.
+        Read the full <a href="/priceminder/privacy.html">privacy policy</a>.</p>
     </section>
 
-    <section>
-      <div class="cta">
+    <section class="w-section" style="padding-top: 0; padding-bottom: 56px;">
+      <div class="w-cta-block">
         <h2>Coming soon</h2>
         <p>PriceMinder isn't on the Play Store yet. Check back soon.</p>
-        <a class="btn btn-disabled" href="#" aria-disabled="true" tabindex="-1">
+        <span class="w-cta" style="opacity: 0.5; pointer-events: none; cursor: default;" aria-disabled="true">
           <!-- TODO: replace with the official Google Play badge + store link at launch -->
           Get it on Google Play — coming soon
-        </a>
+        </span>
       </div>
     </section>
-  </main>
 
-  <footer class="site-footer">
-    <div class="container footer-grid">
-      <div>&copy; 2026 JRS Digital.</div>
-      <div class="footer-links">
-        <a href="/priceminder/privacy.html">Privacy Policy</a>
-        <a href="mailto:dev@jrsdigital.net">dev@jrsdigital.net</a>
-      </div>
+    <div class="w-footer">
+      <span>© 2026 JRS Digital.</span>
+      <span><a href="mailto:dev@jrsdigital.net">dev@jrsdigital.net</a> · <a href="/priceminder/privacy.html">Privacy Policy</a></span>
     </div>
-  </footer>
+  </div>
 
   <script src="/assets/hero-effects.js" defer></script>
 </body>
