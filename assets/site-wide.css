@@ -174,21 +174,20 @@ body.wide-theme {
   gap: 10px;
 }
 
-/* Horizontal work-card row instead of a stacked vertical list — designed to
-   read as a row even with one card, and to scroll horizontally once more
-   projects exist rather than stacking indefinitely. */
+/* Single feature spotlight instead of a card + empty placeholder box. With
+   only one project, "card + empty dashed slot" reads as a bare, unfinished
+   list. A unified two-column panel (copy + a real device shot) reads as one
+   deliberate feature, and still has room to become a proper row/grid once a
+   second project exists. */
 .w-work-row {
-  display: flex;
-  gap: 22px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-}
-.w-work-card {
-  flex: 0 0 420px;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  align-items: center;
+  gap: 36px;
   background: var(--w-surface);
   border: 1px solid var(--w-border);
   border-radius: var(--w-radius);
-  padding: 26px;
+  padding: 40px;
 }
 .w-work-card .tag {
   font-size: 0.72rem;
@@ -200,23 +199,25 @@ body.wide-theme {
 .w-work-card h3 {
   font-family: 'Space Grotesk', sans-serif;
   font-weight: 500;
-  font-size: 1.2rem;
-  margin: 8px 0 10px;
+  font-size: 1.5rem;
+  margin: 10px 0 12px;
 }
-.w-work-card p { color: var(--w-ink-70); margin: 0 0 16px; font-size: 0.95rem; }
-.w-work-card a { color: var(--w-ink); font-weight: 700; font-size: 0.9rem; text-decoration: none; }
+.w-work-card p { color: var(--w-ink-70); margin: 0 0 18px; font-size: 0.98rem; }
+.w-work-card a { color: var(--w-ink); font-weight: 700; font-size: 0.92rem; text-decoration: none; }
 .w-work-card a:hover { text-decoration: underline; }
-.w-work-more {
-  flex: 0 0 220px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+
+.w-work-media { display: flex; justify-content: center; }
+.w-work-media .phone-frame { width: clamp(140px, 13vw, 180px); }
+
+.w-more-note {
+  margin: 18px 2px 0;
   color: var(--w-ink-50);
-  font-size: 0.9rem;
-  border: 1px dashed var(--w-border);
-  border-radius: var(--w-radius);
-  text-align: center;
-  padding: 26px;
+  font-size: 0.88rem;
+}
+
+@media (max-width: 720px) {
+  .w-work-row { grid-template-columns: 1fr; padding: 28px; text-align: left; }
+  .w-work-media { margin-top: 4px; }
 }
 
 .w-footer {

@@ -306,69 +306,48 @@ section h2 {
   color: var(--text-muted);
 }
 
-/* ---------- phone-frame: real screenshot or CSS-drawn content, same shell ----------
-   Shape is deliberately asymmetric (rounder chin than crown) rather than a
-   plain symmetric rounded-rect, and the rim/cutouts pick up the page's
-   --accent variable so the device itself carries the same rhyme color used
-   elsewhere on the page, instead of being a neutral gray box the brand
-   sits inside. */
+/* ---------- phone-frame: realistic hardware shell, real screenshot inside ----------
+   The case itself is always a dark, neutral device material (graphite/glass),
+   independent of --accent or the page theme — real phone hardware doesn't
+   recolor itself to match a website. A thin uniform bezel + a single
+   punch-hole camera reads as an actual device; the old thick tinted rim,
+   two-part notch and colored "chin" bar read as a toy/illustration. */
 .phone-frame {
   width: 100%;
   aspect-ratio: 9 / 19.3;
-  border-radius: 32px 32px 46px 46px;
-  border: 1px solid var(--border); /* fallback for browsers without color-mix() */
-  border: 1.5px solid color-mix(in srgb, var(--accent) 32%, var(--border));
-  background: var(--surface);
-  box-shadow: 0 40px 80px -28px var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  padding: 14px 10px 20px;
+  border-radius: 34px;
+  border: 1px solid rgba(0, 0, 0, 0.55);
+  background: linear-gradient(165deg, #2e2e33, #0a0a0c 60%);
+  box-shadow: 0 30px 54px -26px var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  padding: 7px;
   position: relative;
 }
-/* Off-center speaker slit + a small accent-tinted punch-hole camera dot,
-   instead of a single centered pill — reads as an asymmetric real-device
-   cutout rather than a generic centered notch. */
+/* Single centered punch-hole camera sitting on top of the screen, the way an
+   actual modern phone's front camera does — not a separate notch + dot. */
 .phone-frame__notch {
   position: absolute;
-  top: 14px;
-  left: 42%;
-  transform: translateX(-50%);
-  width: 28px;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--text);
-  opacity: 0.16;
-  z-index: 1;
-}
-.phone-frame__cam {
-  position: absolute;
-  top: 13px;
-  left: calc(42% + 24px);
-  transform: translateX(-50%);
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-  opacity: 0.55;
-  z-index: 1;
-}
-/* Bottom home-indicator bar tinted with the accent — a small branded touch
-   that puts the rhyme color on the star element itself, not just around it. */
-.phone-frame__chin {
-  position: absolute;
-  bottom: 8px;
+  top: 15px;
   left: 50%;
   transform: translateX(-50%);
-  width: 38px;
-  height: 3px;
-  border-radius: 2px;
-  background: var(--accent);
-  opacity: 0.5;
-  z-index: 1;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #050506;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+  z-index: 2;
+}
+/* No separate camera dot or colored chin bar — a real device doesn't have
+   either as an external branded accent, and the real screenshots already
+   include their own iOS home indicator baked into the image. */
+.phone-frame__cam,
+.phone-frame__chin {
+  display: none;
 }
 .phone-screen {
   position: relative;
-  margin-top: 24px;
-  height: calc(100% - 32px);
-  border-radius: 20px;
+  margin: 0;
+  height: 100%;
+  border-radius: 27px;
   overflow: hidden;
   background: var(--bg);
 }
