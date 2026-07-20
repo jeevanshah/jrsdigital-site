@@ -305,6 +305,75 @@ body.wide-theme {
 /* ---------- phone gallery (Work page) recolored for this theme ---------- */
 body.wide-theme .phone-gallery .phone-caption { color: var(--w-ink-50); }
 
+/* ---------- Visual engineering: live 3D render section ----------
+   A real-time WebGL object, not a video or GIF — see assets/hero-3d.js.
+   The violet glow (#5852ff) matches the app's own button/accent color,
+   standing in for the screen bleeding light onto the case. */
+.w-scene {
+  position: relative;
+  border-radius: var(--w-radius);
+  border: 1px solid var(--w-border);
+  background: var(--w-surface);
+  overflow: hidden;
+  padding: 8px;
+}
+.w-scene::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(closest-side, rgba(88, 82, 255, 0.20), transparent 72%);
+  pointer-events: none;
+  z-index: 0;
+}
+.w-scene-inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 32px;
+  padding: 32px;
+}
+.w-scene-copy .tag {
+  font-size: 0.72rem;
+  color: var(--w-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+.w-scene-copy h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  font-size: 1.5rem;
+  margin: 10px 0 12px;
+}
+.w-scene-copy p { color: var(--w-ink-70); margin: 0; font-size: 0.98rem; max-width: 42ch; }
+
+.scene-3d {
+  position: relative;
+  width: 100%;
+  height: 420px;
+}
+.scene-3d canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.scene-3d-fallback {
+  display: none;
+  position: absolute;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+}
+.scene-3d-fallback .phone-frame { width: min(56%, 220px); }
+.scene-3d--fallback canvas { display: none; }
+
+@media (max-width: 900px) {
+  .w-scene-inner { grid-template-columns: 1fr; text-align: left; padding: 28px; }
+  .scene-3d { height: 340px; }
+}
+
 @media (max-width: 980px) {
   .w-shell { padding: 0 22px; }
   .w-hero { grid-template-columns: 1fr; padding: 36px 0; }
