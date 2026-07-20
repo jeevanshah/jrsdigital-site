@@ -22,7 +22,6 @@
   var popover = root.querySelector('[data-bonsai-popover]');
   var windBtn = root.querySelector('[data-bonsai-wind]');
   var regrowBtn = root.querySelector('[data-bonsai-regrow]');
-  var regrowLabel = root.querySelector('[data-bonsai-regrow-label]');
   var launchLink = root.querySelector('[data-bonsai-launch]');
 
   var supportsCanvas = !!(canvas && canvas.getContext && canvas.getContext('2d'));
@@ -102,14 +101,40 @@
     } catch (e) { /* Web Audio unavailable — silently skip, visuals still work */ }
   }
 
-  function mapCoords(px, py) { return { x: px * width, y: py * height }; }
+  // The photo's own pixel dimensions — needed to work out exactly how
+  // object-fit: cover crops it once .bonsai-stage is free to be any size
+  // (full width, viewport-relative height) rather than matching the
+  // photo's aspect ratio 1:1.
+  var PHOTO_W = 1376, PHOTO_H = 768;
+
+  // Converts a fraction of the *original photo* (0-1, 0-1) into a pixel
+  // coordinate inside the stage, replicating what object-fit: cover +
+  // object-position: center do to the image. Without this, the icon's
+  // anchor point drifts off the branch as soon as the stage's aspect
+  // ratio stops matching the photo's.
+  function photoFractionToPixel(fx, fy) {
+    var containerAspect = width / height;
+    var photoAspect = PHOTO_W / PHOTO_H;
+    var scale, offsetX = 0, offsetY = 0;
+    if (containerAspect > photoAspect) {
+      // Stage is wider/shorter than the photo — photo scales to the
+      // stage's width, top/bottom get cropped evenly.
+      scale = width / PHOTO_W;
+      offsetY = (PHOTO_H * scale - height) / 2;
+      return { x: fx * PHOTO_W * scale, y: fy * PHOTO_H * scale - offsetY };
+    }
+    // Stage is taller/narrower than the photo — photo scales to the
+    // stage's height, left/right get cropped evenly.
+    scale = height / PHOTO_H;
+    offsetX = (PHOTO_W * scale - width) / 2;
+    return { x: fx * PHOTO_W * scale - offsetX, y: fy * PHOTO_H * scale };
+  }
 
   // The one spot on the real photo's left-hand blossom branch where the
-  // icon sits — measured against the actual bonsai-backdrop.webp (1376x768).
-  // .bonsai-stage's aspect-ratio matches that photo exactly, so this
-  // fraction always lines up with the same physical point on the branch
-  // regardless of how big the card renders.
+  // icon sits — measured directly against bonsai-backdrop.webp.
   var anchorFrac = { x: 0.40, y: 0.47 };
+  // Same technique for the moss bed the icon lands/bounces on when plucked.
+  var groundFracY = 0.74;
   var anchor = { x: 0, y: 0 };
 
   var icon = {
@@ -219,17 +244,16 @@
   function regrow() {
     if (isCompiling || isIconGrown) return;
     isCompiling = true;
-    if (regrowBtn) regrowBtn.disabled = true;
+    if (regrowBtn) { regrowBtn.disabled = true; regrowBtn.setAttribute('aria-label', 'Regrowing'); }
     playSound('sweep');
     var progress = 0;
     var interval = setInterval(function () {
       progress += 8;
-      if (regrowLabel) regrowLabel.textContent = 'Regrowing… ' + Math.min(progress, 100) + '%';
       if (progress >= 100) {
         clearInterval(interval);
         isCompiling = false;
         isIconGrown = true;
-        if (regrowBtn) { regrowBtn.disabled = false; regrowBtn.hidden = true; }
+        if (regrowBtn) { regrowBtn.disabled = false; regrowBtn.hidden = true; regrowBtn.setAttribute('aria-label', 'Regrow'); }
         icon.isAttached = true;
         icon.vx = 0; icon.vy = 0; icon.rotation = 0; icon.rotVelocity = 0; icon.bounceCount = 0;
       }
@@ -249,12 +273,16 @@
 
   function drawIcon() {
     var pulse = Math.sin(icon.pulseTimer) * 0.15 + 0.95;
-    var glowRadius = icon.size * 2.6 * pulse;
+    var glowRadius = icon.size * 2.4 * pulse;
+    var r = icon.size * 0.28; // squircle corner radius — closer to a real app-icon shape than a plain rounded square
 
+    // Ambient color glow — reads at a distance, separate from the hard
+    // drop shadow below (which sells the icon sitting a little in front
+    // of the photo, not just glowing).
     ctx.save();
     var glow = ctx.createRadialGradient(icon.x, icon.y, 1, icon.x, icon.y, glowRadius);
-    glow.addColorStop(0, 'rgba(92,124,147,0.55)');
-    glow.addColorStop(0.4, 'rgba(92,124,147,0.16)');
+    glow.addColorStop(0, 'rgba(92,124,147,0.5)');
+    glow.addColorStop(0.45, 'rgba(92,124,147,0.14)');
     glow.addColorStop(1, 'rgba(92,124,147,0)');
     ctx.fillStyle = glow;
     ctx.beginPath();
@@ -266,30 +294,45 @@
     ctx.translate(icon.x, icon.y);
     ctx.rotate(icon.rotation);
 
-    roundedSquarePath(0, 0, icon.size, icon.size * 0.32);
+    // Elevation shadow, drawn under the body separately so it doesn't
+    // also blur the highlight/stroke/glyph drawn on top of it.
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = icon.size * 0.6;
+    ctx.shadowOffsetY = icon.size * 0.22;
+    roundedSquarePath(0, 0, icon.size, r);
+    ctx.fillStyle = '#000'; // fully opaque so the cast shadow is visible — this square itself gets completely covered by the body fill drawn right after
+    ctx.fill();
+    ctx.restore();
+
+    roundedSquarePath(0, 0, icon.size, r);
     var body = ctx.createLinearGradient(-icon.size, -icon.size, icon.size, icon.size);
     body.addColorStop(0, '#5C7C93');
-    body.addColorStop(1, '#3d5566');
+    body.addColorStop(1, '#3A4E5E');
     ctx.fillStyle = body;
     ctx.fill();
 
-    var hi = ctx.createLinearGradient(-icon.size, -icon.size, 0, 0);
-    hi.addColorStop(0, 'rgba(255,255,255,0.32)');
+    // Soft top-left gloss, kept subtle so the icon still reads as flat/
+    // modern rather than glassy.
+    roundedSquarePath(0, 0, icon.size, r);
+    var hi = ctx.createLinearGradient(-icon.size, -icon.size, icon.size * 0.2, icon.size * 0.2);
+    hi.addColorStop(0, 'rgba(255,255,255,0.28)');
     hi.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = hi;
     ctx.fill();
 
-    ctx.strokeStyle = icon.isHovered ? '#ffffff' : 'rgba(255,255,255,0.4)';
-    ctx.lineWidth = icon.isHovered ? 2 : 1.2;
-    roundedSquarePath(0, 0, icon.size, icon.size * 0.32);
+    roundedSquarePath(0, 0, icon.size, r);
+    ctx.strokeStyle = icon.isHovered ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = icon.isHovered ? 1.8 : 1;
     ctx.stroke();
 
-    // "$" glyph — PriceMinder is a subscription/price tracker, not a generic mark.
-    ctx.fillStyle = '#F4F7F8';
-    ctx.font = '600 ' + Math.round(icon.size * 1.15) + "px 'Space Grotesk', sans-serif";
+    // "$" glyph — PriceMinder is a subscription/price tracker, not a
+    // generic app mark, so the glyph should say that at a glance.
+    ctx.fillStyle = '#F6F8F9';
+    ctx.font = '600 ' + Math.round(icon.size * 1.05) + "px 'Space Grotesk', sans-serif";
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('$', 0, icon.size * 0.06);
+    ctx.fillText('$', 0, icon.size * 0.04);
 
     ctx.restore();
   }
@@ -335,8 +378,8 @@
     icon.rotVelocity *= 0.98;
 
     // Lands roughly on the moss bed around the phone in the photo, not the
-    // very bottom edge of the frame.
-    var groundY = height * 0.74;
+    // very bottom edge of the frame — same crop-aware mapping as the anchor.
+    var groundY = photoFractionToPixel(0.5, groundFracY).y;
     if (icon.y + icon.size >= groundY) {
       icon.y = groundY - icon.size;
       icon.vy = -icon.vy * 0.3;
@@ -391,8 +434,8 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     width = rect.width;
     height = rect.height;
-    anchor = mapCoords(anchorFrac.x, anchorFrac.y);
-    icon.size = Math.max(18, Math.min(30, width * 0.045));
+    anchor = photoFractionToPixel(anchorFrac.x, anchorFrac.y);
+    icon.size = Math.max(22, Math.min(40, Math.min(width, height) * 0.06));
     if (icon.isAttached) { icon.x = anchor.x; icon.y = anchor.y; }
     if (reduceMotion) renderStaticFrame();
   }

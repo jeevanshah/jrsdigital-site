@@ -367,90 +367,31 @@ body.wide-theme .mockup-caption { color: var(--w-ink-50); }
 }
 
 /* ---------- bonsai showcase (homepage Featured Work) ----------
-   Deliberate dark card sitting inside the light page — the studio's actual
-   dark palette (matches site.css's real product theme) used here on
-   purpose as contrast, the same way .w-work-row/.w-cta-block already read
-   as a distinct surface, just taken further for one "star of the show"
-   moment. Canvas + interaction handled by bonsai-scene.js; every piece of
-   text and the CTA link below still work with JS/canvas disabled or with
-   prefers-reduced-motion, since the tap-to-pluck interaction is a bonus on
-   top of a normal, always-visible link — not the only path to it. */
+   No copy at all here on purpose — the photo fills the entire card, edge
+   to edge, both directions. bonsai-scene.js maps the icon's anchor point
+   from a fraction of the *original photo* through whatever crop
+   object-fit: cover applies (photoFractionToPixel), so the icon still
+   lands on the right branch no matter how the stage is sized here.
+   The one piece of text left is the "Open PriceMinder" pill overlaid on
+   the image — keeping a normal, always-visible link that works with JS/
+   canvas disabled means the tap-to-pluck interaction stays a bonus, never
+   the only path to the app. */
 .bonsai-showcase {
-  background: linear-gradient(165deg, #1c2224, #101414 70%);
   border-radius: var(--w-radius);
-  padding: 44px 40px;
-  text-align: center;
+  overflow: visible;
 }
-.bonsai-tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 14px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: rgba(237, 237, 242, 0.68);
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.7rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  margin-bottom: 18px;
-}
-.bonsai-showcase h2 {
-  color: #fff;
-  justify-content: center;
-}
-.bonsai-intro {
-  color: rgba(237, 237, 242, 0.7);
-  max-width: 46ch;
-  margin: 0 auto 26px;
-  font-size: 1rem;
-}
-.bonsai-controls {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin-bottom: 22px;
-  flex-wrap: wrap;
-}
-/* Ghost/outline style is correct here — these are optional, secondary
-   flourishes (wind gust, regrow), never the primary action. The primary
-   action (.bonsai-launch below) stays a solid filled button. */
-.bonsai-ghost-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: transparent;
-  color: rgba(237, 237, 242, 0.75);
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease;
-}
-.bonsai-ghost-btn:hover { border-color: rgba(255, 255, 255, 0.42); color: #fff; }
-.bonsai-ghost-btn svg { width: 14px; height: 14px; flex: none; }
-.bonsai-ghost-btn[hidden] { display: none; }
-
 .bonsai-stage {
   position: relative;
-  max-width: 720px;
-  /* Matches the real backdrop photo's own dimensions (1376x768) so
-     object-fit: cover never has to crop it — the fractional coordinates
-     bonsai-scene.js uses to place the icon on the branch line up exactly
-     with what's visible, regardless of container size. */
-  aspect-ratio: 1376 / 768;
-  margin: 0 auto;
+  width: 100%;
+  height: clamp(380px, 62vh, 760px);
 }
 /* Clipping lives on this inner wrapper, not on .bonsai-stage itself — the
-   popover is a sibling of this, so when it renders above the fruit (which
-   sits near the top of the canvas) it isn't cut off by the rounded-corner
-   mask the photo/canvas need. */
+   popover is a sibling of this, so when it renders above the icon it
+   isn't cut off by the rounded-corner mask the photo/canvas need. */
 .bonsai-canvas-mask {
   position: absolute;
   inset: 0;
-  border-radius: calc(var(--w-radius) - 4px);
+  border-radius: var(--w-radius);
   overflow: hidden;
   background: #101414;
   touch-action: none;
@@ -469,6 +410,57 @@ body.wide-theme .mockup-caption { color: var(--w-ink-50); }
   opacity: 0.9;
 }
 .bonsai-canvas-mask canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+.bonsai-overlay-controls {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: flex;
+  gap: 8px;
+  z-index: 6;
+}
+.bonsai-icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(12, 14, 14, 0.55);
+  backdrop-filter: blur(6px);
+  color: rgba(237, 237, 242, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.bonsai-icon-btn:hover { border-color: rgba(255, 255, 255, 0.45); color: #fff; background: rgba(12, 14, 14, 0.75); }
+.bonsai-icon-btn svg { width: 16px; height: 16px; }
+.bonsai-icon-btn[hidden] { display: none; }
+
+/* The one primary action, floating on the image itself rather than living
+   in a text block below it — filled/solid, never ghost-style, since this
+   is the action the page actually wants taken. */
+.bonsai-overlay-cta {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--w-accent);
+  color: var(--w-accent-ink);
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 13px 22px;
+  border-radius: var(--w-radius);
+  text-decoration: none;
+  box-shadow: 0 14px 30px -10px rgba(0, 0, 0, 0.55);
+  z-index: 6;
+}
+.bonsai-overlay-cta:hover { opacity: 0.9; }
+.bonsai-overlay-cta .w-stroke { background: var(--w-accent-ink); }
 
 .bonsai-popover {
   position: absolute;
@@ -510,11 +502,20 @@ body.wide-theme .mockup-caption { color: var(--w-ink-50); }
   padding-top: 8px;
 }
 
-.bonsai-fallback { padding: 24px; }
-.bonsai-fallback .phone-frame { width: 160px; margin: 0 auto; }
+.bonsai-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bonsai-fallback .phone-frame { width: 190px; }
 .bonsai-fallback[hidden] { display: none; }
 
-.bonsai-launch { margin-top: 26px; }
+@media (max-width: 640px) {
+  .bonsai-stage { height: clamp(320px, 68vh, 560px); }
+  .bonsai-overlay-cta { font-size: 0.85rem; padding: 11px 18px; }
+}
 
 @media (max-width: 640px) {
   .bonsai-showcase { padding: 32px 22px; }

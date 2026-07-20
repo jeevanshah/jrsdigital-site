@@ -80,36 +80,14 @@
       <div class="stat"><span class="v">2026</span><span class="l">studio founded</span></div>
     </div>
 
-    <section class="w-section">
+    <section class="w-section" style="padding: 0 0 52px;">
       <div class="bonsai-showcase" data-bonsai>
-        <span class="bonsai-tag">Interactive — tap the fruit</span>
-        <h2><span class="w-stroke"></span>Featured work</h2>
-        <p class="bonsai-intro">One app is growing on the tree so far — PriceMinder.
-          Tap the fruit to pluck it, or open the app directly below.</p>
-
-        <div class="bonsai-controls">
-          <button type="button" class="bonsai-ghost-btn" data-bonsai-wind>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M9.6 4.6A2 2 0 1 1 11 8H2M12.6 19.4A2 2 0 1 0 14 16H2M17.7 7.7A2.5 2.5 0 1 1 19.5 12H2"/>
-            </svg>
-            Wind gust
-          </button>
-          <button type="button" class="bonsai-ghost-btn" data-bonsai-regrow hidden>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16m0 5v-5h5"/>
-            </svg>
-            <span data-bonsai-regrow-label>Regrow</span>
-          </button>
-        </div>
-
         <div class="bonsai-stage" data-bonsai-stage>
           <div class="bonsai-canvas-mask">
             <img class="bonsai-photo" src="/assets/img/bonsai-backdrop.webp" alt=""
               aria-hidden="true">
             <canvas data-bonsai-canvas role="img"
-              aria-label="Photo of a bonsai tree growing from a phone in moss, with a single icon representing PriceMinder hanging on a branch. Select it to open the app.">
+              aria-label="Photo of a bonsai tree growing from a phone in moss, with a PriceMinder icon hanging on a branch. Select it to open the app.">
               A bonsai tree growing from a phone, with a PriceMinder icon hanging on a branch.
             </canvas>
             <div class="bonsai-fallback" data-bonsai-fallback hidden>
@@ -125,6 +103,7 @@
               </div>
             </div>
           </div>
+
           <div class="bonsai-popover" data-bonsai-popover hidden>
             <strong>PriceMinder</strong>
             <span class="bonsai-popover-status" data-bonsai-popover-status>On the tree</span>
@@ -133,12 +112,27 @@
               nothing stored anywhere but your device.</p>
             <span class="bonsai-popover-action" data-bonsai-popover-action>Tap to pluck it off the branch</span>
           </div>
-        </div>
 
-        <a class="w-cta bonsai-launch" href="/priceminder/" data-bonsai-launch>
-          <span class="w-stroke"></span>Open PriceMinder</a>
+          <div class="bonsai-overlay-controls">
+            <button type="button" class="bonsai-icon-btn" data-bonsai-wind aria-label="Wind gust">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M9.6 4.6A2 2 0 1 1 11 8H2M12.6 19.4A2 2 0 1 0 14 16H2M17.7 7.7A2.5 2.5 0 1 1 19.5 12H2"/>
+              </svg>
+            </button>
+            <button type="button" class="bonsai-icon-btn" data-bonsai-regrow hidden aria-label="Regrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16m0 5v-5h5"/>
+              </svg>
+            </button>
+          </div>
+
+          <a class="bonsai-overlay-cta" href="/priceminder/" data-bonsai-launch>
+            <span class="w-stroke"></span>Open PriceMinder
+          </a>
+        </div>
       </div>
-      <p class="w-more-note">More apps in the works — the tree will grow.</p>
     </section>
 
     <div class="w-footer">
