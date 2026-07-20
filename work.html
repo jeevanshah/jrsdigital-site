@@ -6,48 +6,48 @@
 <meta name="description" content="Apps built by JRS Digital, starting with PriceMinder.">
 <title>Work — JRS Digital</title>
 <link rel="stylesheet" href="/assets/site.css">
+<link rel="stylesheet" href="/assets/site-wide.css">
 </head>
-<body>
-  <header class="site-header">
-    <div class="container">
-      <a class="brand" href="/">JRS Digital</a>
-      <nav>
+<body class="wide-theme">
+  <div class="w-shell">
+    <header class="w-header">
+      <a class="w-brand" href="/">JRS Digital</a>
+      <nav class="w-nav">
         <a href="/">Home</a>
         <a href="/about.html">About</a>
         <a href="/work.html" class="active">Work</a>
         <a href="/contact.html">Contact</a>
       </nav>
-    </div>
-  </header>
+    </header>
 
-  <main class="container">
-    <section class="hero">
-      <p class="eyebrow">Work</p>
+    <section class="w-intro">
+      <p class="w-eyebrow"><span class="w-stroke"></span>Work</p>
       <h1>What we're building.</h1>
-      <p class="tagline">One app so far, built properly before starting the next.</p>
+      <p>One app so far, built properly before starting the next.</p>
     </section>
 
-    <section>
-      <ul class="app-list">
-        <li class="app-list-item">
-          <div class="app-desc">
-            <span class="app-name">PriceMinder</span>
-            <span>— a private, on-device tracker for every subscription you pay for, with
-              a live comparison of NBN and mobile plans so you never overpay or miss a
-              promo expiring.</span>
-          </div>
-          <a class="app-link" href="/priceminder/">Learn more →</a>
-        </li>
-      </ul>
-      <p class="note-muted">More apps are in the pipeline — this list will grow.</p>
+    <section class="w-section" style="padding-top: 8px;">
+      <div class="w-work-row">
+        <div class="w-work-card">
+          <span class="tag">In development</span>
+          <h3>PriceMinder</h3>
+          <p>A private, on-device tracker for every subscription you pay for, with a
+            live comparison of NBN and mobile plans so you never overpay or miss a
+            promo expiring.</p>
+          <a href="/priceminder/">Learn more →</a>
+        </div>
+        <div class="w-work-more">More apps queued —<br>this row will grow.</div>
+      </div>
     </section>
 
-    <section>
-      <h2>PriceMinder, in a few screens</h2>
+    <section class="w-section" style="padding-top: 0;">
+      <h2><span class="w-stroke"></span>PriceMinder, in a few screens</h2>
       <div class="phone-gallery">
         <div class="phone-stage p-back">
           <div class="phone-frame phone-frame--tilt" data-tilt>
             <div class="phone-frame__notch" aria-hidden="true"></div>
+            <div class="phone-frame__cam" aria-hidden="true"></div>
+            <div class="phone-frame__chin" aria-hidden="true"></div>
             <div class="phone-screen">
               <img class="phone-screen-media" src="/assets/img/priceminder-offers.webp"
                 alt="PriceMinder's Offers screen comparing current NBN plans side by side">
@@ -58,6 +58,8 @@
         <div class="phone-stage p-front">
           <div class="phone-frame phone-frame--tilt" data-tilt>
             <div class="phone-frame__notch" aria-hidden="true"></div>
+            <div class="phone-frame__cam" aria-hidden="true"></div>
+            <div class="phone-frame__chin" aria-hidden="true"></div>
             <div class="phone-screen">
               <img class="phone-screen-media" src="/assets/img/priceminder-promo.webp"
                 alt="PriceMinder's edit-subscription screen setting a promo price and the
@@ -68,17 +70,12 @@
         </div>
       </div>
     </section>
-  </main>
 
-  <footer class="site-footer">
-    <div class="container footer-grid">
-      <div>&copy; 2026 JRS Digital.</div>
-      <div class="footer-links">
-        <a href="/priceminder/privacy.html">Privacy Policy</a>
-        <a href="mailto:dev@jrsdigital.net">dev@jrsdigital.net</a>
-      </div>
+    <div class="w-footer" style="margin-top: 48px;">
+      <span>© 2026 JRS Digital.</span>
+      <span><a href="mailto:dev@jrsdigital.net">dev@jrsdigital.net</a> · <a href="/priceminder/privacy.html">Privacy Policy</a></span>
     </div>
-  </footer>
+  </div>
 
   <script src="/assets/hero-effects.js" defer></script>
 </body>

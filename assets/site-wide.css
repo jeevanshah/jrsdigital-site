@@ -1,0 +1,302 @@
+/* JRS Digital — wide/horizontal direction, sample #4.
+   Moves away from the near-black-ink + single desaturated accent + narrow
+   centered column look (which reads as "dev tool"/Claude-Code-ish) and away
+   from the dark terminal palette. New palette: warm sage background + deep
+   forest ink + a single warm gold accent — a more colorful, consumer-product
+   feel. Layout widens out to use real horizontal space on desktop instead of
+   a ~980px centered column, via a wide asymmetric hero, a horizontal stat
+   ribbon, and a horizontal work-card row. */
+
+:root {
+  /* Cool, subtle palette: neutral cool-gray background (not warm sage),
+     a near-black cool charcoal ink (not pure black — avoids "dark and
+     gloomy"), and a muted slate-blue accent instead of gold — desaturated
+     enough to stay quiet, but a real color rather than a safe gray. */
+  --w-bg: #EEF1F1;
+  --w-surface: #E3E8E8;
+  --w-ink: #1B2224;
+  --w-ink-70: rgba(27, 34, 36, 0.68);
+  --w-ink-50: rgba(27, 34, 36, 0.46);
+  --w-border: rgba(27, 34, 36, 0.14);
+  --w-accent: #5C7C93;      /* muted slate blue — single accent, used deliberately */
+  --w-accent-strong: #4A6577;
+  --w-accent-ink: #FFFFFF;
+  --w-radius: 16px;         /* friendlier, rounder than the sharp dev-tool 4px */
+
+  /* Override the shared --accent used by the phone-frame component (rim,
+     camera dot, chin bar) so the device itself picks up this same color
+     instead of the default gold defined in site.css. */
+  --accent: #5C7C93;
+  --accent-strong: #4A6577;
+}
+
+body.wide-theme {
+  background: var(--w-bg);
+  color: var(--w-ink);
+  font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+  line-height: 1.65;
+}
+
+/* Full-bleed shell: much wider than the previous ~980px centered column, so
+   the layout actually uses horizontal space on a desktop monitor instead of
+   leaving large dead margins either side. */
+.w-shell { max-width: 1360px; margin: 0 auto; padding: 0 40px; }
+
+.w-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30px 0;
+}
+.w-brand {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  font-size: 1.15rem;
+  color: var(--w-ink);
+  text-decoration: none;
+}
+.w-nav { display: flex; gap: 30px; }
+.w-nav a { font-size: 0.9rem; color: var(--w-ink-70); text-decoration: none; }
+.w-nav a:hover { color: var(--w-ink); }
+.w-nav a.active { color: var(--w-ink); font-weight: 700; }
+
+/* Wide asymmetric hero: text column stays a readable measure, but the right
+   side spreads a horizontal filmstrip of screens across the remaining width
+   instead of one small phone tucked in a corner. */
+.w-hero {
+  display: grid;
+  grid-template-columns: minmax(320px, 440px) 1fr;
+  gap: 56px;
+  align-items: center;
+  padding: 56px 0 48px;
+}
+.w-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--w-ink-70);
+  margin: 0 0 16px;
+}
+/* rhyming motif #1: a short diagonal accent stroke, reused before the
+   eyebrow label, inside stat rows, and inside the CTA button — a brand
+   mark rather than a terminal-style status dot. */
+.w-stroke {
+  display: inline-block;
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--w-accent);
+  transform: rotate(-20deg);
+  flex: none;
+}
+.w-h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  font-size: clamp(2.2rem, 3.4vw, 3.2rem);
+  line-height: 1.14;
+  letter-spacing: -0.01em;
+  margin: 0 0 18px;
+}
+.w-tagline { font-size: 1.08rem; color: var(--w-ink-70); max-width: 42ch; margin: 0 0 30px; }
+
+.w-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--w-accent);
+  color: var(--w-accent-ink);
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 13px 22px;
+  border-radius: var(--w-radius);
+  text-decoration: none;
+}
+.w-cta:hover { opacity: 0.88; }
+.w-cta .w-stroke { background: var(--w-accent-ink); }
+
+/* Horizontal filmstrip of screens — spreads across the wide right column
+   instead of a single small phone, so the hero actively uses the extra
+   horizontal space rather than just leaving it empty. */
+.w-filmstrip {
+  display: flex;
+  gap: 24px;
+  justify-content: flex-end;
+  align-items: flex-end;
+}
+.w-filmstrip .phone-frame {
+  width: 168px;
+  border-color: var(--w-border);
+  background: var(--w-surface);
+  box-shadow: 0 40px 70px -28px rgba(23,40,31,0.22);
+}
+.w-filmstrip .film-item:nth-child(2) .phone-frame { width: 200px; box-shadow: 0 50px 90px -26px rgba(23,40,31,0.3); }
+.w-filmstrip .film-item { text-align: center; }
+.w-filmstrip .cap { font-size: 0.72rem; color: var(--w-ink-50); margin-top: 10px; font-family: 'Space Grotesk', sans-serif; }
+
+/* Horizontal stat ribbon — full width, evenly spaced, replacing a small
+   stacked stat block with a band that spans the whole container. */
+.w-ribbon {
+  display: flex;
+  border-top: 1px solid var(--w-border);
+  border-bottom: 1px solid var(--w-border);
+  padding: 22px 0;
+  gap: 0;
+}
+.w-ribbon .stat {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 0 24px;
+  border-left: 1px solid var(--w-border);
+}
+.w-ribbon .stat:first-child { border-left: none; padding-left: 0; }
+.w-ribbon .stat .v { font-family: 'Space Grotesk', sans-serif; font-size: 1.4rem; color: var(--w-ink); }
+.w-ribbon .stat .l { font-size: 0.78rem; color: var(--w-ink-50); text-transform: uppercase; letter-spacing: 0.03em; }
+
+.w-section { padding: 52px 0; }
+.w-section h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  font-size: 1.4rem;
+  margin: 0 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Horizontal work-card row instead of a stacked vertical list — designed to
+   read as a row even with one card, and to scroll horizontally once more
+   projects exist rather than stacking indefinitely. */
+.w-work-row {
+  display: flex;
+  gap: 22px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.w-work-card {
+  flex: 0 0 420px;
+  background: var(--w-surface);
+  border: 1px solid var(--w-border);
+  border-radius: var(--w-radius);
+  padding: 26px;
+}
+.w-work-card .tag {
+  font-size: 0.72rem;
+  color: var(--w-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+.w-work-card h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  font-size: 1.2rem;
+  margin: 8px 0 10px;
+}
+.w-work-card p { color: var(--w-ink-70); margin: 0 0 16px; font-size: 0.95rem; }
+.w-work-card a { color: var(--w-ink); font-weight: 700; font-size: 0.9rem; text-decoration: none; }
+.w-work-card a:hover { text-decoration: underline; }
+.w-work-more {
+  flex: 0 0 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--w-ink-50);
+  font-size: 0.9rem;
+  border: 1px dashed var(--w-border);
+  border-radius: var(--w-radius);
+  text-align: center;
+  padding: 26px;
+}
+
+.w-footer {
+  padding: 30px 0 60px;
+  border-top: 1px solid var(--w-border);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--w-ink-50);
+}
+.w-footer a { color: var(--w-ink-50); text-decoration: none; }
+.w-footer a:hover { color: var(--w-ink); }
+
+/* ---------- shared intro block (About / Work / Contact page headers) ---------- */
+.w-intro { padding: 56px 0 40px; max-width: 60ch; }
+.w-intro h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  font-size: clamp(2rem, 3.2vw, 2.6rem);
+  line-height: 1.16;
+  margin: 0 0 16px;
+}
+.w-intro p { font-size: 1.05rem; color: var(--w-ink-70); margin: 0; max-width: 56ch; }
+
+/* ---------- beliefs row (About) — numerals instead of an icon grid ---------- */
+.w-belief-row { display: flex; gap: 22px; flex-wrap: wrap; }
+.w-belief {
+  flex: 1 1 260px;
+  border-top: 1px solid var(--w-border);
+  padding-top: 18px;
+}
+.w-belief .num {
+  font-family: 'Space Grotesk', sans-serif;
+  color: var(--w-accent);
+  font-size: 0.95rem;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 10px;
+}
+.w-belief h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  font-size: 1.08rem;
+  margin: 0 0 8px;
+}
+.w-belief p { color: var(--w-ink-70); margin: 0; font-size: 0.95rem; }
+
+/* ---------- CTA block (bottom of About / used elsewhere) ---------- */
+.w-cta-block {
+  border: 1px solid var(--w-border);
+  border-radius: var(--w-radius);
+  background: var(--w-surface);
+  padding: 40px;
+  text-align: left;
+  margin: 8px 0 12px;
+}
+.w-cta-block h2 { margin: 0 0 8px; }
+.w-cta-block p { color: var(--w-ink-70); margin: 0 0 20px; max-width: 50ch; }
+
+/* ---------- contact card ---------- */
+.w-contact-card {
+  border: 1px solid var(--w-border);
+  border-radius: var(--w-radius);
+  background: var(--w-surface);
+  padding: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+.w-contact-card h2 { margin: 0 0 8px; }
+.w-contact-card p { color: var(--w-ink-70); margin: 0; max-width: 42ch; }
+
+/* ---------- phone gallery (Work page) recolored for this theme ---------- */
+body.wide-theme .phone-gallery .phone-caption { color: var(--w-ink-50); }
+
+@media (max-width: 980px) {
+  .w-shell { padding: 0 22px; }
+  .w-hero { grid-template-columns: 1fr; padding: 36px 0; }
+  .w-filmstrip { justify-content: center; margin-top: 8px; }
+  .w-ribbon { flex-wrap: wrap; }
+  .w-ribbon .stat { flex: 1 1 45%; border-left: none; padding: 8px 0; }
+  .w-contact-card { flex-direction: column; align-items: flex-start; }
+}

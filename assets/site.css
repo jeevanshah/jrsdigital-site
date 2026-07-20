@@ -306,30 +306,62 @@ section h2 {
   color: var(--text-muted);
 }
 
-/* ---------- phone-frame: real screenshot or CSS-drawn content, same shell ---------- */
+/* ---------- phone-frame: real screenshot or CSS-drawn content, same shell ----------
+   Shape is deliberately asymmetric (rounder chin than crown) rather than a
+   plain symmetric rounded-rect, and the rim/cutouts pick up the page's
+   --accent variable so the device itself carries the same rhyme color used
+   elsewhere on the page, instead of being a neutral gray box the brand
+   sits inside. */
 .phone-frame {
   width: 100%;
   aspect-ratio: 9 / 19.3;
-  border-radius: 36px;
-  border: 1px solid var(--border);
+  border-radius: 32px 32px 46px 46px;
+  border: 1px solid var(--border); /* fallback for browsers without color-mix() */
+  border: 1.5px solid color-mix(in srgb, var(--accent) 32%, var(--border));
   background: var(--surface);
   box-shadow: 0 40px 80px -28px var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  padding: 14px 10px;
+  padding: 14px 10px 20px;
   position: relative;
 }
-/* Neutral device bezel detail — a plain speaker slit rather than an
-   iPhone-specific notch/Dynamic-Island shape, so the mockup reads as
-   "a phone" rather than one specific brand's phone. */
+/* Off-center speaker slit + a small accent-tinted punch-hole camera dot,
+   instead of a single centered pill — reads as an asymmetric real-device
+   cutout rather than a generic centered notch. */
 .phone-frame__notch {
   position: absolute;
   top: 14px;
-  left: 50%;
+  left: 42%;
   transform: translateX(-50%);
-  width: 36px;
+  width: 28px;
   height: 4px;
   border-radius: 2px;
   background: var(--text);
   opacity: 0.16;
+  z-index: 1;
+}
+.phone-frame__cam {
+  position: absolute;
+  top: 13px;
+  left: calc(42% + 24px);
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.55;
+  z-index: 1;
+}
+/* Bottom home-indicator bar tinted with the accent — a small branded touch
+   that puts the rhyme color on the star element itself, not just around it. */
+.phone-frame__chin {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 38px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+  opacity: 0.5;
   z-index: 1;
 }
 .phone-screen {

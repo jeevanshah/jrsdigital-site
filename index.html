@@ -6,86 +6,85 @@
 <meta name="description" content="JRS Digital builds small, focused apps that are private by design.">
 <title>JRS Digital</title>
 <link rel="stylesheet" href="/assets/site.css">
+<link rel="stylesheet" href="/assets/site-wide.css">
 </head>
-<body>
-  <header class="site-header">
-    <div class="container">
-      <a class="brand" href="/">JRS Digital</a>
-      <nav>
+<body class="wide-theme">
+  <div class="w-shell">
+    <header class="w-header">
+      <a class="w-brand" href="/">JRS Digital</a>
+      <nav class="w-nav">
         <a href="/" class="active">Home</a>
         <a href="/about.html">About</a>
         <a href="/work.html">Work</a>
         <a href="/contact.html">Contact</a>
       </nav>
-    </div>
-  </header>
+    </header>
 
-  <main class="container">
-    <section class="hero hero-asym">
-      <p class="rotated-label" aria-hidden="true">Software studio</p>
-
-      <div class="hero-text">
-        <p class="eyebrow">Software studio</p>
-        <h1>Small, focused apps, built with intention.</h1>
-        <p class="tagline">JRS Digital builds simple tools that do one job well and keep
-          your data on your device, not ours.</p>
+    <section class="w-hero">
+      <div>
+        <p class="w-eyebrow"><span class="w-stroke"></span>Software studio</p>
+        <h1 class="w-h1">Small, focused apps, built with intention.</h1>
+        <p class="w-tagline">JRS Digital builds simple tools that do one job well and
+          keeps your data on your device, not ours.</p>
+        <a class="w-cta" href="/work.html"><span class="w-stroke"></span>See our work</a>
       </div>
 
-      <div class="hero-phone-stage" data-tilt-stage>
-        <div class="stats stats-callout" style="top: 4%;">
-          <div class="stat">
-            <span class="stat-value figure">100%</span>
-            <span class="stat-label">On-device data</span>
-            <span class="callout-line" aria-hidden="true"></span>
-            <span class="callout-dot" aria-hidden="true"></span>
+      <div class="w-filmstrip">
+        <div class="film-item">
+          <div class="phone-frame">
+            <div class="phone-frame__notch" aria-hidden="true"></div>
+            <div class="phone-frame__cam" aria-hidden="true"></div>
+            <div class="phone-frame__chin" aria-hidden="true"></div>
+            <div class="phone-screen">
+              <img class="phone-screen-media" src="/assets/img/priceminder-offers.webp"
+                alt="PriceMinder's Offers screen comparing current NBN plans side by side">
+            </div>
           </div>
+          <p class="cap">Compare offers</p>
         </div>
-        <div class="stats stats-callout" style="top: 62%;">
-          <div class="stat">
-            <span class="stat-value figure">0</span>
-            <span class="stat-label">Accounts required</span>
-            <span class="callout-line" aria-hidden="true"></span>
-            <span class="callout-dot" aria-hidden="true"></span>
+        <div class="film-item">
+          <div class="phone-frame">
+            <div class="phone-frame__notch" aria-hidden="true"></div>
+            <div class="phone-frame__cam" aria-hidden="true"></div>
+            <div class="phone-frame__chin" aria-hidden="true"></div>
+            <div class="phone-screen">
+              <img class="phone-screen-media" src="/assets/img/priceminder-library.webp"
+                alt="PriceMinder's library screen showing 11 tracked subscriptions and a
+                  $370.91 monthly spend total">
+            </div>
           </div>
+          <p class="cap">Track spend</p>
         </div>
-        <div class="phone-frame phone-frame--tilt" data-tilt>
-          <div class="phone-frame__notch" aria-hidden="true"></div>
-          <div class="phone-screen">
-            <img class="phone-screen-media" src="/assets/img/priceminder-library.webp"
-              alt="PriceMinder's library screen showing 11 tracked subscriptions and a
-                $370.91 monthly spend total">
-          </div>
-        </div>
-        <p class="phone-caption">PriceMinder — in development.</p>
       </div>
     </section>
 
-    <section>
-      <h2>Featured work</h2>
-      <ul class="app-list">
-        <li class="app-list-item">
-          <div class="app-desc">
-            <span class="app-name">PriceMinder</span>
-            <span>— a private, on-device tracker for every subscription you pay for, with
-              a live comparison of NBN and mobile plans so you never overpay or miss a
-              promo expiring.</span>
-          </div>
-          <a class="app-link" href="/priceminder/">Learn more →</a>
-        </li>
-      </ul>
-      <p class="note-muted"><a href="/work.html">See all work →</a></p>
-    </section>
-  </main>
-
-  <footer class="site-footer">
-    <div class="container footer-grid">
-      <div>&copy; 2026 JRS Digital.</div>
-      <div class="footer-links">
-        <a href="/priceminder/privacy.html">Privacy Policy</a>
-        <a href="mailto:dev@jrsdigital.net">dev@jrsdigital.net</a>
-      </div>
+    <div class="w-ribbon">
+      <div class="stat"><span class="v">100%</span><span class="l">on-device data</span></div>
+      <div class="stat"><span class="v">0</span><span class="l">accounts required</span></div>
+      <div class="stat"><span class="v">1</span><span class="l">app shipped</span></div>
+      <div class="stat"><span class="v">2026</span><span class="l">studio founded</span></div>
     </div>
-  </footer>
+
+    <section class="w-section">
+      <h2><span class="w-stroke"></span>Featured work</h2>
+      <div class="w-work-row">
+        <div class="w-work-card">
+          <span class="tag">In development</span>
+          <h3>PriceMinder</h3>
+          <p>A private, on-device tracker for every subscription you pay for, with a
+            live comparison of NBN and mobile plans so you never overpay or miss a
+            promo expiring.</p>
+          <a href="/priceminder/">Learn more →</a>
+        </div>
+        <div class="w-work-more">More apps queued —<br>this row will grow.</div>
+      </div>
+    </section>
+
+    <div class="w-footer">
+      <span>© 2026 JRS Digital.</span>
+      <span><a href="mailto:dev@jrsdigital.net">dev@jrsdigital.net</a> · <a href="/priceminder/privacy.html">Privacy Policy</a></span>
+    </div>
+  </div>
 
   <script src="/assets/hero-effects.js" defer></script>
 </body>
