@@ -6,8 +6,9 @@
    The backdrop is the real photo (/assets/img/bonsai-backdrop.webp) — a
    bonsai growing out of a phone in moss, city skyline behind it — laid in
    as a plain <img> (grayscale via CSS) behind this transparent canvas. The
-   canvas only draws the interactive icon, its glow, its connecting stem,
-   and a few wind-blown particles on top of that photo.
+   canvas draws the interactive "fruit" — the real PriceMinder app icon,
+   cut out to /assets/img/priceminder-icon.png — plus its glow/shadow and
+   a few wind-blown particles, on top of that photo.
 
    Respects prefers-reduced-motion (renders one static frame, no physics/
    particles) and falls back to the phone-mockup card if canvas isn't
@@ -145,8 +146,18 @@
   var isIconGrown = true;
   var isCompiling = false;
 
+  // The real PriceMinder app icon (hourglass mark), cut out to a transparent
+  // PNG. Drawn as the "fruit" instead of a procedural glyph. Until it loads,
+  // drawIcon() falls back to a plain rounded-square placeholder below.
+  var iconImage = new Image();
+  var iconImageReady = false;
+  iconImage.onload = function () { iconImageReady = true; };
+  iconImage.src = '/assets/img/priceminder-icon.png';
+
   function isOverIcon(mx, my) {
-    return Math.hypot(icon.x - mx, icon.y - my) <= icon.size + 12;
+    // Generous tap tolerance — the visible icon is intentionally small now,
+    // but the hit target shouldn't shrink along with it.
+    return Math.hypot(icon.x - mx, icon.y - my) <= icon.size + 18;
   }
 
   // ---------- particles: a light scatter of blossom petals on pluck/gust ----------
@@ -274,16 +285,16 @@
   function drawIcon() {
     var pulse = Math.sin(icon.pulseTimer) * 0.15 + 0.95;
     var glowRadius = icon.size * 2.4 * pulse;
-    var r = icon.size * 0.28; // squircle corner radius — closer to a real app-icon shape than a plain rounded square
+    var r = icon.size * 0.28; // squircle corner radius — used only by the loading-state placeholder below
 
-    // Ambient color glow — reads at a distance, separate from the hard
-    // drop shadow below (which sells the icon sitting a little in front
-    // of the photo, not just glowing).
+    // Ambient glow — warm gold to match the real icon's palette, reads at a
+    // distance, separate from the hard drop shadow below (which sells the
+    // icon sitting a little in front of the photo, not just glowing).
     ctx.save();
     var glow = ctx.createRadialGradient(icon.x, icon.y, 1, icon.x, icon.y, glowRadius);
-    glow.addColorStop(0, 'rgba(92,124,147,0.5)');
-    glow.addColorStop(0.45, 'rgba(92,124,147,0.14)');
-    glow.addColorStop(1, 'rgba(92,124,147,0)');
+    glow.addColorStop(0, 'rgba(214,178,94,0.45)');
+    glow.addColorStop(0.45, 'rgba(214,178,94,0.12)');
+    glow.addColorStop(1, 'rgba(214,178,94,0)');
     ctx.fillStyle = glow;
     ctx.beginPath();
     ctx.arc(icon.x, icon.y, glowRadius, 0, Math.PI * 2);
@@ -294,45 +305,38 @@
     ctx.translate(icon.x, icon.y);
     ctx.rotate(icon.rotation);
 
-    // Elevation shadow, drawn under the body separately so it doesn't
-    // also blur the highlight/stroke/glyph drawn on top of it.
-    ctx.save();
-    ctx.shadowColor = 'rgba(0,0,0,0.5)';
-    ctx.shadowBlur = icon.size * 0.6;
-    ctx.shadowOffsetY = icon.size * 0.22;
-    roundedSquarePath(0, 0, icon.size, r);
-    ctx.fillStyle = '#000'; // fully opaque so the cast shadow is visible — this square itself gets completely covered by the body fill drawn right after
-    ctx.fill();
-    ctx.restore();
+    if (iconImageReady) {
+      // Real PriceMinder app icon. Sized small on purpose — this should
+      // read as an actual app icon hanging on the branch, not an oversized
+      // graphic. drawImage picks up the PNG's own alpha for its shadow, so
+      // the cast shadow follows the hourglass silhouette, not a square.
+      var drawSize = icon.size * 2;
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.55)';
+      ctx.shadowBlur = icon.size * 0.5;
+      ctx.shadowOffsetY = icon.size * 0.2;
+      ctx.drawImage(iconImage, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
+      ctx.restore();
 
-    roundedSquarePath(0, 0, icon.size, r);
-    var body = ctx.createLinearGradient(-icon.size, -icon.size, icon.size, icon.size);
-    body.addColorStop(0, '#5C7C93');
-    body.addColorStop(1, '#3A4E5E');
-    ctx.fillStyle = body;
-    ctx.fill();
-
-    // Soft top-left gloss, kept subtle so the icon still reads as flat/
-    // modern rather than glassy.
-    roundedSquarePath(0, 0, icon.size, r);
-    var hi = ctx.createLinearGradient(-icon.size, -icon.size, icon.size * 0.2, icon.size * 0.2);
-    hi.addColorStop(0, 'rgba(255,255,255,0.28)');
-    hi.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = hi;
-    ctx.fill();
-
-    roundedSquarePath(0, 0, icon.size, r);
-    ctx.strokeStyle = icon.isHovered ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.3)';
-    ctx.lineWidth = icon.isHovered ? 1.8 : 1;
-    ctx.stroke();
-
-    // "$" glyph — PriceMinder is a subscription/price tracker, not a
-    // generic app mark, so the glyph should say that at a glance.
-    ctx.fillStyle = '#F6F8F9';
-    ctx.font = '600 ' + Math.round(icon.size * 1.05) + "px 'Space Grotesk', sans-serif";
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('$', 0, icon.size * 0.04);
+      if (icon.isHovered) {
+        // Soft gold halo on hover, redrawing the same icon on top so the
+        // glow only pokes out past its silhouette rather than washing it out.
+        ctx.save();
+        ctx.shadowColor = 'rgba(255, 214, 130, 0.85)';
+        ctx.shadowBlur = icon.size * 0.45;
+        ctx.drawImage(iconImage, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
+        ctx.restore();
+      }
+    } else {
+      // Loading-state placeholder, shown only for the brief window before
+      // the real icon image has finished decoding.
+      roundedSquarePath(0, 0, icon.size, r);
+      var body = ctx.createLinearGradient(-icon.size, -icon.size, icon.size, icon.size);
+      body.addColorStop(0, '#5C7C93');
+      body.addColorStop(1, '#3A4E5E');
+      ctx.fillStyle = body;
+      ctx.fill();
+    }
 
     ctx.restore();
   }
@@ -435,7 +439,10 @@
     width = rect.width;
     height = rect.height;
     anchor = photoFractionToPixel(anchorFrac.x, anchorFrac.y);
-    icon.size = Math.max(22, Math.min(40, Math.min(width, height) * 0.06));
+    // Scaled down from the old procedural glyph's size — a real app-icon
+    // image needs to read small, like it actually belongs on a branch,
+    // not as an oversized graphic.
+    icon.size = Math.max(15, Math.min(26, Math.min(width, height) * 0.042));
     if (icon.isAttached) { icon.x = anchor.x; icon.y = anchor.y; }
     if (reduceMotion) renderStaticFrame();
   }
