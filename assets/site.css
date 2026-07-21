@@ -437,19 +437,29 @@ section h2 {
   margin-top: 14px;
 }
 
-/* ---------- phone-gallery (Work page cascade) ---------- */
+/* ---------- phone-gallery (Work page cascade) ----------
+   left: 8% / 40% used to be percentages of the *full container width* —
+   fine at the ~900px width this was designed against, but on anything
+   wider (a normal desktop window, a tablet, a phone in landscape) the gap
+   between the two phones grows with the container and the pair drifts
+   off-center as a group, even though each one individually is still
+   "positioned". Fixed-px offsets inside a fixed-width, auto-centered
+   wrapper keep the cascade's footprint constant and the pair centered
+   regardless of how wide the section around it gets. */
 .phone-gallery {
   position: relative;
   height: 600px;
   perspective: 1600px;
+  max-width: 380px;
+  margin: 0 auto;
 }
 .phone-gallery .phone-stage {
   position: absolute;
   width: 190px;
 }
-.phone-gallery .p-back { top: 0; left: 8%; z-index: 1; }
+.phone-gallery .p-back { top: 0; left: 10px; z-index: 1; }
 .phone-gallery .p-back .phone-frame { opacity: 0.92; }
-.phone-gallery .p-front { top: 64px; left: 40%; z-index: 2; width: 210px; }
+.phone-gallery .p-front { top: 64px; left: 160px; z-index: 2; width: 210px; }
 
 .app-list {
   list-style: none;
@@ -647,6 +657,8 @@ section h2 {
   .pull-quote { grid-template-columns: 1fr; }
   .phone-gallery {
     height: auto;
+    max-width: none;
+    margin: 0;
     display: flex;
     flex-wrap: wrap;
     gap: 28px;
