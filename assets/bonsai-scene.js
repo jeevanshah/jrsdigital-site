@@ -287,14 +287,14 @@
     var glowRadius = icon.size * 2.4 * pulse;
     var r = icon.size * 0.28; // squircle corner radius — used only by the loading-state placeholder below
 
-    // Ambient glow — warm gold to match the real icon's palette, reads at a
+    // Ambient glow — the site's own blue-gray accent color, reads at a
     // distance, separate from the hard drop shadow below (which sells the
     // icon sitting a little in front of the photo, not just glowing).
     ctx.save();
     var glow = ctx.createRadialGradient(icon.x, icon.y, 1, icon.x, icon.y, glowRadius);
-    glow.addColorStop(0, 'rgba(214,178,94,0.35)');
-    glow.addColorStop(0.45, 'rgba(214,178,94,0.1)');
-    glow.addColorStop(1, 'rgba(214,178,94,0)');
+    glow.addColorStop(0, 'rgba(92,124,147,0.4)');
+    glow.addColorStop(0.45, 'rgba(92,124,147,0.12)');
+    glow.addColorStop(1, 'rgba(92,124,147,0)');
     ctx.fillStyle = glow;
     ctx.beginPath();
     ctx.arc(icon.x, icon.y, glowRadius, 0, Math.PI * 2);
@@ -308,9 +308,10 @@
     if (iconImageReady) {
       // The real icon has a black background, which kept disappearing into
       // the dark, grayscale-filtered mossy backdrop no matter how strong a
-      // soft glow behind it was. A solid, opaque cream "chip" behind the
-      // mark guarantees contrast regardless of what's directly behind it —
-      // this is the same trick real app icons use sitting on photo widgets.
+      // soft glow behind it was. A solid, opaque chip behind the mark
+      // guarantees contrast regardless of what's directly behind it — the
+      // same trick real app icons use sitting on photo widgets. Colored
+      // with the site's existing blue-gray accent to stay on-brand.
       var plateHalf = icon.size * 1.15;
       var plateR = plateHalf * 0.32;
 
@@ -319,12 +320,15 @@
       ctx.shadowBlur = icon.size * 0.55;
       ctx.shadowOffsetY = icon.size * 0.2;
       roundedSquarePath(0, 0, plateHalf, plateR);
-      ctx.fillStyle = '#FBF3E2';
+      var plateFill = ctx.createLinearGradient(-plateHalf, -plateHalf, plateHalf, plateHalf);
+      plateFill.addColorStop(0, '#5C7C93');
+      plateFill.addColorStop(1, '#3A4E5E');
+      ctx.fillStyle = plateFill;
       ctx.fill();
       ctx.restore();
 
       roundedSquarePath(0, 0, plateHalf, plateR);
-      ctx.strokeStyle = icon.isHovered ? 'rgba(214,178,94,0.95)' : 'rgba(214,178,94,0.55)';
+      ctx.strokeStyle = icon.isHovered ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.35)';
       ctx.lineWidth = icon.isHovered ? 2 : 1.3;
       ctx.stroke();
 
