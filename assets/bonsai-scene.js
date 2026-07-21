@@ -292,12 +292,26 @@
     // icon sitting a little in front of the photo, not just glowing).
     ctx.save();
     var glow = ctx.createRadialGradient(icon.x, icon.y, 1, icon.x, icon.y, glowRadius);
-    glow.addColorStop(0, 'rgba(92,124,147,0.4)');
-    glow.addColorStop(0.45, 'rgba(92,124,147,0.12)');
+    glow.addColorStop(0, 'rgba(92,124,147,0.5)');
+    glow.addColorStop(0.45, 'rgba(92,124,147,0.16)');
     glow.addColorStop(1, 'rgba(92,124,147,0)');
     ctx.fillStyle = glow;
     ctx.beginPath();
     ctx.arc(icon.x, icon.y, glowRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Closer-in, always-on light lift behind the icon so its black
+    // background has edge contrast no matter what's directly behind it on
+    // the photo — same blue-gray family as the glow above, not a badge/chip.
+    ctx.save();
+    var lift = ctx.createRadialGradient(icon.x, icon.y, icon.size * 0.25, icon.x, icon.y, icon.size * 1.5);
+    lift.addColorStop(0, 'rgba(150,182,204,0.6)');
+    lift.addColorStop(0.7, 'rgba(150,182,204,0.24)');
+    lift.addColorStop(1, 'rgba(150,182,204,0)');
+    ctx.fillStyle = lift;
+    ctx.beginPath();
+    ctx.arc(icon.x, icon.y, icon.size * 1.5, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
@@ -306,34 +320,22 @@
     ctx.rotate(icon.rotation);
 
     if (iconImageReady) {
-      // The real icon has a black background, which kept disappearing into
-      // the dark, grayscale-filtered mossy backdrop no matter how strong a
-      // soft glow behind it was. A solid, opaque chip behind the mark
-      // guarantees contrast regardless of what's directly behind it — the
-      // same trick real app icons use sitting on photo widgets. Colored
-      // with the site's existing blue-gray accent to stay on-brand.
-      var plateHalf = icon.size * 1.15;
-      var plateR = plateHalf * 0.32;
+      var drawSize = icon.size * 2;
 
+      // Thin, always-on rim light in the same blue-gray family, brighter on
+      // hover — a soft edge glow rather than a wash over the artwork itself.
       ctx.save();
-      ctx.shadowColor = 'rgba(0,0,0,0.5)';
-      ctx.shadowBlur = icon.size * 0.55;
-      ctx.shadowOffsetY = icon.size * 0.2;
-      roundedSquarePath(0, 0, plateHalf, plateR);
-      var plateFill = ctx.createLinearGradient(-plateHalf, -plateHalf, plateHalf, plateHalf);
-      plateFill.addColorStop(0, '#5C7C93');
-      plateFill.addColorStop(1, '#3A4E5E');
-      ctx.fillStyle = plateFill;
-      ctx.fill();
+      ctx.shadowColor = icon.isHovered ? 'rgba(180, 205, 224, 0.95)' : 'rgba(150, 182, 204, 0.6)';
+      ctx.shadowBlur = icon.size * (icon.isHovered ? 0.4 : 0.24);
+      ctx.drawImage(iconImage, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
       ctx.restore();
 
-      roundedSquarePath(0, 0, plateHalf, plateR);
-      ctx.strokeStyle = icon.isHovered ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.35)';
-      ctx.lineWidth = icon.isHovered ? 2 : 1.3;
-      ctx.stroke();
-
-      var drawSize = icon.size * 1.7;
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.55)';
+      ctx.shadowBlur = icon.size * 0.5;
+      ctx.shadowOffsetY = icon.size * 0.2;
       ctx.drawImage(iconImage, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
+      ctx.restore();
     } else {
       // Loading-state placeholder, shown only for the brief window before
       // the real icon image has finished decoding.
