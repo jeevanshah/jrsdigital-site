@@ -301,6 +301,21 @@
     ctx.fill();
     ctx.restore();
 
+    // The real icon's own background is black — against the grayscale,
+    // often-dark mossy backdrop it can disappear entirely without help.
+    // This soft, always-on light halo sits close behind the icon so it
+    // has edge contrast no matter what's directly behind it on the photo.
+    ctx.save();
+    var lift = ctx.createRadialGradient(icon.x, icon.y, icon.size * 0.25, icon.x, icon.y, icon.size * 1.5);
+    lift.addColorStop(0, 'rgba(255,250,238,0.55)');
+    lift.addColorStop(0.7, 'rgba(255,250,238,0.22)');
+    lift.addColorStop(1, 'rgba(255,250,238,0)');
+    ctx.fillStyle = lift;
+    ctx.beginPath();
+    ctx.arc(icon.x, icon.y, icon.size * 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
     ctx.save();
     ctx.translate(icon.x, icon.y);
     ctx.rotate(icon.rotation);
@@ -311,22 +326,23 @@
       // graphic. drawImage picks up the PNG's own alpha for its shadow, so
       // the cast shadow follows the hourglass silhouette, not a square.
       var drawSize = icon.size * 2;
+
+      // Thin, always-on rim light so the icon's dark edge has a visible
+      // outline against the grayscale backdrop — subtle at rest, brighter
+      // on hover. Drawn as a blurred pass underneath the crisp icon so it
+      // only shows as a soft edge, not a wash over the artwork itself.
+      ctx.save();
+      ctx.shadowColor = icon.isHovered ? 'rgba(255, 226, 168, 0.95)' : 'rgba(255, 246, 224, 0.55)';
+      ctx.shadowBlur = icon.size * (icon.isHovered ? 0.4 : 0.22);
+      ctx.drawImage(iconImage, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
+      ctx.restore();
+
       ctx.save();
       ctx.shadowColor = 'rgba(0,0,0,0.55)';
       ctx.shadowBlur = icon.size * 0.5;
       ctx.shadowOffsetY = icon.size * 0.2;
       ctx.drawImage(iconImage, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
       ctx.restore();
-
-      if (icon.isHovered) {
-        // Soft gold halo on hover, redrawing the same icon on top so the
-        // glow only pokes out past its silhouette rather than washing it out.
-        ctx.save();
-        ctx.shadowColor = 'rgba(255, 214, 130, 0.85)';
-        ctx.shadowBlur = icon.size * 0.45;
-        ctx.drawImage(iconImage, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
-        ctx.restore();
-      }
     } else {
       // Loading-state placeholder, shown only for the brief window before
       // the real icon image has finished decoding.
@@ -441,8 +457,10 @@
     anchor = photoFractionToPixel(anchorFrac.x, anchorFrac.y);
     // Scaled down from the old procedural glyph's size — a real app-icon
     // image needs to read small, like it actually belongs on a branch,
-    // not as an oversized graphic.
-    icon.size = Math.max(15, Math.min(26, Math.min(width, height) * 0.042));
+    // not as an oversized graphic. Kept slightly larger than the first
+    // pass so the rim-light/halo treatment has room to read clearly
+    // against the grayscale backdrop.
+    icon.size = Math.max(18, Math.min(30, Math.min(width, height) * 0.048));
     if (icon.isAttached) { icon.x = anchor.x; icon.y = anchor.y; }
     if (reduceMotion) renderStaticFrame();
   }
