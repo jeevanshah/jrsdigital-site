@@ -102,16 +102,18 @@ body.wide-theme {
   color: var(--w-ink-70);
   margin: 0 0 16px;
 }
-/* rhyming motif #1: a short diagonal accent stroke, reused before the
-   eyebrow label, inside stat rows, and inside the CTA button — a brand
-   mark rather than a terminal-style status dot. */
+/* rhyming motif #1: a small solid kicker mark, reused before the eyebrow
+   label, inside stat rows, and inside the CTA button — a brand mark rather
+   than a terminal-style status dot. (Previously a rotated diagonal dash —
+   that read as a stray slash rather than an intentional accent, so it's
+   now a plain square that sits flush with the text instead.) */
 .w-stroke {
   display: inline-block;
-  width: 14px;
-  height: 3px;
+  width: 7px;
+  height: 7px;
   border-radius: 2px;
   background: var(--w-accent);
-  transform: rotate(-20deg);
+  transform: none;
   flex: none;
 }
 .w-h1 {
