@@ -287,14 +287,15 @@
     var glowRadius = icon.size * 2.4 * pulse;
     var r = icon.size * 0.28; // squircle corner radius — used only by the loading-state placeholder below
 
-    // Ambient glow — the site's own blue-gray accent color, reads at a
-    // distance, separate from the hard drop shadow below (which sells the
-    // icon sitting a little in front of the photo, not just glowing).
+    // Ambient glow — "Neon Sunset" backlight: a punchy orange-red nucleus
+    // (#FF4500) diffusing out into a pale peach vignette (#FFE4B5) at 30%
+    // opacity, so the metallic gold/black icon jumps off the desaturated
+    // backdrop instead of blending into it.
     ctx.save();
     var glow = ctx.createRadialGradient(icon.x, icon.y, 1, icon.x, icon.y, glowRadius);
-    glow.addColorStop(0, 'rgba(92,124,147,0.5)');
-    glow.addColorStop(0.45, 'rgba(92,124,147,0.16)');
-    glow.addColorStop(1, 'rgba(92,124,147,0)');
+    glow.addColorStop(0, 'rgba(255,69,0,0.55)');
+    glow.addColorStop(0.45, 'rgba(255,228,181,0.3)');
+    glow.addColorStop(1, 'rgba(255,228,181,0)');
     ctx.fillStyle = glow;
     ctx.beginPath();
     ctx.arc(icon.x, icon.y, glowRadius, 0, Math.PI * 2);
@@ -303,12 +304,12 @@
 
     // Closer-in, always-on light lift behind the icon so its black
     // background has edge contrast no matter what's directly behind it on
-    // the photo — same blue-gray family as the glow above, not a badge/chip.
+    // the photo — same coral/peach family as the glow above, not a badge/chip.
     ctx.save();
     var lift = ctx.createRadialGradient(icon.x, icon.y, icon.size * 0.25, icon.x, icon.y, icon.size * 1.5);
-    lift.addColorStop(0, 'rgba(150,182,204,0.6)');
-    lift.addColorStop(0.7, 'rgba(150,182,204,0.24)');
-    lift.addColorStop(1, 'rgba(150,182,204,0)');
+    lift.addColorStop(0, 'rgba(255,99,45,0.6)');
+    lift.addColorStop(0.7, 'rgba(255,228,181,0.3)');
+    lift.addColorStop(1, 'rgba(255,228,181,0)');
     ctx.fillStyle = lift;
     ctx.beginPath();
     ctx.arc(icon.x, icon.y, icon.size * 1.5, 0, Math.PI * 2);
@@ -322,10 +323,10 @@
     if (iconImageReady) {
       var drawSize = icon.size * 2;
 
-      // Thin, always-on rim light in the same blue-gray family, brighter on
-      // hover — a soft edge glow rather than a wash over the artwork itself.
+      // Thin, always-on rim light in the same coral/peach family, brighter
+      // on hover — a soft edge glow rather than a wash over the artwork itself.
       ctx.save();
-      ctx.shadowColor = icon.isHovered ? 'rgba(180, 205, 224, 0.95)' : 'rgba(150, 182, 204, 0.6)';
+      ctx.shadowColor = icon.isHovered ? 'rgba(255, 140, 66, 0.95)' : 'rgba(255, 180, 120, 0.6)';
       ctx.shadowBlur = icon.size * (icon.isHovered ? 0.4 : 0.24);
       ctx.drawImage(iconImage, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
       ctx.restore();
