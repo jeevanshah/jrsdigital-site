@@ -77,7 +77,11 @@ body.wide-theme {
   flex-shrink: 0;
 }
 .w-nav { display: flex; gap: 12px 24px; flex-wrap: wrap; }
-.w-nav a { font-size: 0.9rem; color: var(--w-ink-70); text-decoration: none; }
+/* Tightened from the browser default so the four links read as one
+   deliberate group instead of loosely floating words — nav already sits
+   flush with the same .w-shell right edge as the hero/filmstrip/footer
+   below it, so the "disconnected" feel was tracking, not alignment. */
+.w-nav a { font-size: 0.9rem; letter-spacing: -0.01em; color: var(--w-ink-70); text-decoration: none; }
 .w-nav a:hover { color: var(--w-ink); }
 .w-nav a.active { color: var(--w-ink); font-weight: 700; }
 
