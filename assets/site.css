@@ -459,6 +459,12 @@ section h2 {
 }
 .phone-gallery .p-back { top: 0; left: 10px; z-index: 1; }
 .phone-gallery .p-back .phone-frame { opacity: 0.92; }
+/* The front stage starts at left: 160px and sits above the back stage
+   (z-index: 2), so the back phone's caption — which inherits the back
+   stage's full 190px width — was wrapping wide enough to run under the
+   front phone and get visually clipped. Capping it keeps the wrapped
+   text inside the clear strip to the left of the front phone. */
+.phone-gallery .p-back .phone-caption { max-width: 145px; }
 .phone-gallery .p-front { top: 64px; left: 160px; z-index: 2; width: 210px; }
 
 .app-list {
@@ -665,6 +671,7 @@ section h2 {
     justify-content: center;
   }
   .phone-gallery .phone-stage { position: static; width: 200px; }
+  .phone-gallery .p-back .phone-caption { max-width: none; }
 }
 
 @media (max-width: 560px) {
