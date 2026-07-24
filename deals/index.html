@@ -234,24 +234,21 @@
       var typeLabel = isNbn ? 'NBN' : 'Mobile';
 
       html +=
-        '<div class="deal-row">' +
-          '<div class="deal-row-top">' +
-            '<div>' +
-              '<span class="deal-provider">' + esc(d.provider) + '</span>' +
-              '<span class="deal-tag ' + typeClass + '">' + typeLabel + '</span>' +
-            '</div>' +
-            tierHtml +
+        '<div class="deal-card">' +
+          '<div class="deal-card-top">' +
+            '<span class="deal-provider">' + esc(d.provider) + '</span>' +
+            '<span class="deal-tag ' + typeClass + '">' + typeLabel + '</span>' +
           '</div>' +
           '<h3 class="deal-title">' + esc(d.title) + '</h3>' +
           '<p class="deal-desc">' + esc(d.description) + '</p>' +
-          '<div class="deal-row-footer">' +
+          '<div class="deal-card-footer">' +
             '<div class="deal-prices">' +
               '<span class="deal-promo">$' + promoPrice.toFixed(2) + '</span>' +
               '<span class="deal-period">/mo</span>' +
               '<span class="deal-regular">$' + regularPrice.toFixed(2) + '</span>' +
-              savingsBadge +
-              promoInfo +
             '</div>' +
+            savingsBadge +
+            promoInfo +
             '<div class="deal-actions">' +
               '<a class="deal-link" href="' + esc(d.url) + '" target="_blank" rel="nofollow noopener">View deal →</a>' +
               '<a class="deal-track" href="/priceminder/">Track with PriceMinder</a>' +
