@@ -78,21 +78,39 @@
   outline-offset: 2px;
 }
 
-/* ---------- grid ---------- */
+/* ---------- grid & tier groups ---------- */
 .deals-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 18px;
+  display: block;
 }
 
 .deals-loading, .deals-error, .deals-empty {
-  grid-column: 1 / -1;
   text-align: center;
   color: var(--w-ink-50);
   padding: 48px 0;
   font-size: 0.95rem;
 }
 .deals-error a { color: var(--w-accent); }
+
+/* Tier group — a heading + a row of cards for that tier */
+.deals-tier-group {
+  margin-bottom: 32px;
+}
+
+.deals-tier-heading {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  font-size: 1.1rem;
+  color: var(--w-ink);
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--w-border);
+  margin: 0 0 16px;
+}
+
+.deals-tier-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
 
 /* ---------- deal card ---------- */
 .deal-card {
@@ -248,5 +266,5 @@
   .deals-toolbar { flex-direction: column; }
   .deals-controls { width: 100%; }
   .deals-search { flex: 1; min-width: 0; }
-  .deals-grid { grid-template-columns: 1fr; }
+  .deals-tier-grid { grid-template-columns: 1fr; }
 }

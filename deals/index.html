@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Compare 111 NBN and mobile plan deals from 17 Australian providers. Find the cheapest plans, track expiring promos, and never overpay again.">
+<meta name="description" content="Compare NBN and mobile plan deals from 17 Australian providers. Find the cheapest plans, track expiring promos, and never overpay again.">
 <title>Compare NBN & Mobile Plan Deals — JRS Digital</title>
 <link rel="stylesheet" href="/assets/site.css">
 <link rel="stylesheet" href="/assets/site-wide.css">
@@ -15,12 +15,12 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="JRS Digital">
 <meta property="og:title" content="Compare NBN & Mobile Plan Deals — JRS Digital">
-<meta property="og:description" content="Compare 111 NBN and mobile plan deals from 17 Australian providers. Find the cheapest plans, track expiring promos, and never overpay again.">
+<meta property="og:description" content="Compare NBN and mobile plan deals from 17 Australian providers. Find the cheapest plans, track expiring promos, and never overpay again.">
 <meta property="og:url" content="https://jrsdigital.net/deals/">
 <meta property="og:image" content="https://jrsdigital.net/assets/img/og-default.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Compare NBN & Mobile Plan Deals — JRS Digital">
-<meta name="twitter:description" content="Compare 111 NBN and mobile plan deals from 17 Australian providers. Find the cheapest plans, track expiring promos, and never overpay again.">
+<meta name="twitter:description" content="Compare NBN and mobile plan deals from 17 Australian providers. Find the cheapest plans, track expiring promos, and never overpay again.">
 <meta name="twitter:image" content="https://jrsdigital.net/assets/img/og-default.png">
 </head>
 <body class="wide-theme">
@@ -38,7 +38,7 @@
 
     <section class="w-intro" style="padding-bottom: 24px;">
       <p class="w-eyebrow"><span class="w-stroke"></span>Compare plans</p>
-      <h1>111 NBN & mobile deals, updated weekly.</h1>
+      <h1>NBN & mobile plans, updated weekly.</h1>
       <p>Current promos from 17 Australian providers — find the best price,
         check how long the discount lasts, and track when it expires with
         PriceMinder.</p>
@@ -47,16 +47,14 @@
     <section class="w-section" style="padding-top: 8px; padding-bottom: 20px;">
       <div class="deals-toolbar">
         <div class="deals-filter-group">
-          <button class="deals-filter-btn is-active" data-filter="all">All deals</button>
-          <button class="deals-filter-btn" data-filter="nbn">NBN</button>
-          <button class="deals-filter-btn" data-filter="mobile">Mobile</button>
+          <button class="deals-filter-btn is-active" data-tab="nbn">NBN Plans</button>
+          <button class="deals-filter-btn" data-tab="mobile">Mobile Plans</button>
         </div>
 
         <div class="deals-controls">
           <select class="deals-select" data-sort>
             <option value="savings">Biggest savings</option>
             <option value="cheapest">Cheapest first</option>
-            <option value="newest">Newest</option>
           </select>
 
           <select class="deals-select" data-provider>
@@ -103,10 +101,10 @@
   var sortSelect = document.querySelector('[data-sort]');
   var providerSelect = document.querySelector('[data-provider]');
   var searchInput = document.querySelector('[data-search]');
-  var filterBtns = document.querySelectorAll('[data-filter]');
+  var tabBtns = document.querySelectorAll('[data-tab]');
 
   var deals = [];
-  var activeFilter = 'all';
+  var activeTab = 'nbn';
   var activeSort = 'savings';
   var activeProvider = '';
   var activeSearch = '';
@@ -120,13 +118,31 @@
     return parsePrice(d.regularPrice) - parsePrice(d.promoPrice);
   }
 
-  function render() {
-    var filtered = deals.slice();
+  // Extract a numeric sort key from a tier string for grouping.
+  // NBN: "NBN 50/20" → 50.  Mobile: "25GB" → 25.  Everything else → 0.
+  function tierSortKey(t) {
+    if (!t) return 0;
+    var m = t.match(/(\d+)/);
+    return m ? parseInt(m[1], 10) : 0;
+  }
 
-    // Service type filter
-    if (activeFilter !== 'all') {
-      filtered = filtered.filter(function (d) { return d.serviceType === activeFilter; });
-    }
+  function groupByTier(list) {
+    var groups = {};
+    list.forEach(function (d) {
+      var key = d.tier || 'Other';
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(d);
+    });
+    // Sort groups by the numeric tier key, ascending (slowest → fastest for NBN, smallest → largest for mobile)
+    var keys = Object.keys(groups).sort(function (a, b) {
+      return tierSortKey(a) - tierSortKey(b);
+    });
+    return { keys: keys, groups: groups };
+  }
+
+  function render() {
+    // Filter by selected tab only
+    var filtered = deals.filter(function (d) { return d.serviceType === activeTab; });
 
     // Provider filter
     if (activeProvider) {
@@ -144,13 +160,11 @@
       });
     }
 
-    // Sort
+    // Sort within each tier group
     if (activeSort === 'savings') {
       filtered.sort(function (a, b) { return savings(b) - savings(a); });
     } else if (activeSort === 'cheapest') {
       filtered.sort(function (a, b) { return parsePrice(a.promoPrice) - parsePrice(b.promoPrice); });
-    } else if (activeSort === 'newest') {
-      filtered.sort(function (a, b) { return (b.postedAt || '').localeCompare(a.postedAt || ''); });
     }
 
     if (filtered.length === 0) {
@@ -160,57 +174,60 @@
     }
     empty.hidden = true;
 
+    var grouped = groupByTier(filtered);
+
     var html = '';
-    filtered.forEach(function (d) {
-      var promoPrice = parsePrice(d.promoPrice);
-      var regularPrice = parsePrice(d.regularPrice);
-      var save = regularPrice - promoPrice;
-      var isNbn = d.serviceType === 'nbn';
+    var isNbn = activeTab === 'nbn';
 
-      var tierHtml = '';
-      if (isNbn && d.tier) {
-        tierHtml = '<span class="deal-tier">' + esc(d.tier) + '</span>';
-      }
+    grouped.keys.forEach(function (tierKey) {
+      var items = grouped.groups[tierKey];
+      html += '<div class="deals-tier-group">';
+      html += '<h3 class="deals-tier-heading">' + esc(tierKey) + '</h3>';
+      html += '<div class="deals-tier-grid">';
 
-      var savingsBadge = '';
-      if (save > 0) {
-        savingsBadge = '<span class="deal-badge">Save $' + save.toFixed(2) + '/mo</span>';
-      }
+      items.forEach(function (d) {
+        var promoPrice = parsePrice(d.promoPrice);
+        var regularPrice = parsePrice(d.regularPrice);
+        var save = regularPrice - promoPrice;
 
-      var promoInfo = '';
-      if (d.promoMonths) {
-        promoInfo = '<span class="deal-meta-item">' + d.promoMonths + ' month discount</span>';
-      }
-      if (d.postedAt) {
-        promoInfo += '<span class="deal-meta-item">Posted ' + formatDate(d.postedAt) + '</span>';
-      }
+        var savingsBadge = '';
+        if (save > 0) {
+          savingsBadge = '<span class="deal-badge">Save $' + save.toFixed(2) + '/mo</span>';
+        }
 
-      var typeClass = isNbn ? 'deal-service-nbn' : 'deal-service-mobile';
-      var typeLabel = isNbn ? 'NBN' : 'Mobile';
+        var promoInfo = '';
+        if (d.promoMonths) {
+          promoInfo = '<span class="deal-meta-item">' + d.promoMonths + ' month discount</span>';
+        }
 
-      html +=
-        '<div class="deal-card">' +
-          '<div class="deal-top">' +
-            '<div class="deal-provider">' +
-              '<span class="deal-provider-name">' + esc(d.provider) + '</span>' +
-              '<span class="deal-service ' + typeClass + '">' + typeLabel + '</span>' +
+        var typeClass = isNbn ? 'deal-service-nbn' : 'deal-service-mobile';
+        var typeLabel = isNbn ? 'NBN' : 'Mobile';
+
+        html +=
+          '<div class="deal-card">' +
+            '<div class="deal-top">' +
+              '<div class="deal-provider">' +
+                '<span class="deal-provider-name">' + esc(d.provider) + '</span>' +
+                '<span class="deal-service ' + typeClass + '">' + typeLabel + '</span>' +
+              '</div>' +
+              '<h3 class="deal-title">' + esc(d.title) + '</h3>' +
+              '<p class="deal-desc">' + esc(d.description) + '</p>' +
+              promoInfo +
             '</div>' +
-            '<h3 class="deal-title">' + esc(d.title) + '</h3>' +
-            tierHtml +
-            '<p class="deal-desc">' + esc(d.description) + '</p>' +
-            promoInfo +
-          '</div>' +
-          '<div class="deal-pricing">' +
-            '<div class="deal-prices">' +
-              '<span class="deal-promo">$' + promoPrice.toFixed(2) + '</span>' +
-              '<span class="deal-regular">$' + regularPrice.toFixed(2) + '</span>' +
+            '<div class="deal-pricing">' +
+              '<div class="deal-prices">' +
+                '<span class="deal-promo">$' + promoPrice.toFixed(2) + '</span>' +
+                '<span class="deal-regular">$' + regularPrice.toFixed(2) + '</span>' +
+              '</div>' +
+              '<span class="deal-period">per month</span>' +
+              savingsBadge +
+              '<a class="deal-link" href="' + esc(d.url) + '" target="_blank" rel="nofollow noopener">View deal →</a>' +
+              '<a class="deal-track" href="/priceminder/" title="Track when this promo expires">⏳ Track with PriceMinder</a>' +
             '</div>' +
-            '<span class="deal-period">per month</span>' +
-            savingsBadge +
-            '<a class="deal-link" href="' + esc(d.url) + '" target="_blank" rel="nofollow noopener">View deal →</a>' +
-            '<a class="deal-track" href="/priceminder/" title="Track when this promo expires">⏳ Track with PriceMinder</a>' +
-          '</div>' +
-        '</div>';
+          '</div>';
+      });
+
+      html += '</div></div>';
     });
 
     grid.innerHTML = html;
@@ -220,15 +237,6 @@
     var el = document.createElement('span');
     el.textContent = s;
     return el.innerHTML;
-  }
-
-  function formatDate(d) {
-    if (!d) return '';
-    var parts = d.split('-');
-    if (parts.length < 3) return d;
-    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    var m = months[parseInt(parts[1],10) - 1] || parts[1];
-    return parts[2] + ' ' + m + ' ' + parts[0];
   }
 
   function populateProviders() {
@@ -245,11 +253,11 @@
     });
   }
 
-  filterBtns.forEach(function (btn) {
+  tabBtns.forEach(function (btn) {
     btn.addEventListener('click', function () {
-      filterBtns.forEach(function (b) { b.classList.remove('is-active'); });
+      tabBtns.forEach(function (b) { b.classList.remove('is-active'); });
       btn.classList.add('is-active');
-      activeFilter = btn.getAttribute('data-filter');
+      activeTab = btn.getAttribute('data-tab');
       render();
     });
   });
@@ -273,7 +281,6 @@
     }, 250);
   });
 
-  // Fetch deals
   fetch(DATA_URL)
     .then(function (res) { return res.json(); })
     .then(function (data) {
