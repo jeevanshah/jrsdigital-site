@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Compare 111 NBN and mobile plan deals from 17 Australian providers. Find the cheapest plans, track expiring promos, and never overpay again.">
+<title>Compare NBN & Mobile Plan Deals — JRS Digital</title>
+<link rel="stylesheet" href="/assets/site.css">
+<link rel="stylesheet" href="/assets/site-wide.css">
+<link rel="stylesheet" href="/assets/site-deals.css">
+<link rel="icon" href="/assets/img/favicon.ico" sizes="32x32">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicon-16.png">
+<link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JRS Digital">
+<meta property="og:title" content="Compare NBN & Mobile Plan Deals — JRS Digital">
+<meta property="og:description" content="Compare 111 NBN and mobile plan deals from 17 Australian providers. Find the cheapest plans, track expiring promos, and never overpay again.">
+<meta property="og:url" content="https://jrsdigital.net/deals/">
+<meta property="og:image" content="https://jrsdigital.net/assets/img/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Compare NBN & Mobile Plan Deals — JRS Digital">
+<meta name="twitter:description" content="Compare 111 NBN and mobile plan deals from 17 Australian providers. Find the cheapest plans, track expiring promos, and never overpay again.">
+<meta name="twitter:image" content="https://jrsdigital.net/assets/img/og-default.png">
+</head>
+<body class="wide-theme">
+  <div class="w-shell">
+    <header class="w-header">
+      <a class="w-brand" href="/">JRS Digital</a>
+      <nav class="w-nav">
+        <a href="/">Home</a>
+        <a href="/about.html">About</a>
+        <a href="/work.html">Work</a>
+        <a href="/deals/" class="active">Deals</a>
+        <a href="/contact.html">Contact</a>
+      </nav>
+    </header>
+
+    <section class="w-intro" style="padding-bottom: 24px;">
+      <p class="w-eyebrow"><span class="w-stroke"></span>Compare plans</p>
+      <h1>111 NBN & mobile deals, updated weekly.</h1>
+      <p>Current promos from 17 Australian providers — find the best price,
+        check how long the discount lasts, and track when it expires with
+        PriceMinder.</p>
+    </section>
+
+    <section class="w-section" style="padding-top: 8px; padding-bottom: 20px;">
+      <div class="deals-toolbar">
+        <div class="deals-filter-group">
+          <button class="deals-filter-btn is-active" data-filter="all">All deals</button>
+          <button class="deals-filter-btn" data-filter="nbn">NBN</button>
+          <button class="deals-filter-btn" data-filter="mobile">Mobile</button>
+        </div>
+
+        <div class="deals-controls">
+          <select class="deals-select" data-sort>
+            <option value="savings">Biggest savings</option>
+            <option value="cheapest">Cheapest first</option>
+            <option value="newest">Newest</option>
+          </select>
+
+          <select class="deals-select" data-provider>
+            <option value="">All providers</option>
+          </select>
+
+          <input class="deals-search" type="text" placeholder="Search plans…" data-search>
+        </div>
+      </div>
+    </section>
+
+    <section class="w-section" style="padding-top: 0;">
+      <div class="deals-grid" data-grid>
+        <p class="deals-loading">Loading deals…</p>
+      </div>
+
+      <div class="deals-empty" data-empty hidden>
+        <p>No deals match your filters. Try a different provider or search term.</p>
+      </div>
+    </section>
+
+    <section class="w-section" style="padding-top: 12px; padding-bottom: 56px;">
+      <div class="w-cta-block">
+        <h2>Found a deal? Don't let the promo expire.</h2>
+        <p>PriceMinder tracks every subscription and bill on your device,
+          compares NBN and mobile plans, and catches expiring promos before they
+          quietly cost you more. Free — no accounts, no analytics.</p>
+        <a class="w-cta" href="/priceminder/"><span class="w-stroke"></span>Get PriceMinder</a>
+      </div>
+    </section>
+
+    <div class="w-footer">
+      <span>© 2026 JRS Digital.</span>
+      <span><a href="mailto:dev@jrsdigital.net">dev@jrsdigital.net</a> · <a href="/priceminder/privacy.html">Privacy Policy</a></span>
+    </div>
+  </div>
+
+<script>
+(function () {
+  var DATA_URL = 'https://raw.githubusercontent.com/jeevanshah/au-plans-scraper/main/data/deals.json';
+
+  var grid = document.querySelector('[data-grid]');
+  var empty = document.querySelector('[data-empty]');
+  var sortSelect = document.querySelector('[data-sort]');
+  var providerSelect = document.querySelector('[data-provider]');
+  var searchInput = document.querySelector('[data-search]');
+  var filterBtns = document.querySelectorAll('[data-filter]');
+
+  var deals = [];
+  var activeFilter = 'all';
+  var activeSort = 'savings';
+  var activeProvider = '';
+  var activeSearch = '';
+
+  function parsePrice(v) {
+    if (typeof v === 'number') return v;
+    return parseFloat(String(v).replace('$','').replace(',','')) || 0;
+  }
+
+  function savings(d) {
+    return parsePrice(d.regularPrice) - parsePrice(d.promoPrice);
+  }
+
+  function render() {
+    var filtered = deals.slice();
+
+    // Service type filter
+    if (activeFilter !== 'all') {
+      filtered = filtered.filter(function (d) { return d.serviceType === activeFilter; });
+    }
+
+    // Provider filter
+    if (activeProvider) {
+      filtered = filtered.filter(function (d) { return d.provider === activeProvider; });
+    }
+
+    // Search
+    if (activeSearch.trim()) {
+      var q = activeSearch.trim().toLowerCase();
+      filtered = filtered.filter(function (d) {
+        return d.provider.toLowerCase().indexOf(q) !== -1
+          || d.title.toLowerCase().indexOf(q) !== -1
+          || (d.tier && d.tier.toLowerCase().indexOf(q) !== -1)
+          || d.description.toLowerCase().indexOf(q) !== -1;
+      });
+    }
+
+    // Sort
+    if (activeSort === 'savings') {
+      filtered.sort(function (a, b) { return savings(b) - savings(a); });
+    } else if (activeSort === 'cheapest') {
+      filtered.sort(function (a, b) { return parsePrice(a.promoPrice) - parsePrice(b.promoPrice); });
+    } else if (activeSort === 'newest') {
+      filtered.sort(function (a, b) { return (b.postedAt || '').localeCompare(a.postedAt || ''); });
+    }
+
+    if (filtered.length === 0) {
+      grid.innerHTML = '';
+      empty.hidden = false;
+      return;
+    }
+    empty.hidden = true;
+
+    var html = '';
+    filtered.forEach(function (d) {
+      var promoPrice = parsePrice(d.promoPrice);
+      var regularPrice = parsePrice(d.regularPrice);
+      var save = regularPrice - promoPrice;
+      var isNbn = d.serviceType === 'nbn';
+
+      var tierHtml = '';
+      if (isNbn && d.tier) {
+        tierHtml = '<span class="deal-tier">' + esc(d.tier) + '</span>';
+      }
+
+      var savingsBadge = '';
+      if (save > 0) {
+        savingsBadge = '<span class="deal-badge">Save $' + save.toFixed(2) + '/mo</span>';
+      }
+
+      var promoInfo = '';
+      if (d.promoMonths) {
+        promoInfo = '<span class="deal-meta-item">' + d.promoMonths + ' month discount</span>';
+      }
+      if (d.postedAt) {
+        promoInfo += '<span class="deal-meta-item">Posted ' + formatDate(d.postedAt) + '</span>';
+      }
+
+      var typeClass = isNbn ? 'deal-service-nbn' : 'deal-service-mobile';
+      var typeLabel = isNbn ? 'NBN' : 'Mobile';
+
+      html +=
+        '<div class="deal-card">' +
+          '<div class="deal-top">' +
+            '<div class="deal-provider">' +
+              '<span class="deal-provider-name">' + esc(d.provider) + '</span>' +
+              '<span class="deal-service ' + typeClass + '">' + typeLabel + '</span>' +
+            '</div>' +
+            '<h3 class="deal-title">' + esc(d.title) + '</h3>' +
+            tierHtml +
+            '<p class="deal-desc">' + esc(d.description) + '</p>' +
+            promoInfo +
+          '</div>' +
+          '<div class="deal-pricing">' +
+            '<div class="deal-prices">' +
+              '<span class="deal-promo">$' + promoPrice.toFixed(2) + '</span>' +
+              '<span class="deal-regular">$' + regularPrice.toFixed(2) + '</span>' +
+            '</div>' +
+            '<span class="deal-period">per month</span>' +
+            savingsBadge +
+            '<a class="deal-link" href="' + esc(d.url) + '" target="_blank" rel="nofollow noopener">View deal →</a>' +
+            '<a class="deal-track" href="/priceminder/" title="Track when this promo expires">⏳ Track with PriceMinder</a>' +
+          '</div>' +
+        '</div>';
+    });
+
+    grid.innerHTML = html;
+  }
+
+  function esc(s) {
+    var el = document.createElement('span');
+    el.textContent = s;
+    return el.innerHTML;
+  }
+
+  function formatDate(d) {
+    if (!d) return '';
+    var parts = d.split('-');
+    if (parts.length < 3) return d;
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var m = months[parseInt(parts[1],10) - 1] || parts[1];
+    return parts[2] + ' ' + m + ' ' + parts[0];
+  }
+
+  function populateProviders() {
+    var providers = [];
+    deals.forEach(function (d) {
+      if (providers.indexOf(d.provider) === -1) providers.push(d.provider);
+    });
+    providers.sort();
+    providers.forEach(function (p) {
+      var opt = document.createElement('option');
+      opt.value = p;
+      opt.textContent = p;
+      providerSelect.appendChild(opt);
+    });
+  }
+
+  filterBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      filterBtns.forEach(function (b) { b.classList.remove('is-active'); });
+      btn.classList.add('is-active');
+      activeFilter = btn.getAttribute('data-filter');
+      render();
+    });
+  });
+
+  sortSelect.addEventListener('change', function () {
+    activeSort = sortSelect.value;
+    render();
+  });
+
+  providerSelect.addEventListener('change', function () {
+    activeProvider = providerSelect.value;
+    render();
+  });
+
+  var searchTimer;
+  searchInput.addEventListener('input', function () {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(function () {
+      activeSearch = searchInput.value;
+      render();
+    }, 250);
+  });
+
+  // Fetch deals
+  fetch(DATA_URL)
+    .then(function (res) { return res.json(); })
+    .then(function (data) {
+      deals = data;
+      populateProviders();
+      render();
+    })
+    .catch(function () {
+      grid.innerHTML = '<p class="deals-error">Couldn&#8217;t load deals right now. <a href="https://github.com/jeevanshah/au-plans-scraper/blob/main/data/deals.json">View the data directly on GitHub</a>, or check back shortly.</p>';
+    });
+})();
+</script>
+</body>
+</html>
