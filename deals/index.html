@@ -64,8 +64,16 @@
       </div>
     </section>
 
+    <!-- Horizontal tier tabs -->
     <section class="w-section" style="padding-top: 0; padding-bottom: 12px;">
-      <div class="deals-sections" data-grid>
+      <div class="deals-tier-tabs" data-tier-tabs>
+        <!-- populated by JS -->
+      </div>
+    </section>
+
+    <!-- Vertical list of cards for selected tier -->
+    <section class="w-section" style="padding-top: 0; padding-bottom: 12px;">
+      <div class="deals-list" data-grid>
         <p class="deals-loading">Loading deals…</p>
       </div>
 
@@ -96,14 +104,17 @@
 
   var grid = document.querySelector('[data-grid]');
   var empty = document.querySelector('[data-empty]');
+  var tierTabs = document.querySelector('[data-tier-tabs]');
   var sortSelect = document.querySelector('[data-sort]');
   var providerSelect = document.querySelector('[data-provider]');
   var tabBtns = document.querySelectorAll('[data-tab]');
 
   var deals = [];
   var activeTab = 'nbn';
+  var activeTier = null;      // selected tier key, null means "all"
   var activeSort = 'savings';
   var activeProvider = '';
+  var tiers = [];             // sorted tier keys for current tab
 
   function parsePrice(v) {
     if (typeof v === 'number') return v;
@@ -133,11 +144,41 @@
     return { keys: keys, groups: groups };
   }
 
-  function render() {
+  function renderTierTabs() {
+    var filtered = deals.filter(function (d) { return d.serviceType === activeTab; });
+    if (activeProvider) {
+      filtered = filtered.filter(function (d) { return d.provider === activeProvider; });
+    }
+    var grouped = groupByTier(filtered);
+    tiers = grouped.keys;
+
+    var html = '';
+    html += '<button class="deals-tier-btn' + (activeTier === null ? ' is-active' : '') + '" data-tier="">All tiers</button>';
+    tiers.forEach(function (t) {
+      html += '<button class="deals-tier-btn' + (activeTier === t ? ' is-active' : '') + '" data-tier="' + escAttr(t) + '">' + esc(t) + '</button>';
+    });
+    tierTabs.innerHTML = html;
+
+    // Bind clicks
+    tierTabs.querySelectorAll('[data-tier]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        activeTier = btn.getAttribute('data-tier') || null;
+        renderTierTabs();
+        renderList();
+      });
+    });
+  }
+
+  function renderList() {
     var filtered = deals.filter(function (d) { return d.serviceType === activeTab; });
 
     if (activeProvider) {
       filtered = filtered.filter(function (d) { return d.provider === activeProvider; });
+    }
+
+    // If a specific tier is selected, filter to it
+    if (activeTier) {
+      filtered = filtered.filter(function (d) { return (d.tier || 'Other') === activeTier; });
     }
 
     if (activeSort === 'savings') {
@@ -153,66 +194,75 @@
     }
     empty.hidden = true;
 
-    var grouped = groupByTier(filtered);
     var isNbn = activeTab === 'nbn';
     var html = '';
 
-    grouped.keys.forEach(function (tierKey) {
-      var items = grouped.groups[tierKey];
-      html += '<div class="deals-carousel-section">';
-      html += '<h3 class="deals-carousel-heading">' + esc(tierKey) + '</h3>';
-      html += '<div class="deals-carousel">';
+    filtered.forEach(function (d) {
+      var promoPrice = parsePrice(d.promoPrice);
+      var regularPrice = parsePrice(d.regularPrice);
+      var save = regularPrice - promoPrice;
 
-      items.forEach(function (d) {
-        var promoPrice = parsePrice(d.promoPrice);
-        var regularPrice = parsePrice(d.regularPrice);
-        var save = regularPrice - promoPrice;
+      var savingsBadge = '';
+      if (save > 0) {
+        savingsBadge = '<span class="deal-badge">Save $' + save.toFixed(2) + '/mo</span>';
+      }
 
-        var savingsBadge = '';
-        if (save > 0) {
-          savingsBadge = '<span class="deal-badge">Save $' + save.toFixed(2) + '/mo</span>';
-        }
+      var tierHtml = '';
+      if (d.tier) {
+        tierHtml = '<span class="deal-tier">' + esc(d.tier) + '</span>';
+      }
 
-        var promoInfo = '';
-        if (d.promoMonths) {
-          promoInfo = '<span class="deal-meta">' + d.promoMonths + ' month discount</span>';
-        }
+      var promoInfo = '';
+      if (d.promoMonths) {
+        promoInfo = '<span class="deal-meta">' + d.promoMonths + ' month discount</span>';
+      }
 
-        var typeClass = isNbn ? 'deal-tag-nbn' : 'deal-tag-mobile';
-        var typeLabel = isNbn ? 'NBN' : 'Mobile';
+      var typeClass = isNbn ? 'deal-tag-nbn' : 'deal-tag-mobile';
+      var typeLabel = isNbn ? 'NBN' : 'Mobile';
 
-        html +=
-          '<div class="deal-card">' +
-            '<div class="deal-card-top">' +
+      html +=
+        '<div class="deal-row">' +
+          '<div class="deal-row-top">' +
+            '<div>' +
               '<span class="deal-provider">' + esc(d.provider) + '</span>' +
               '<span class="deal-tag ' + typeClass + '">' + typeLabel + '</span>' +
             '</div>' +
-            '<h3 class="deal-title">' + esc(d.title) + '</h3>' +
-            '<p class="deal-desc">' + esc(d.description) + '</p>' +
-            '<div class="deal-card-footer">' +
-              '<div class="deal-price-row">' +
-                '<span class="deal-promo">$' + promoPrice.toFixed(2) + '</span>' +
-                '<span class="deal-period">/mo</span>' +
-                '<span class="deal-regular">$' + regularPrice.toFixed(2) + '</span>' +
-              '</div>' +
+            tierHtml +
+          '</div>' +
+          '<h3 class="deal-title">' + esc(d.title) + '</h3>' +
+          '<p class="deal-desc">' + esc(d.description) + '</p>' +
+          '<div class="deal-row-footer">' +
+            '<div class="deal-prices">' +
+              '<span class="deal-promo">$' + promoPrice.toFixed(2) + '</span>' +
+              '<span class="deal-period">/mo</span>' +
+              '<span class="deal-regular">$' + regularPrice.toFixed(2) + '</span>' +
               savingsBadge +
               promoInfo +
+            '</div>' +
+            '<div class="deal-actions">' +
               '<a class="deal-link" href="' + esc(d.url) + '" target="_blank" rel="nofollow noopener">View deal →</a>' +
               '<a class="deal-track" href="/priceminder/">Track with PriceMinder</a>' +
             '</div>' +
-          '</div>';
-      });
-
-      html += '</div></div>';
+          '</div>' +
+        '</div>';
     });
 
     grid.innerHTML = html;
+  }
+
+  function fullRender() {
+    renderTierTabs();
+    renderList();
   }
 
   function esc(s) {
     var el = document.createElement('span');
     el.textContent = s;
     return el.innerHTML;
+  }
+
+  function escAttr(s) {
+    return s.replace(/&/g, '&').replace(/"/g, '"').replace(/'/g, '&#39;').replace(/</g, '<').replace(/>/g, '>');
   }
 
   function populateProviders() {
@@ -234,18 +284,20 @@
       tabBtns.forEach(function (b) { b.classList.remove('is-active'); });
       btn.classList.add('is-active');
       activeTab = btn.getAttribute('data-tab');
-      render();
+      activeTier = null;
+      fullRender();
     });
   });
 
   sortSelect.addEventListener('change', function () {
     activeSort = sortSelect.value;
-    render();
+    renderList();
   });
 
   providerSelect.addEventListener('change', function () {
     activeProvider = providerSelect.value;
-    render();
+    activeTier = null;
+    fullRender();
   });
 
   fetch(DATA_URL)
@@ -253,7 +305,7 @@
     .then(function (data) {
       deals = data;
       populateProviders();
-      render();
+      fullRender();
     })
     .catch(function () {
       grid.innerHTML = '<p class="deals-error">Couldn&#8217;t load deals right now. <a href="https://github.com/jeevanshah/au-plans-scraper/blob/main/data/deals.json">View the data directly on GitHub</a>, or check back shortly.</p>';
