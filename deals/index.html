@@ -111,10 +111,10 @@
 
   var deals = [];
   var activeTab = 'nbn';
-  var activeTier = null;      // selected tier key, null means "all"
+  var activeTier = null;
   var activeSort = 'savings';
   var activeProvider = '';
-  var tiers = [];             // sorted tier keys for current tab
+  var tiers = [];
 
   function parsePrice(v) {
     if (typeof v === 'number') return v;
@@ -131,10 +131,25 @@
     return m ? parseInt(m[1], 10) : 0;
   }
 
+  // Normalize tier strings into group labels.
+  // NBN: "NBN 25/10", "NBN 25/8.5", "NBN 25/25", "NBN 25" → all go into "NBN 25"
+  // Mobile: "25GB", "50GB" etc → stays as-is
+  function tierGroupKey(rawTier) {
+    if (!rawTier) return 'Other';
+    var s = String(rawTier);
+    var firstNum = s.match(/(\d+)/);
+    if (!firstNum) return s;
+    var speed = firstNum[1];
+    if (/nbn/i.test(s) || /\//.test(s)) {
+      return 'NBN ' + speed;
+    }
+    return speed + 'GB';
+  }
+
   function groupByTier(list) {
     var groups = {};
     list.forEach(function (d) {
-      var key = d.tier || 'Other';
+      var key = tierGroupKey(d.tier);
       if (!groups[key]) groups[key] = [];
       groups[key].push(d);
     });
@@ -159,7 +174,6 @@
     });
     tierTabs.innerHTML = html;
 
-    // Bind clicks
     tierTabs.querySelectorAll('[data-tier]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         activeTier = btn.getAttribute('data-tier') || null;
@@ -176,9 +190,8 @@
       filtered = filtered.filter(function (d) { return d.provider === activeProvider; });
     }
 
-    // If a specific tier is selected, filter to it
     if (activeTier) {
-      filtered = filtered.filter(function (d) { return (d.tier || 'Other') === activeTier; });
+      filtered = filtered.filter(function (d) { return tierGroupKey(d.tier) === activeTier; });
     }
 
     if (activeSort === 'savings') {
