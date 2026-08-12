@@ -67,6 +67,7 @@ body.wide-theme {
   color: var(--w-ink);
   font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
   line-height: 1.65;
+  border-top: 4px solid var(--w-ink);
 }
 
 /* Full-bleed shell: fluid width instead of a flat cap, so a 2000px+ monitor
@@ -103,6 +104,16 @@ body.wide-theme {
 .w-nav a { font-size: 0.9rem; letter-spacing: -0.01em; color: var(--w-ink-70); text-decoration: none; padding-bottom: 4px; border-bottom: 2px solid transparent; }
 .w-nav a:hover { color: var(--w-ink); }
 .w-nav a.active { color: var(--w-accent); font-weight: 700; border-bottom-color: var(--w-accent); }
+
+/* Decorative only (no dark theme exists to switch to — see the
+   always-light note above) — a static span, not a button, so it doesn't
+   present a false affordance. */
+.w-theme-icon {
+  display: inline-flex;
+  color: var(--w-ink-70);
+  flex-shrink: 0;
+}
+.w-theme-icon svg { width: 19px; height: 19px; }
 
 /* Wide asymmetric hero: text column stays a readable measure, but the right
    side spreads a horizontal filmstrip of screens across the remaining width
