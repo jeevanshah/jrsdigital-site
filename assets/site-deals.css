@@ -46,13 +46,37 @@
   margin: 0;
 }
 .deals-updated strong { color: var(--w-ink); }
-.deals-check { width: 19px; height: 19px; flex-shrink: 0; color: var(--jrs-green); }
+.deals-check { width: 19px; height: 19px; flex-shrink: 0; display: block; }
 
+/* ---------- hero illustration (layered PNG/WebP assets, absolutely
+   positioned over the background art) ---------- */
 .deals-hero-art {
+  position: relative;
   width: 100%;
-  aspect-ratio: 600 / 420;
+  aspect-ratio: 1398 / 787;
+  overflow: hidden;
+  border-radius: var(--w-radius);
 }
-.deals-hero-art svg { width: 100%; height: 100%; display: block; border-radius: var(--w-radius); }
+.deals-hero-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+.deals-hero-foliage,
+.deals-hero-house,
+.deals-hero-wifi,
+.deals-hero-phone {
+  position: absolute;
+  height: auto;
+}
+.deals-hero-foliage-l { left: -1%; bottom: 0; width: 20%; z-index: 1; }
+.deals-hero-foliage-r { right: 6%; bottom: 0; width: 26%; z-index: 1; }
+.deals-hero-house { left: 6%; bottom: 4%; width: 42%; z-index: 2; }
+.deals-hero-wifi { left: 21%; top: 10%; width: 12%; z-index: 3; }
+.deals-hero-phone { right: 2%; bottom: 2%; width: 24%; z-index: 3; }
 
 /* ---------- toolbar ---------- */
 .deals-toolbar-section { padding-top: 0; padding-bottom: 20px; display: flex; flex-direction: column; gap: 16px; }
@@ -306,18 +330,8 @@
 }
 
 .pm-banner-left { display: flex; align-items: flex-start; gap: 18px; flex: 1 1 320px; }
-.pm-bell-badge {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: #FFFFFF;
-  color: var(--w-accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.pm-bell-badge svg { width: 24px; height: 24px; }
+.pm-bell-badge { flex-shrink: 0; display: block; }
+.pm-bell-badge img { display: block; width: 52px; height: 52px; }
 .deals-priceminder-banner h2 {
   font-family: 'Space Grotesk', sans-serif;
   font-weight: 500;
@@ -334,18 +348,8 @@
 
 .pm-banner-benefits { display: flex; gap: 22px; flex-wrap: wrap; flex: 1 1 320px; }
 .pm-benefit { display: flex; align-items: center; gap: 10px; max-width: 160px; }
-.pm-benefit-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: 1.5px solid var(--w-accent);
-  color: var(--w-accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.pm-benefit-icon svg { width: 16px; height: 16px; }
+.pm-benefit-icon { flex-shrink: 0; display: block; }
+.pm-benefit-icon img { display: block; width: 34px; height: 34px; }
 .pm-benefit span:last-child { font-size: 0.82rem; color: var(--w-ink); line-height: 1.3; }
 
 .pm-banner-cta { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
