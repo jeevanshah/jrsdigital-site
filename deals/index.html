@@ -26,103 +26,288 @@
 <body class="wide-theme">
   <div class="w-shell">
     <header class="w-header">
-      <a class="w-brand" href="/">JRS Digital</a>
-      <nav class="w-nav">
-        <a href="/">Home</a>
-        <a href="/about.html">About</a>
-        <a href="/work.html">Work</a>
-        <a href="/deals/" class="active">Deals</a>
-        <a href="/contact.html">Contact</a>
-      </nav>
+      <a class="w-brand" href="/"><span class="jrs">JRS</span> Digital</a>
+      <div class="w-header-right">
+        <nav class="w-nav">
+          <a href="/work.html">Work</a>
+          <a href="/deals/" class="active">Deals</a>
+          <a href="/about.html">About</a>
+          <a href="/priceminder/privacy.html">Privacy</a>
+          <a href="/contact.html">Contact</a>
+        </nav>
+        <a class="w-header-cta" href="/priceminder/">Get PriceMinder</a>
+      </div>
     </header>
 
-    <section class="w-intro" style="padding-bottom: 24px;">
-      <p class="w-eyebrow"><span class="w-stroke"></span>Compare plans</p>
-      <h1>NBN & mobile plans, updated weekly.</h1>
-      <p>Current promos from 17 Australian providers — find the best price,
-        check how long the discount lasts, and track when it expires with
-        PriceMinder.</p>
+    <section class="deals-hero">
+      <div class="deals-hero-copy">
+        <p class="deals-eyebrow">DEALS —</p>
+        <h1 class="deals-h1">Find a better<br><span class="deals-h1-accent">internet</span> plan.</h1>
+        <p class="deals-hero-sub">Compare current NBN and mobile deals from Australian providers
+          so you can see what you'll pay during the promo and after it ends.</p>
+        <p class="deals-updated">
+          <svg class="deals-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.5 2.5L16 9.5"/>
+          </svg>
+          Last updated: <strong>12 August 2026</strong>
+        </p>
+      </div>
+
+      <div class="deals-hero-art" aria-hidden="true">
+        <svg viewBox="0 0 600 420" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <linearGradient id="skyGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#FFEBB0"/>
+              <stop offset="55%" stop-color="#FF9A44"/>
+              <stop offset="100%" stop-color="#FF6A00"/>
+            </linearGradient>
+            <linearGradient id="roofGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#FF7A2E"/>
+              <stop offset="100%" stop-color="#E0430F"/>
+            </linearGradient>
+          </defs>
+
+          <rect x="0" y="0" width="600" height="420" rx="24" fill="url(#skyGrad)"/>
+
+          <circle cx="472" cy="332" r="76" fill="#FFC83D" opacity="0.3"/>
+          <circle cx="120" cy="300" r="50" fill="#FF6A00" opacity="0.16"/>
+
+          <g fill="#FFFFFF" opacity="0.9">
+            <ellipse cx="92" cy="72" rx="42" ry="22"/>
+            <ellipse cx="132" cy="62" rx="30" ry="17"/>
+            <ellipse cx="58" cy="64" rx="24" ry="15"/>
+          </g>
+
+          <path d="M0 344 Q150 302 300 336 T600 330 L600 420 L0 420 Z" fill="#3E8E33"/>
+          <g fill="#4FA23A">
+            <ellipse cx="150" cy="345" rx="34" ry="14"/>
+            <ellipse cx="410" cy="342" rx="30" ry="13"/>
+            <ellipse cx="215" cy="352" rx="22" ry="10"/>
+          </g>
+
+          <g>
+            <rect x="140" y="278" width="11" height="48" fill="#6B4423"/>
+            <circle cx="146" cy="248" r="44" fill="#2E6B27"/>
+            <circle cx="118" cy="272" r="26" fill="#3E8E33"/>
+          </g>
+          <g>
+            <rect x="447" y="282" width="11" height="46" fill="#6B4423"/>
+            <circle cx="453" cy="252" r="40" fill="#2E6B27"/>
+            <circle cx="480" cy="276" r="24" fill="#3E8E33"/>
+          </g>
+
+          <polygon points="185,213 280,148 375,213" fill="url(#roofGrad)" stroke="#111827" stroke-width="3" stroke-linejoin="round"/>
+          <rect x="330" y="163" width="16" height="42" fill="#E0430F" stroke="#111827" stroke-width="2"/>
+          <rect x="195" y="209" width="170" height="112" rx="6" fill="#FFF3E0" stroke="#111827" stroke-width="3"/>
+          <rect x="264" y="269" width="32" height="52" rx="3" fill="#111827"/>
+          <g stroke="#111827" stroke-width="2">
+            <rect x="214" y="235" width="32" height="32" rx="3" fill="#BFE3FF"/>
+            <line x1="230" y1="235" x2="230" y2="267"/>
+            <line x1="214" y1="251" x2="246" y2="251"/>
+            <rect x="314" y="235" width="32" height="32" rx="3" fill="#BFE3FF"/>
+            <line x1="330" y1="235" x2="330" y2="267"/>
+            <line x1="314" y1="251" x2="346" y2="251"/>
+          </g>
+
+          <g fill="none" stroke="#FF6A00" stroke-width="8" stroke-linecap="round">
+            <path d="M220 146 A60 60 0 0 1 340 146"/>
+            <path d="M240 146 A40 40 0 0 1 320 146"/>
+            <path d="M260 146 A20 20 0 0 1 300 146"/>
+          </g>
+          <circle cx="280" cy="146" r="7" fill="#FF6A00"/>
+
+          <g transform="rotate(8 500 220)">
+            <rect x="440" y="98" width="120" height="244" rx="22" fill="#FFFFFF" stroke="#111827" stroke-width="5"/>
+            <rect x="486" y="107" width="28" height="5" rx="2.5" fill="#111827" opacity="0.55"/>
+            <rect x="452" y="122" width="96" height="192" rx="8" fill="#F4F6F5"/>
+            <path d="M470 158
+                     C478 150 494 147 507 150
+                     C517 152 526 148 533 155
+                     C539 161 537 170 531 174
+                     C535 180 532 188 524 190
+                     C520 198 509 200 501 196
+                     C493 202 483 199 479 191
+                     C469 189 464 179 468 171
+                     C461 166 463 160 470 158 Z" fill="#348B27"/>
+            <circle cx="524" cy="196" r="15" fill="#FFFFFF" stroke="#348B27" stroke-width="3"/>
+            <path d="M517 196 l5 5 l10 -12" fill="none" stroke="#348B27" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="468" y="228" width="64" height="8" rx="4" fill="#DDE6E1"/>
+            <rect x="468" y="243" width="48" height="8" rx="4" fill="#DDE6E1"/>
+            <rect x="468" y="258" width="56" height="8" rx="4" fill="#348B27" opacity="0.35"/>
+            <rect x="485" y="326" width="30" height="5" rx="2.5" fill="#111827" opacity="0.35"/>
+          </g>
+        </svg>
+      </div>
     </section>
 
-    <section class="w-section" style="padding-top: 8px; padding-bottom: 8px;">
-      <div class="deals-toolbar">
-        <div class="deals-filter-group">
-          <button class="deals-filter-btn is-active" data-tab="nbn">NBN Plans</button>
-          <button class="deals-filter-btn" data-tab="mobile">Mobile Plans</button>
+    <section class="w-section deals-toolbar-section">
+      <div class="deals-filter-group">
+        <button class="deals-filter-btn is-active" data-tab="nbn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5a16 16 0 0 1 18 0"/><path d="M6.5 12.5a10.5 10.5 0 0 1 11 0"/><path d="M10 16.5a5 5 0 0 1 4 0"/><circle cx="12" cy="19.5" r="0.8" fill="currentColor" stroke="none"/></svg>
+          NBN Plans
+        </button>
+        <button class="deals-filter-btn" data-tab="mobile">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+          Mobile Plans
+        </button>
+      </div>
+
+      <div class="deals-filters-box">
+        <div class="deals-filter-col deals-filter-col--speed">
+          <span class="deals-filter-label" data-tier-label>NBN speed</span>
+          <div class="deals-tier-tabs" data-tier-tabs><!-- populated by JS --></div>
         </div>
-
-        <div class="deals-controls">
-          <select class="deals-select" data-sort>
-            <option value="savings">Biggest savings</option>
-            <option value="cheapest">Cheapest first</option>
-          </select>
-
+        <div class="deals-filter-col">
+          <span class="deals-filter-label">Provider</span>
           <select class="deals-select" data-provider>
             <option value="">All providers</option>
           </select>
         </div>
+        <div class="deals-filter-col">
+          <span class="deals-filter-label">Sort by</span>
+          <select class="deals-select" data-sort>
+            <option value="totalfirstyear">Total first year cost (low to high)</option>
+            <option value="savings">Biggest savings</option>
+            <option value="cheapest">Cheapest first</option>
+          </select>
+        </div>
       </div>
     </section>
 
-    <!-- Horizontal tier tabs -->
-    <section class="w-section" style="padding-top: 0; padding-bottom: 12px;">
-      <div class="deals-tier-tabs" data-tier-tabs>
-        <!-- populated by JS -->
-      </div>
-    </section>
-
-    <!-- Vertical list of cards for selected tier -->
-    <section class="w-section" style="padding-top: 0; padding-bottom: 12px;">
-      <div class="deals-list" data-grid>
-        <p class="deals-loading">Loading deals…</p>
+    <section class="w-section deals-table-section">
+      <div class="deals-table-wrap">
+        <div class="deals-table-head">
+          <span>Provider &amp; Plan</span>
+          <span class="deals-th-with-info">Connection
+            <span class="deals-info" tabindex="0" title="From each provider's published plan tier and technology type — not an independent speed test.">i</span>
+          </span>
+          <span>Promo Price<small>Introductory period</small></span>
+          <span>After Promo<small>Ongoing cost</small></span>
+          <span>Total First Year<small>Promo + remaining months</small></span>
+          <span>Savings<small>vs. standard price</small></span>
+          <span></span>
+        </div>
+        <div class="deals-table-body" data-grid>
+          <p class="deals-loading">Loading deals…</p>
+        </div>
       </div>
 
       <div class="deals-empty" data-empty hidden>
         <p>No deals match your filters. Try a different provider.</p>
       </div>
+
+      <button class="deals-more" data-more type="button" hidden>
+        View more plans
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
     </section>
 
     <section class="w-section" style="padding-top: 12px; padding-bottom: 56px;">
-      <div class="w-cta-block">
-        <h2>Found a deal? Don't let the promo expire.</h2>
-        <p>PriceMinder tracks every subscription and bill on your device,
-          compares NBN and mobile plans, and catches expiring promos before they
-          quietly cost you more. Free — no accounts, no analytics.</p>
-        <a class="w-cta" href="/priceminder/"><span class="w-stroke"></span>Get PriceMinder</a>
+      <div class="deals-priceminder-banner">
+        <div class="pm-banner-left">
+          <div class="pm-bell-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M6 8a6 6 0 1 1 12 0c0 4 1.5 5.5 2 6.5H4c.5-1 2-2.5 2-6.5Z"/>
+              <path d="M9.5 17a2.5 2.5 0 0 0 5 0"/>
+            </svg>
+          </div>
+          <div>
+            <h2>Never pay full price again.</h2>
+            <p>PriceMinder watches your plan and reminds you before your introductory
+              price ends—so you can switch and keep saving.</p>
+          </div>
+        </div>
+
+        <div class="pm-banner-benefits">
+          <div class="pm-benefit">
+            <span class="pm-benefit-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/><path d="m8 14 2.5 2.5L16 11"/></svg>
+            </span>
+            <span>Track promo expiry dates</span>
+          </div>
+          <div class="pm-benefit">
+            <span class="pm-benefit-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 1 1 12 0c0 4 1.5 5.5 2 6.5H4c.5-1 2-2.5 2-6.5Z"/><path d="M9.5 17a2.5 2.5 0 0 0 5 0"/></svg>
+            </span>
+            <span>Get smart reminders</span>
+          </div>
+          <div class="pm-benefit">
+            <span class="pm-benefit-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 1 1 8 0v3"/></svg>
+            </span>
+            <span>No account. Data stays on your device.</span>
+          </div>
+        </div>
+
+        <div class="pm-banner-cta">
+          <a class="pm-cta-btn" href="/priceminder/">
+            Get PriceMinder
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+          </a>
+          <span class="pm-cta-note">Free · No account · Data stays on your device</span>
+        </div>
       </div>
     </section>
 
     <div class="w-footer">
-      <span>© 2026 JRS Digital.</span>
-      <span><a href="mailto:dev@jrsdigital.net">dev@jrsdigital.net</a> · <a href="/priceminder/privacy.html">Privacy Policy</a></span>
+      <div class="w-footer-brand">
+        <span>© 2026 JRS Digital Pty Ltd. All rights reserved.</span>
+        <span>Independent software. Practical tools.</span>
+      </div>
+      <div class="w-footer-social">
+        <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="0.9" fill="currentColor" stroke="none"/></svg></a>
+        <a href="#" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3v10.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M16 3c.3 2.2 2 4 4.3 4.2"/></svg></a>
+        <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="7.5" y1="10" x2="7.5" y2="16.5"/><circle cx="7.5" cy="6.7" r="0.7" fill="currentColor" stroke="none"/><path d="M11.5 16.5V12a2 2 0 0 1 4 0v4.5"/><line x1="11.5" y1="10" x2="11.5" y2="12"/></svg></a>
+        <a href="mailto:dev@jrsdigital.net" aria-label="Email"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg></a>
+      </div>
+      <div class="w-footer-links">
+        <a href="/about.html">About</a>
+        <a href="/priceminder/privacy.html">Privacy</a>
+        <a href="/contact.html">Contact</a>
+      </div>
     </div>
   </div>
 
 <script>
 (function () {
   var DATA_URL = 'https://raw.githubusercontent.com/jeevanshah/au-plans-scraper/main/data/deals.json';
+  var VISIBLE_STEP = 8;
 
-  var grid = document.querySelector('[data-grid]');
+  var gridBody = document.querySelector('[data-grid]');
   var empty = document.querySelector('[data-empty]');
   var tierTabs = document.querySelector('[data-tier-tabs]');
+  var tierLabel = document.querySelector('[data-tier-label]');
   var sortSelect = document.querySelector('[data-sort]');
   var providerSelect = document.querySelector('[data-provider]');
   var tabBtns = document.querySelectorAll('[data-tab]');
+  var moreBtn = document.querySelector('[data-more]');
 
   var deals = [];
   var activeTab = 'nbn';
   var activeTier = null;
-  var activeSort = 'savings';
+  var activeSort = 'totalfirstyear';
   var activeProvider = '';
   var tiers = [];
+  var visibleCount = VISIBLE_STEP;
 
   function parsePrice(v) {
     if (typeof v === 'number') return v;
-    return parseFloat(String(v).replace('$','').replace(',','')) || 0;
+    return parseFloat(String(v).replace('$', '').replace(',', '')) || 0;
   }
 
-  function savings(d) {
-    return parsePrice(d.regularPrice) - parsePrice(d.promoPrice);
+  // First-year cost: promo rate for the promo months (capped at 12), then
+  // the regular rate for whatever's left of the first 12 months.
+  function totalFirstYear(d) {
+    var promo = parsePrice(d.promoPrice);
+    var regular = parsePrice(d.regularPrice);
+    var months = Math.max(0, Math.min(12, parseInt(d.promoMonths, 10) || 0));
+    return promo * months + regular * (12 - months);
+  }
+
+  function savingsFirstYear(d) {
+    var regular = parsePrice(d.regularPrice);
+    return regular * 12 - totalFirstYear(d);
   }
 
   function tierSortKey(t) {
@@ -132,7 +317,7 @@
   }
 
   // Normalize tier strings into group labels.
-  // NBN: "NBN 25/10", "NBN 25/8.5", "NBN 25/25", "NBN 25" → all go into "NBN 25"
+  // NBN: "NBN 25/10", "NBN 25/8.5", "NBN 25/25" → all go into "NBN 25"
   // Mobile: "25GB", "50GB" etc → stays as-is
   function tierGroupKey(rawTier) {
     if (!rawTier) return 'Other';
@@ -144,6 +329,10 @@
       return 'NBN ' + speed;
     }
     return speed + 'GB';
+  }
+
+  function tierDisplayLabel(key) {
+    return activeTab === 'nbn' ? key.replace(/^NBN\s*/i, '') : key;
   }
 
   function groupByTier(list) {
@@ -159,7 +348,13 @@
     return { keys: keys, groups: groups };
   }
 
+  function resetVisible() {
+    visibleCount = VISIBLE_STEP;
+  }
+
   function renderTierTabs() {
+    tierLabel.textContent = activeTab === 'nbn' ? 'NBN speed' : 'Data allowance';
+
     var filtered = deals.filter(function (d) { return d.serviceType === activeTab; });
     if (activeProvider) {
       filtered = filtered.filter(function (d) { return d.provider === activeProvider; });
@@ -168,15 +363,16 @@
     tiers = grouped.keys;
 
     var html = '';
-    html += '<button class="deals-tier-btn' + (activeTier === null ? ' is-active' : '') + '" data-tier="">All tiers</button>';
+    html += '<button class="deals-tier-btn' + (activeTier === null ? ' is-active' : '') + '" data-tier="">All</button>';
     tiers.forEach(function (t) {
-      html += '<button class="deals-tier-btn' + (activeTier === t ? ' is-active' : '') + '" data-tier="' + escAttr(t) + '">' + esc(t) + '</button>';
+      html += '<button class="deals-tier-btn' + (activeTier === t ? ' is-active' : '') + '" data-tier="' + escAttr(t) + '">' + esc(tierDisplayLabel(t)) + '</button>';
     });
     tierTabs.innerHTML = html;
 
     tierTabs.querySelectorAll('[data-tier]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         activeTier = btn.getAttribute('data-tier') || null;
+        resetVisible();
         renderTierTabs();
         renderList();
       });
@@ -194,70 +390,70 @@
       filtered = filtered.filter(function (d) { return tierGroupKey(d.tier) === activeTier; });
     }
 
-    if (activeSort === 'savings') {
-      filtered.sort(function (a, b) { return savings(b) - savings(a); });
+    if (activeSort === 'totalfirstyear') {
+      filtered.sort(function (a, b) { return totalFirstYear(a) - totalFirstYear(b); });
+    } else if (activeSort === 'savings') {
+      filtered.sort(function (a, b) { return savingsFirstYear(b) - savingsFirstYear(a); });
     } else {
       filtered.sort(function (a, b) { return parsePrice(a.promoPrice) - parsePrice(b.promoPrice); });
     }
 
     if (filtered.length === 0) {
-      grid.innerHTML = '';
+      gridBody.innerHTML = '';
       empty.hidden = false;
+      moreBtn.hidden = true;
       return;
     }
     empty.hidden = true;
 
-    var isNbn = activeTab === 'nbn';
+    var visible = filtered.slice(0, visibleCount);
     var html = '';
 
-    filtered.forEach(function (d) {
+    visible.forEach(function (d) {
       var promoPrice = parsePrice(d.promoPrice);
       var regularPrice = parsePrice(d.regularPrice);
-      var save = regularPrice - promoPrice;
-
-      var savingsBadge = '';
-      if (save > 0) {
-        savingsBadge = '<span class="deal-badge">Save $' + save.toFixed(2) + '/mo</span>';
-      }
-
-      var tierHtml = '';
-      if (d.tier) {
-        tierHtml = '<span class="deal-tier">' + esc(d.tier) + '</span>';
-      }
-
-      var promoInfo = '';
-      if (d.promoMonths) {
-        promoInfo = '<span class="deal-meta">' + d.promoMonths + ' month discount</span>';
-      }
-
-      var typeClass = isNbn ? 'deal-tag-nbn' : 'deal-tag-mobile';
-      var typeLabel = isNbn ? 'NBN' : 'Mobile';
+      var firstYear = totalFirstYear(d);
+      var save = savingsFirstYear(d);
+      var savePct = regularPrice > 0 ? Math.round((save / (regularPrice * 12)) * 100) : 0;
+      var connection = d.techType || d.tier || '—';
 
       html +=
-        '<div class="deal-card">' +
-          '<div class="deal-card-top">' +
-            '<span class="deal-provider">' + esc(d.provider) + '</span>' +
-            '<span class="deal-tag ' + typeClass + '">' + typeLabel + '</span>' +
+        '<div class="deal-row">' +
+          '<div class="deal-cell deal-cell-provider">' +
+            '<span class="deal-provider-name">' + esc(d.provider) + '</span>' +
+            '<span class="deal-plan-tier">' + esc(d.tier || d.title || '') + '</span>' +
           '</div>' +
-          '<h3 class="deal-title">' + esc(d.title) + '</h3>' +
-          '<p class="deal-desc">' + esc(d.description) + '</p>' +
-          '<div class="deal-card-footer">' +
-            '<div class="deal-prices">' +
-              '<span class="deal-promo">$' + promoPrice.toFixed(2) + '</span>' +
-              '<span class="deal-period">/mo</span>' +
-              '<span class="deal-regular">$' + regularPrice.toFixed(2) + '</span>' +
-            '</div>' +
-            savingsBadge +
-            promoInfo +
-            '<div class="deal-actions">' +
-              '<a class="deal-link" href="' + esc(d.url) + '" target="_blank" rel="nofollow noopener">View deal →</a>' +
-              '<a class="deal-track" href="/priceminder/">Track with PriceMinder</a>' +
-            '</div>' +
+          '<div class="deal-cell deal-cell-speed">' +
+            '<span class="deal-cell-value">' + esc(connection) + '</span>' +
+            '<span class="deal-cell-caption">Connection type</span>' +
+          '</div>' +
+          '<div class="deal-cell deal-cell-promo">' +
+            '<span class="deal-price-orange">$' + promoPrice.toFixed(2) + '<small>/mo</small></span>' +
+            '<span class="deal-cell-caption">' + (d.promoMonths ? 'for ' + d.promoMonths + ' months' : 'introductory') + '</span>' +
+          '</div>' +
+          '<div class="deal-cell deal-cell-after">' +
+            '<span class="deal-price-navy">$' + regularPrice.toFixed(2) + '<small>/mo</small></span>' +
+            '<span class="deal-cell-caption">ongoing</span>' +
+          '</div>' +
+          '<div class="deal-cell deal-cell-total">' +
+            '<span class="deal-price-orange">$' + firstYear.toFixed(2) + '</span>' +
+            '<span class="deal-cell-caption">first year</span>' +
+          '</div>' +
+          '<div class="deal-cell deal-cell-savings">' +
+            (save > 0
+              ? '<span class="deal-savings-amt">$' + save.toFixed(2) + '</span><span class="deal-savings-pct">' + savePct + '%</span>'
+              : '<span class="deal-cell-caption">—</span>') +
+          '</div>' +
+          '<div class="deal-cell deal-cell-action">' +
+            '<a class="deal-link" href="' + esc(d.url) + '" target="_blank" rel="nofollow noopener">View deal' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>' +
+            '</a>' +
           '</div>' +
         '</div>';
     });
 
-    grid.innerHTML = html;
+    gridBody.innerHTML = html;
+    moreBtn.hidden = filtered.length <= visibleCount;
   }
 
   function fullRender() {
@@ -267,12 +463,12 @@
 
   function esc(s) {
     var el = document.createElement('span');
-    el.textContent = s;
+    el.textContent = s == null ? '' : s;
     return el.innerHTML;
   }
 
   function escAttr(s) {
-    return s.replace(/&/g, '&').replace(/"/g, '"').replace(/'/g, '&#39;').replace(/</g, '<').replace(/>/g, '>');
+    return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
   function populateProviders() {
@@ -295,19 +491,27 @@
       btn.classList.add('is-active');
       activeTab = btn.getAttribute('data-tab');
       activeTier = null;
+      resetVisible();
       fullRender();
     });
   });
 
   sortSelect.addEventListener('change', function () {
     activeSort = sortSelect.value;
+    resetVisible();
     renderList();
   });
 
   providerSelect.addEventListener('change', function () {
     activeProvider = providerSelect.value;
     activeTier = null;
+    resetVisible();
     fullRender();
+  });
+
+  moreBtn.addEventListener('click', function () {
+    visibleCount += VISIBLE_STEP;
+    renderList();
   });
 
   fetch(DATA_URL)
@@ -318,7 +522,8 @@
       fullRender();
     })
     .catch(function () {
-      grid.innerHTML = '<p class="deals-error">Couldn&#8217;t load deals right now. <a href="https://github.com/jeevanshah/au-plans-scraper/blob/main/data/deals.json">View the data directly on GitHub</a>, or check back shortly.</p>';
+      gridBody.innerHTML = '<p class="deals-error">Couldn&#8217;t load deals right now. <a href="https://github.com/jeevanshah/au-plans-scraper/blob/main/data/deals.json">View the data directly on GitHub</a>, or check back shortly.</p>';
+      moreBtn.hidden = true;
     });
 })();
 </script>

@@ -8,35 +8,53 @@
    ribbon, and a horizontal work-card row. */
 
 :root {
-  /* Cool, subtle palette: neutral cool-gray background (not warm sage),
-     a near-black cool charcoal ink (not pure black — avoids "dark and
-     gloomy"), and a muted slate-blue accent instead of gold — desaturated
-     enough to stay quiet, but a real color rather than a safe gray. */
-  --w-bg: #EEF1F1;
-  --w-surface: #E3E8E8;
-  --w-ink: #1B2224;
-  --w-ink-70: rgba(27, 34, 36, 0.68);
-  /* Was 0.46 — measured out at ~2.8:1 against --w-bg, below the 4.5:1 WCAG AA
-     floor for normal-size text, yet this token drives real (non-decorative)
-     copy: footer text, captions, stat labels, .w-prose .meta. 0.66 lands
-     ~5:1 while still reading as visibly muted next to --w-ink-70. */
-  --w-ink-50: rgba(27, 34, 36, 0.66);
-  --w-border: rgba(27, 34, 36, 0.14);
-  /* Was #5C7C93 — fine as a button fill, but used bare as *text* (the
-     "In development" tag, the belief numerals, prose links) it only hit
-     ~3.9:1 against --w-bg, below AA. Darkened to the old --w-accent-strong
-     value, which measures ~5.4:1 as text and ~6.1:1 for white text on top
-     of it as a button fill — passes AA in both directions. */
-  --w-accent: #4A6577;
-  --w-accent-strong: #37495A;
+  /* Bright consumer-comparison palette: pure white page background, a
+     near-black navy ink for headings, a muted navy-grey for body copy, and
+     a single orange as the one primary-action/promo color — plus a
+     restrained green reserved for savings/trust. Deliberately NOT a
+     desaturated "safe" accent — this needs to read as a consumer deals
+     site, not a dev tool. Color stays sparse (orange/green only show up on
+     actions, prices and status), so the page still reads as ~80% white. */
+  --w-bg: #FFFFFF;
+  --w-surface: #FFFFFF;
+  --w-ink: #111827;
+  /* Solid muted navy-grey rather than an alpha-over-white token — measures
+     ~7.7:1 against --w-bg, comfortably past the 4.5:1 AA floor for body
+     copy (taglines, card descriptions, prose paragraphs). */
+  --w-ink-70: #475467;
+  /* Alpha-over-white navy for lower-emphasis text (footer, captions, stat
+     labels, .w-prose .meta) — 0.6 measures ~4.7:1 against a pure white
+     page, clearing AA. (On the old #EEF1F1 background the same alpha would
+     have measured lower; white is lighter, so the same alpha buys more
+     contrast here.) */
+  --w-ink-50: rgba(17, 24, 39, 0.6);
+  --w-border: #E4E7EC;
+  /* Brand orange. Bare orange text on white measures ~3.35:1 — short of
+     the 4.5:1 AA text floor but clear of the 3:1 floor for large text
+     (headline word, promo-price numerals) and non-text UI (button fills,
+     underlines, active-tab backgrounds). Kept as specified rather than
+     darkened, since every place it lands on this site is one of those
+     large/non-text cases, never a paragraph of small orange text. */
+  --w-accent: #FF4B16;
+  /* Darker orange for hover/pressed states — measures ~4.8:1 with white
+     text on top, so hover states clear AA even where the resting state
+     doesn't. */
+  --w-accent-strong: #E0430F;
   --w-accent-ink: #FFFFFF;
-  --w-radius: 16px;         /* friendlier, rounder than the sharp dev-tool 4px */
+  --w-radius: 10px;        /* restrained — was 16px; spec calls for compact, non-"giant card" corners */
+
+  /* Extra brand colors beyond the shared accent pair: a second illustration
+     orange, a small-highlight yellow, and the savings/trust green. */
+  --jrs-orange-bright: #FF6A00;
+  --jrs-yellow: #FFC83D;
+  --jrs-green: #348B27;
+  --jrs-green-strong: #2A6F1F;
 
   /* Override the shared --accent used by the phone-frame component (rim,
      camera dot, chin bar) so the device itself picks up this same color
      instead of the default gold defined in site.css. */
-  --accent: #4A6577;
-  --accent-strong: #37495A;
+  --accent: #FF4B16;
+  --accent-strong: #E0430F;
 }
 
 body.wide-theme {
@@ -76,14 +94,15 @@ body.wide-theme {
   white-space: nowrap;
   flex-shrink: 0;
 }
+.w-brand .jrs { color: var(--w-accent); }
 .w-nav { display: flex; gap: 12px 24px; flex-wrap: wrap; }
 /* Tightened from the browser default so the four links read as one
    deliberate group instead of loosely floating words — nav already sits
    flush with the same .w-shell right edge as the hero/filmstrip/footer
    below it, so the "disconnected" feel was tracking, not alignment. */
-.w-nav a { font-size: 0.9rem; letter-spacing: -0.01em; color: var(--w-ink-70); text-decoration: none; }
+.w-nav a { font-size: 0.9rem; letter-spacing: -0.01em; color: var(--w-ink-70); text-decoration: none; padding-bottom: 4px; border-bottom: 2px solid transparent; }
 .w-nav a:hover { color: var(--w-ink); }
-.w-nav a.active { color: var(--w-ink); font-weight: 700; }
+.w-nav a.active { color: var(--w-accent); font-weight: 700; border-bottom-color: var(--w-accent); }
 
 /* Wide asymmetric hero: text column stays a readable measure, but the right
    side spreads a horizontal filmstrip of screens across the remaining width
@@ -256,14 +275,59 @@ body.wide-theme {
   padding: 30px 0 60px;
   border-top: 1px solid var(--w-border);
   display: flex;
+  align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 16px;
   font-size: 0.85rem;
   color: var(--w-ink-50);
 }
 .w-footer a { color: var(--w-ink-50); text-decoration: none; }
 .w-footer a:hover { color: var(--w-ink); }
+.w-footer-brand { display: flex; flex-direction: column; gap: 2px; }
+
+/* Middle icon row — outlined circular buttons rather than filled, so the
+   footer stays quiet/white; color only appears on hover. */
+.w-footer-social { display: flex; gap: 10px; }
+.w-footer-social a {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--w-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--w-ink-70);
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.w-footer-social a svg { width: 16px; height: 16px; }
+.w-footer-social a:hover { color: var(--w-accent); border-color: var(--w-accent); }
+
+.w-footer-links { display: flex; gap: 22px; }
+
+/* Compact header CTA + the wrapper that groups it with the nav so the two
+   sit together on the header's right edge instead of space-between
+   spreading nav/CTA/brand into three even columns. */
+.w-header-right { display: flex; align-items: center; gap: 26px; }
+.w-header-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--w-accent);
+  color: var(--w-accent-ink);
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 0.82rem;
+  padding: 9px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.w-header-cta:hover { background: var(--w-accent-strong); }
+
+@media (max-width: 640px) {
+  .w-footer { flex-direction: column; align-items: flex-start; }
+}
 
 /* ---------- shared intro block (About / Work / Contact page headers) ---------- */
 .w-intro { padding: 56px 0 40px; max-width: 60ch; }
