@@ -50,6 +50,14 @@
 
 /* ---------- hero illustration (layered PNG/WebP assets, absolutely
    positioned over the background art) ---------- */
+/* Unclipped ancestor for the bleed accents below — .deals-hero-art itself
+   needs overflow:hidden to keep the background photo and layered images
+   contained, so anything meant to spill past its rounded corner has to
+   live one level up instead. */
+.deals-hero-art-wrap {
+  position: relative;
+  width: 100%;
+}
 .deals-hero-art {
   position: relative;
   width: 100%;
@@ -57,6 +65,19 @@
   overflow: hidden;
   border-radius: var(--w-radius);
 }
+/* Small foliage sprigs that spill past the box's rounded bottom corners —
+   the same assets already layered inside the box (.deals-hero-foliage-l/r),
+   so the "escaping" tuft reads as a continuation of that in-box greenery
+   rather than an unrelated decoration. */
+.deals-hero-bleed {
+  position: absolute;
+  bottom: -8%;
+  height: auto;
+  width: 9%;
+  z-index: 2;
+}
+.deals-hero-bleed-l { left: -3%; }
+.deals-hero-bleed-r { right: 4%; }
 .deals-hero-bg {
   position: absolute;
   inset: 0;
