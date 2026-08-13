@@ -65,19 +65,16 @@
   overflow: hidden;
   border-radius: var(--w-radius);
 }
-/* Small foliage sprigs that spill past the box's rounded bottom corners —
-   the same assets already layered inside the box (.deals-hero-foliage-l/r),
-   so the "escaping" tuft reads as a continuation of that in-box greenery
-   rather than an unrelated decoration. */
+/* Foliage sprigs that spill past the box's rounded bottom corners. */
 .deals-hero-bleed {
   position: absolute;
-  bottom: -8%;
+  bottom: -4%;
   height: auto;
-  width: 9%;
+  width: 41%;
   z-index: 2;
 }
-.deals-hero-bleed-l { left: -3%; }
-.deals-hero-bleed-r { right: 4%; }
+.deals-hero-bleed-l { left: -8%; }
+.deals-hero-bleed-r { right: 10%; }
 .deals-hero-bg {
   position: absolute;
   inset: 0;
@@ -86,25 +83,15 @@
   object-fit: cover;
   z-index: 0;
 }
-.deals-hero-foliage,
 .deals-hero-house,
 .deals-hero-wifi,
 .deals-hero-phone {
   position: absolute;
   height: auto;
 }
-/* Foliage renders in front of the house/phone (foreground bushes), not
-   behind them — otherwise most of it hides behind the phone's silhouette
-   with only a stray sprig visible past its edge. */
-.deals-hero-house { left: 6%; bottom: 4%; width: 34%; z-index: 1; }
-.deals-hero-phone { right: 2%; bottom: 2%; width: 16%; z-index: 2; }
-.deals-hero-foliage-l { left: -1%; bottom: 0; width: 15%; z-index: 3; }
-.deals-hero-foliage-r { right: 7%; bottom: 0; width: 10%; z-index: 3; }
-/* Centered on the roof apex (measured, not the house image's own bounding-
-   box center — its two flanking trees aren't quite symmetric) and dropped
-   down so the arcs actually meet the rooftop instead of floating above it
-   with a big empty gap. */
-.deals-hero-wifi { left: 20.5%; top: 29%; width: 10%; z-index: 4; }
+.deals-hero-house { left: 25%; bottom: 4%; width: 40%; z-index: 1; }
+.deals-hero-phone { right: -1%; bottom: -2%; width: 16%; z-index: 2; }
+.deals-hero-wifi { left: 43%; top: 24%; width: 10%; z-index: 4; }
 
 /* ---------- toolbar ---------- */
 .deals-toolbar-section { padding-top: 0; padding-bottom: 20px; display: flex; flex-direction: column; gap: 0; }
