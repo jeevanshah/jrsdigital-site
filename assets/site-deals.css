@@ -474,11 +474,12 @@
 
   .deal-cell-savings .deal-cell-body { display: flex; flex-direction: row; align-items: baseline; gap: 6px; }
 
-  /* Totals already do the promo-duration math, so the raw duration/status
-     captions ("for 6 months", "ongoing", "6 months", "first year") are
-     dropped here to keep each card to 3 metric rows instead of 6. */
+  /* Most of these captions just restate their label ("Total 6 Months" /
+     "6 months") so they're dropped to keep each card compact. Promo Price's
+     caption is kept -- it's the only place promo length ("for 6 months" vs.
+     "introductory") shows up at all; the totals do the resulting math but
+     don't state the duration itself. */
   .deal-cell-speed .deal-cell-caption,
-  .deal-cell-promo .deal-cell-caption,
   .deal-cell-after .deal-cell-caption,
   .deal-cell-sixmonth .deal-cell-caption,
   .deal-cell-total .deal-cell-caption {
