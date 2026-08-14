@@ -59,7 +59,7 @@
           so you can see what you'll pay during the promo and after it ends.</p>
         <p class="deals-updated">
           <img class="deals-check" src="/assets/img/icon-check.webp" alt="" width="19" height="19">
-          Last updated: <strong>12 August 2026</strong>
+          Last updated: <strong data-updated>—</strong>
         </p>
       </div>
 
@@ -102,6 +102,7 @@
           <span class="deals-filter-label">Sort by</span>
           <select class="deals-select" data-sort>
             <option value="totalfirstyear">Total first year cost (low to high)</option>
+            <option value="totalsixmonth">Total 6 months cost (low to high)</option>
             <option value="savings">Biggest savings</option>
             <option value="cheapest">Cheapest first</option>
           </select>
@@ -118,6 +119,7 @@
           </span>
           <span>Promo Price<small>Introductory period</small></span>
           <span>After Promo<small>Ongoing cost</small></span>
+          <span>Total 6 Months<small>Promo + remaining months</small></span>
           <span>Total First Year<small>Promo + remaining months</small></span>
           <span>Savings<small>vs. standard price</small></span>
           <span></span>
@@ -233,6 +235,15 @@
     return promo * months + regular * (12 - months);
   }
 
+  // Same logic as totalFirstYear but capped at a 6-month window, since most
+  // promo periods run 6 months rather than 12.
+  function totalSixMonth(d) {
+    var promo = parsePrice(d.promoPrice);
+    var regular = parsePrice(d.regularPrice);
+    var months = Math.max(0, Math.min(6, parseInt(d.promoMonths, 10) || 0));
+    return promo * months + regular * (6 - months);
+  }
+
   function savingsFirstYear(d) {
     var regular = parsePrice(d.regularPrice);
     return regular * 12 - totalFirstYear(d);
@@ -320,6 +331,8 @@
 
     if (activeSort === 'totalfirstyear') {
       filtered.sort(function (a, b) { return totalFirstYear(a) - totalFirstYear(b); });
+    } else if (activeSort === 'totalsixmonth') {
+      filtered.sort(function (a, b) { return totalSixMonth(a) - totalSixMonth(b); });
     } else if (activeSort === 'savings') {
       filtered.sort(function (a, b) { return savingsFirstYear(b) - savingsFirstYear(a); });
     } else {
@@ -340,6 +353,7 @@
     visible.forEach(function (d) {
       var promoPrice = parsePrice(d.promoPrice);
       var regularPrice = parsePrice(d.regularPrice);
+      var sixMonth = totalSixMonth(d);
       var firstYear = totalFirstYear(d);
       var save = savingsFirstYear(d);
       var savePct = regularPrice > 0 ? Math.round((save / (regularPrice * 12)) * 100) : 0;
@@ -362,6 +376,10 @@
           '<div class="deal-cell deal-cell-after">' +
             '<span class="deal-price-navy">$' + regularPrice.toFixed(2) + '<small>/mo</small></span>' +
             '<span class="deal-cell-caption">ongoing</span>' +
+          '</div>' +
+          '<div class="deal-cell deal-cell-sixmonth">' +
+            '<span class="deal-price-navy">$' + sixMonth.toFixed(2) + '</span>' +
+            '<span class="deal-cell-caption">6 months</span>' +
           '</div>' +
           '<div class="deal-cell deal-cell-total">' +
             '<span class="deal-price-orange">$' + firstYear.toFixed(2) + '</span>' +
@@ -397,6 +415,20 @@
 
   function escAttr(s) {
     return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  var MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'];
+
+  function updateLastUpdated() {
+    var latest = null;
+    deals.forEach(function (d) {
+      if (d.postedAt && (!latest || d.postedAt > latest)) latest = d.postedAt;
+    });
+    if (!latest) return;
+    var parts = latest.split('-');
+    var label = parseInt(parts[2], 10) + ' ' + MONTH_NAMES[parseInt(parts[1], 10) - 1] + ' ' + parts[0];
+    document.querySelector('[data-updated]').textContent = label;
   }
 
   function populateProviders() {
@@ -447,6 +479,7 @@
     .then(function (data) {
       deals = data;
       populateProviders();
+      updateLastUpdated();
       fullRender();
     })
     .catch(function () {

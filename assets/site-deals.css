@@ -220,7 +220,7 @@
 .deals-table-head,
 .deal-row {
   display: grid;
-  grid-template-columns: minmax(180px, 2.1fr) 118px 126px 116px 128px 116px 120px;
+  grid-template-columns: minmax(180px, 2.1fr) 118px 126px 116px 118px 128px 116px 120px;
   gap: 14px;
   align-items: center;
 }
