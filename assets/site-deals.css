@@ -419,7 +419,8 @@
 
 /* Below this width the 8-column grid table can't fit even with
    horizontal scroll on a reasonable phone screen, so each deal-row
-   becomes a self-contained card with label:value rows instead. */
+   becomes a compact card: a 2-up grid of label:value metrics rather
+   than one full-width row per field, to keep card height down. */
 @media (max-width: 720px) {
   .deals-table-wrap { overflow-x: visible; }
   .deals-table-head { display: none; }
@@ -429,64 +430,79 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
 
   .deal-row {
-    display: block;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 14px;
     border: 1px solid var(--w-border);
     border-radius: var(--w-radius);
-    padding: 16px;
+    padding: 14px;
   }
   .deal-row:last-child { border-bottom: 1px solid var(--w-border); }
 
   .deal-cell {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 9px 0;
-    border-top: 1px solid var(--w-border);
+    flex-direction: column;
+    gap: 1px;
+    padding: 6px 0;
   }
 
   .deal-cell::before {
     content: attr(data-label);
-    font-size: 0.76rem;
+    font-size: 0.66rem;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
     color: var(--w-ink-50);
-    flex-shrink: 0;
-    padding-top: 2px;
   }
 
-  .deal-cell-body {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    text-align: right;
-    gap: 2px;
-  }
-  .deal-cell-savings .deal-cell-body { flex-direction: row; align-items: baseline; gap: 6px; }
+  .deal-cell-savings .deal-cell-body { display: flex; flex-direction: row; align-items: baseline; gap: 6px; }
 
-  /* Labels already say "Connection" / "Total 6 Months" / "Total First
-     Year" — the matching captions would just repeat that. */
+  /* Totals already do the promo-duration math, so the raw duration/status
+     captions ("for 6 months", "ongoing", "6 months", "first year") are
+     dropped here to keep each card to 3 metric rows instead of 6. */
   .deal-cell-speed .deal-cell-caption,
+  .deal-cell-promo .deal-cell-caption,
+  .deal-cell-after .deal-cell-caption,
   .deal-cell-sixmonth .deal-cell-caption,
   .deal-cell-total .deal-cell-caption {
     display: none;
   }
 
+  /* Reorder into logical pairs (promo/after, 6mo/1yr totals, connection/
+     savings) instead of the desktop column order, which would otherwise
+     pair unrelated fields together in the 2-up grid. */
+  .deal-cell-provider { order: 0; }
+  .deal-cell-promo { order: 1; }
+  .deal-cell-after { order: 2; }
+  .deal-cell-sixmonth { order: 3; }
+  .deal-cell-total { order: 4; }
+  .deal-cell-speed { order: 5; }
+  .deal-cell-savings { order: 6; }
+  .deal-cell-action { order: 7; }
+
   .deal-cell-provider,
   .deal-cell-action {
+    grid-column: 1 / -1;
     flex-direction: column;
     align-items: stretch;
-    border-top: none;
   }
   .deal-cell-provider::before,
   .deal-cell-action::before {
     content: none;
   }
-  .deal-cell-provider { padding-top: 0; padding-bottom: 10px; }
-  .deal-cell-action { padding-top: 14px; }
+  .deal-cell-provider {
+    padding: 0 0 10px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--w-border);
+  }
+  .deal-cell-action {
+    padding-top: 10px;
+    margin-top: 4px;
+    border-top: 1px solid var(--w-border);
+  }
 
   .deal-link { width: 100%; justify-content: center; }
 }
