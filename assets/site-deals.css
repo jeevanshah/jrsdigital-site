@@ -392,22 +392,9 @@
 .pm-benefit span:last-child { font-size: 0.8rem; color: var(--w-ink); line-height: 1.25; }
 
 .pm-banner-cta { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
-.pm-cta-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--jrs-green);
-  color: #FFFFFF;
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 600;
-  font-size: 0.9rem;
-  padding: 12px 20px;
-  border-radius: 9px;
-  text-decoration: none;
-  white-space: nowrap;
-}
-.pm-cta-btn svg { width: 15px; height: 15px; }
-.pm-cta-btn:hover { background: var(--jrs-green-strong); }
+.pm-cta-badge { display: inline-flex; transition: opacity 0.15s ease, transform 0.15s ease; }
+.pm-cta-badge img { display: block; height: 54px; width: auto; }
+.pm-cta-badge:hover { opacity: 0.85; transform: translateY(-1px); }
 .pm-cta-note { font-size: 0.76rem; color: var(--w-ink-50); }
 
 /* ---------- responsive ---------- */
