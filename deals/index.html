@@ -365,30 +365,42 @@
             '<span class="deal-provider-name">' + esc(d.provider) + '</span>' +
             '<span class="deal-plan-tier">' + esc(d.tier || d.title || '') + '</span>' +
           '</div>' +
-          '<div class="deal-cell deal-cell-speed">' +
-            '<span class="deal-cell-value">' + esc(connection) + '</span>' +
-            '<span class="deal-cell-caption">Connection type</span>' +
+          '<div class="deal-cell deal-cell-speed" data-label="Connection">' +
+            '<span class="deal-cell-body">' +
+              '<span class="deal-cell-value">' + esc(connection) + '</span>' +
+              '<span class="deal-cell-caption">Connection type</span>' +
+            '</span>' +
           '</div>' +
-          '<div class="deal-cell deal-cell-promo">' +
-            '<span class="deal-price-orange">$' + promoPrice.toFixed(2) + '<small>/mo</small></span>' +
-            '<span class="deal-cell-caption">' + (d.promoMonths ? 'for ' + d.promoMonths + ' months' : 'introductory') + '</span>' +
+          '<div class="deal-cell deal-cell-promo" data-label="Promo Price">' +
+            '<span class="deal-cell-body">' +
+              '<span class="deal-price-orange">$' + promoPrice.toFixed(2) + '<small>/mo</small></span>' +
+              '<span class="deal-cell-caption">' + (d.promoMonths ? 'for ' + d.promoMonths + ' months' : 'introductory') + '</span>' +
+            '</span>' +
           '</div>' +
-          '<div class="deal-cell deal-cell-after">' +
-            '<span class="deal-price-navy">$' + regularPrice.toFixed(2) + '<small>/mo</small></span>' +
-            '<span class="deal-cell-caption">ongoing</span>' +
+          '<div class="deal-cell deal-cell-after" data-label="After Promo">' +
+            '<span class="deal-cell-body">' +
+              '<span class="deal-price-navy">$' + regularPrice.toFixed(2) + '<small>/mo</small></span>' +
+              '<span class="deal-cell-caption">ongoing</span>' +
+            '</span>' +
           '</div>' +
-          '<div class="deal-cell deal-cell-sixmonth">' +
-            '<span class="deal-price-navy">$' + sixMonth.toFixed(2) + '</span>' +
-            '<span class="deal-cell-caption">6 months</span>' +
+          '<div class="deal-cell deal-cell-sixmonth" data-label="Total 6 Months">' +
+            '<span class="deal-cell-body">' +
+              '<span class="deal-price-navy">$' + sixMonth.toFixed(2) + '</span>' +
+              '<span class="deal-cell-caption">6 months</span>' +
+            '</span>' +
           '</div>' +
-          '<div class="deal-cell deal-cell-total">' +
-            '<span class="deal-price-orange">$' + firstYear.toFixed(2) + '</span>' +
-            '<span class="deal-cell-caption">first year</span>' +
+          '<div class="deal-cell deal-cell-total" data-label="Total First Year">' +
+            '<span class="deal-cell-body">' +
+              '<span class="deal-price-orange">$' + firstYear.toFixed(2) + '</span>' +
+              '<span class="deal-cell-caption">first year</span>' +
+            '</span>' +
           '</div>' +
-          '<div class="deal-cell deal-cell-savings">' +
-            (save > 0
-              ? '<span class="deal-savings-amt">$' + save.toFixed(2) + '</span><span class="deal-savings-pct">' + savePct + '%</span>'
-              : '<span class="deal-cell-caption">—</span>') +
+          '<div class="deal-cell deal-cell-savings" data-label="Savings">' +
+            '<span class="deal-cell-body">' +
+              (save > 0
+                ? '<span class="deal-savings-amt">$' + save.toFixed(2) + '</span><span class="deal-savings-pct">' + savePct + '%</span>'
+                : '<span class="deal-cell-caption">—</span>') +
+            '</span>' +
           '</div>' +
           '<div class="deal-cell deal-cell-action">' +
             '<a class="deal-link" href="' + esc(d.url) + '" target="_blank" rel="nofollow noopener">View deal' +

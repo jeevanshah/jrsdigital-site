@@ -276,6 +276,7 @@
 .deal-row:hover { background: #FAFAF9; }
 
 .deal-cell { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.deal-cell-body { display: contents; }
 
 .deal-provider-name {
   font-family: 'Space Grotesk', sans-serif;
@@ -414,6 +415,80 @@
   .deals-hero { grid-template-columns: 1fr; padding: 18px 0 22px; }
   .deals-hero-art { max-width: 440px; margin: 0 auto; }
   .pm-banner-cta { align-items: flex-start; }
+}
+
+/* Below this width the 8-column grid table can't fit even with
+   horizontal scroll on a reasonable phone screen, so each deal-row
+   becomes a self-contained card with label:value rows instead. */
+@media (max-width: 720px) {
+  .deals-table-wrap { overflow-x: visible; }
+  .deals-table-head { display: none; }
+
+  .deals-table-body {
+    border: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .deal-row {
+    display: block;
+    border: 1px solid var(--w-border);
+    border-radius: var(--w-radius);
+    padding: 16px;
+  }
+  .deal-row:last-child { border-bottom: 1px solid var(--w-border); }
+
+  .deal-cell {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 9px 0;
+    border-top: 1px solid var(--w-border);
+  }
+
+  .deal-cell::before {
+    content: attr(data-label);
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--w-ink-50);
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+
+  .deal-cell-body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+    gap: 2px;
+  }
+  .deal-cell-savings .deal-cell-body { flex-direction: row; align-items: baseline; gap: 6px; }
+
+  /* Labels already say "Connection" / "Total 6 Months" / "Total First
+     Year" — the matching captions would just repeat that. */
+  .deal-cell-speed .deal-cell-caption,
+  .deal-cell-sixmonth .deal-cell-caption,
+  .deal-cell-total .deal-cell-caption {
+    display: none;
+  }
+
+  .deal-cell-provider,
+  .deal-cell-action {
+    flex-direction: column;
+    align-items: stretch;
+    border-top: none;
+  }
+  .deal-cell-provider::before,
+  .deal-cell-action::before {
+    content: none;
+  }
+  .deal-cell-provider { padding-top: 0; padding-bottom: 10px; }
+  .deal-cell-action { padding-top: 14px; }
+
+  .deal-link { width: 100%; justify-content: center; }
 }
 
 @media (max-width: 640px) {
