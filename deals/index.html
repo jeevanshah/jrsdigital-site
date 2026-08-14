@@ -69,6 +69,11 @@
           <img class="deals-check" src="/assets/img/icon-check.webp" alt="" width="19" height="19">
           Last updated: <strong data-updated>—</strong>
         </p>
+
+        <div class="deals-changelog" data-changelog-wrap hidden>
+          <p class="deals-changelog-label">Recent pricing updates</p>
+          <ul class="deals-changelog-list" data-changelog-list></ul>
+        </div>
       </div>
 
       <div class="deals-hero-art-wrap">
@@ -209,6 +214,8 @@
 <script>
 (function () {
   var DATA_URL = 'https://raw.githubusercontent.com/jeevanshah/au-plans-scraper/main/data/deals.json';
+  var CHANGELOG_URL = 'https://raw.githubusercontent.com/jeevanshah/au-plans-scraper/main/data/changelog.json';
+  var CHANGELOG_VISIBLE = 3;
   var VISIBLE_STEP = 8;
 
   var gridBody = document.querySelector('[data-grid]');
@@ -450,6 +457,24 @@
     document.querySelector('[data-updated]').textContent = label;
   }
 
+  function formatShortDate(dateStr) {
+    var parts = dateStr.split('-');
+    return MONTH_NAMES[parseInt(parts[1], 10) - 1].slice(0, 3) + ' ' + parseInt(parts[2], 10);
+  }
+
+  function renderChangelog(entries) {
+    var wrap = document.querySelector('[data-changelog-wrap]');
+    var list = document.querySelector('[data-changelog-list]');
+    if (!entries || !entries.length) return;
+
+    var html = '';
+    entries.slice(0, CHANGELOG_VISIBLE).forEach(function (entry) {
+      html += '<li><strong>' + esc(formatShortDate(entry.date)) + '</strong> — ' + esc(entry.message) + '</li>';
+    });
+    list.innerHTML = html;
+    wrap.hidden = false;
+  }
+
   function populateProviders() {
     var providers = [];
     deals.forEach(function (d) {
@@ -505,6 +530,11 @@
       gridBody.innerHTML = '<p class="deals-error">Couldn&#8217;t load deals right now. <a href="https://github.com/jeevanshah/au-plans-scraper/blob/main/data/deals.json">View the data directly on GitHub</a>, or check back shortly.</p>';
       moreBtn.hidden = true;
     });
+
+  fetch(CHANGELOG_URL)
+    .then(function (res) { return res.json(); })
+    .then(renderChangelog)
+    .catch(function () { /* changelog is a nice-to-have -- fail silently, block stays hidden */ });
 })();
 </script>
 </body>

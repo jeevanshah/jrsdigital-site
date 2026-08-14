@@ -48,6 +48,33 @@
 .deals-updated strong { color: var(--w-ink); }
 .deals-check { width: 19px; height: 19px; flex-shrink: 0; display: block; }
 
+/* Freshness signal below the "Last updated" line -- same muted caption
+   language, hidden entirely (via the [hidden] attribute set from JS) if
+   changelog.json hasn't loaded or has no entries yet, rather than showing
+   an empty/loading placeholder. */
+.deals-changelog { margin-top: 14px; }
+.deals-changelog-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--w-ink-50);
+  margin: 0 0 6px;
+}
+.deals-changelog-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.deals-changelog-list li {
+  font-size: 0.86rem;
+  color: var(--w-ink-70);
+}
+.deals-changelog-list strong { color: var(--w-ink); font-weight: 600; }
+
 /* ---------- hero illustration (layered PNG/WebP assets, absolutely
    positioned over the background art) ---------- */
 /* Unclipped ancestor for the bleed accents below — .deals-hero-art itself
