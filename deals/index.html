@@ -262,6 +262,8 @@
 (function () {
   var DATA_URL = 'https://raw.githubusercontent.com/jeevanshah/au-plans-scraper/main/data/deals.json';
   var CHANGELOG_URL = 'https://raw.githubusercontent.com/jeevanshah/au-plans-scraper/main/data/changelog.json';
+  var POI_URL = 'https://raw.githubusercontent.com/jeevanshah/au-plans-scraper/main/data/poi.json';
+  var POI_DATA = {}; // provider name -> {asn, viaWholesaler, states, exchangeCount, noPublicIxData, sourceUrl}
   var CHANGELOG_VISIBLE = 3;
   var VISIBLE_STEP = 8;
 
@@ -962,6 +964,29 @@
     });
   }
 
+  // Public internet-exchange footprint badge -- NOT a direct read of NBN Co's
+  // own POI list (see scraper/poi.py methodology). Deliberately labelled
+  // "Public exchange footprint" rather than "POI"/"coverage", and a provider
+  // with no public IX presence (verified live for Telstra/Optus/iiNet/
+  // Vodafone/Arctel -- large carriers mostly peer privately) is shown as
+  // "Not published" rather than a misleading "0 states".
+  function poiBadgeHtml(provider) {
+    var poi = POI_DATA[provider];
+    if (!poi) return '';
+    var viaText = poi.viaWholesaler ? (' Delivered via ' + esc(poi.viaWholesaler) + '’s network.') : '';
+    if (poi.noPublicIxData) {
+      return '<a class="deal-badge deal-badge-poi deal-badge--neutral" ' +
+        'href="' + escAttr(poi.sourceUrl) + '" target="_blank" rel="noopener noreferrer" ' +
+        'title="' + escAttr('This provider doesn’t publish a footprint via public internet exchanges (common for large national carriers, who mostly peer privately) — this is not a measure of their real coverage.' + viaText + ' Source: Hurricane Electric BGP Toolkit (opens in new tab).') + '">' +
+        '📍 Public exchange data: not published</a>';
+    }
+    if (!poi.states || poi.states.length === 0) return '';
+    return '<a class="deal-badge deal-badge-poi deal-badge--neutral" ' +
+      'href="' + escAttr(poi.sourceUrl) + '" target="_blank" rel="noopener noreferrer" ' +
+      'title="' + escAttr('Public internet-exchange peering footprint (not NBN Co’s own POI list): ' + poi.states.join(', ') + '.' + viaText + ' Source: Hurricane Electric BGP Toolkit (opens in new tab).') + '">' +
+      '📍 Public exchange footprint: ' + esc(poi.states.join(', ')) + '</a>';
+  }
+
   // --- Deals Table Render ---
   function renderList() {
     var filtered = deals.filter(function (d) { return d.serviceType === activeTab; });
@@ -1052,6 +1077,7 @@
                     'title="' + escAttr(meta.noticeTooltip + (meta.cisUrl ? ' Source: provider Critical Information Summary (opens in new tab).' : '')) + '">' +
                     (meta.notice === '30_days' ? '⚠️ 30-Day Notice' : '⚡ No Notice') + '</a>'
                 ) : '') +
+                poiBadgeHtml(d.provider) +
               '</div>'
             ) : '') +
           '</div>' +
@@ -1251,6 +1277,14 @@
     .then(function (res) { return res.json(); })
     .then(renderChangelog)
     .catch(function () { /* fail silently */ });
+
+  fetch(POI_URL)
+    .then(function (res) { return res.json(); })
+    .then(function (data) {
+      POI_DATA = (data && data.providers) || {};
+      if (deals.length) renderList(); // deals may have already rendered without POI badges
+    })
+    .catch(function () { /* fail silently -- POI badges are an enhancement, not core data */ });
 })();
 </script>
 </body>
