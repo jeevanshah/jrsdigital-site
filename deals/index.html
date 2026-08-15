@@ -70,6 +70,11 @@
           Last updated: <strong data-updated>—</strong>
         </p>
 
+        <div class="deals-trust-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>100% Independent &amp; Open Source · Scraped daily · No paid placements · <a href="https://github.com/jeevanshah/au-plans-scraper" target="_blank" rel="noopener">View Scraper GitHub</a></span>
+        </div>
+
         <div class="deals-changelog" data-changelog-wrap hidden>
           <p class="deals-changelog-label">Recent pricing updates</p>
           <ul class="deals-changelog-list" data-changelog-list></ul>
@@ -89,28 +94,59 @@
     </section>
 
     <section class="w-section deals-toolbar-section">
-      <div class="deals-filter-group">
-        <button class="deals-filter-btn is-active" data-tab="nbn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5a16 16 0 0 1 18 0"/><path d="M6.5 12.5a10.5 10.5 0 0 1 11 0"/><path d="M10 16.5a5 5 0 0 1 4 0"/><circle cx="12" cy="19.5" r="0.8" fill="currentColor" stroke="none"/></svg>
-          NBN Plans
-        </button>
-        <button class="deals-filter-btn" data-tab="mobile">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
-          Mobile Plans
+      <div class="deals-toolbar-header">
+        <div class="deals-filter-group">
+          <button class="deals-filter-btn is-active" data-tab="nbn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5a16 16 0 0 1 18 0"/><path d="M6.5 12.5a10.5 10.5 0 0 1 11 0"/><path d="M10 16.5a5 5 0 0 1 4 0"/><circle cx="12" cy="19.5" r="0.8" fill="currentColor" stroke="none"/></svg>
+            NBN Plans
+          </button>
+          <button class="deals-filter-btn" data-tab="mobile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+            Mobile Plans
+          </button>
+        </div>
+
+        <button class="deals-share-btn" data-share-btn type="button" title="Copy shareable link with your active filters">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          Share
         </button>
       </div>
 
       <div class="deals-filters-box">
         <div class="deals-filter-col deals-filter-col--speed">
-          <span class="deals-filter-label" data-tier-label>NBN speed</span>
+          <span class="deals-filter-label">
+            <span data-tier-label>NBN speed</span>
+            <button class="deals-upload-toggle" data-upload-toggle type="button" title="Filter for plans with 40+ Mbps upload speed (e.g. 100/40, 250/100, 1000/400)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              Fast Upload (40+ Mbps)
+            </button>
+          </span>
           <div class="deals-tier-tabs" data-tier-tabs><!-- populated by JS --></div>
         </div>
+
         <div class="deals-filter-col">
-          <span class="deals-filter-label">Provider</span>
-          <select class="deals-select" data-provider>
-            <option value="">All providers</option>
-          </select>
+          <span class="deals-filter-label">
+            <span>Providers</span>
+            <span data-selected-providers-count style="font-weight: normal; color: var(--w-ink-50); font-size: 0.72rem;"></span>
+          </span>
+          <div class="deals-multiselect" data-provider-multiselect>
+            <button type="button" class="deals-multiselect-btn" data-provider-btn aria-expanded="false" aria-haspopup="true">
+              <span class="deals-multiselect-label" data-provider-label>All providers</span>
+              <svg class="deals-multiselect-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div class="deals-multiselect-menu" data-provider-menu hidden>
+              <div class="deals-multiselect-header">
+                <input type="text" class="deals-multiselect-search" placeholder="Search provider..." data-provider-search aria-label="Search providers">
+                <div class="deals-multiselect-actions">
+                  <button type="button" class="deals-ms-action-btn" data-action="all">Select All</button>
+                  <button type="button" class="deals-ms-action-btn" data-action="none">Clear</button>
+                </div>
+              </div>
+              <div class="deals-multiselect-list" data-provider-list><!-- Checkbox rows generated dynamically --></div>
+            </div>
+          </div>
         </div>
+
         <div class="deals-filter-col">
           <span class="deals-filter-label">Sort by</span>
           <select class="deals-select" data-sort>
@@ -223,15 +259,25 @@
   var tierTabs = document.querySelector('[data-tier-tabs]');
   var tierLabel = document.querySelector('[data-tier-label]');
   var sortSelect = document.querySelector('[data-sort]');
-  var providerSelect = document.querySelector('[data-provider]');
   var tabBtns = document.querySelectorAll('[data-tab]');
   var moreBtn = document.querySelector('[data-more]');
+  var shareBtn = document.querySelector('[data-share-btn]');
+  var uploadToggleBtn = document.querySelector('[data-upload-toggle]');
+
+  var multiselectWrap = document.querySelector('[data-provider-multiselect]');
+  var multiselectBtn = document.querySelector('[data-provider-btn]');
+  var multiselectLabel = document.querySelector('[data-provider-label]');
+  var multiselectMenu = document.querySelector('[data-provider-menu]');
+  var multiselectSearch = document.querySelector('[data-provider-search]');
+  var multiselectList = document.querySelector('[data-provider-list]');
+  var selectedProvidersCount = document.querySelector('[data-selected-providers-count]');
 
   var deals = [];
   var activeTab = 'nbn';
-  var activeTier = null;
+  var selectedTiers = []; // empty array means "All"
+  var selectedProviders = []; // empty array means "All"
   var activeSort = 'totalfirstyear';
-  var activeProvider = '';
+  var highUploadOnly = false;
   var tiers = [];
   var visibleCount = VISIBLE_STEP;
 
@@ -240,8 +286,6 @@
     return parseFloat(String(v).replace('$', '').replace(',', '')) || 0;
   }
 
-  // First-year cost: promo rate for the promo months (capped at 12), then
-  // the regular rate for whatever's left of the first 12 months.
   function totalFirstYear(d) {
     var promo = parsePrice(d.promoPrice);
     var regular = parsePrice(d.regularPrice);
@@ -249,8 +293,6 @@
     return promo * months + regular * (12 - months);
   }
 
-  // Same logic as totalFirstYear but capped at a 6-month window, since most
-  // promo periods run 6 months rather than 12.
   function totalSixMonth(d) {
     var promo = parsePrice(d.promoPrice);
     var regular = parsePrice(d.regularPrice);
@@ -263,15 +305,22 @@
     return regular * 12 - totalFirstYear(d);
   }
 
+  function getUploadSpeed(d) {
+    if (!d.tier) return 0;
+    var m = String(d.tier).match(/\/(\d+(\.\d+)?)/);
+    return m ? parseFloat(m[1]) : 0;
+  }
+
+  function isFastUpload(d) {
+    return getUploadSpeed(d) >= 40;
+  }
+
   function tierSortKey(t) {
     if (!t) return 0;
     var m = t.match(/(\d+)/);
     return m ? parseInt(m[1], 10) : 0;
   }
 
-  // Normalize tier strings into group labels.
-  // NBN: "NBN 25/10", "NBN 25/8.5", "NBN 25/25" → all go into "NBN 25"
-  // Mobile: "25GB", "50GB" etc → stays as-is
   function tierGroupKey(rawTier) {
     if (!rawTier) return 'Other';
     var s = String(rawTier);
@@ -305,42 +354,295 @@
     visibleCount = VISIBLE_STEP;
   }
 
-  function renderTierTabs() {
-    tierLabel.textContent = activeTab === 'nbn' ? 'NBN speed' : 'Data allowance';
+  // --- URL Query Params Synchronization ---
+  function readUrlState() {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var tab = params.get('service') || params.get('tab');
+      if (tab === 'mobile' || tab === 'nbn') activeTab = tab;
 
-    var filtered = deals.filter(function (d) { return d.serviceType === activeTab; });
-    if (activeProvider) {
-      filtered = filtered.filter(function (d) { return d.provider === activeProvider; });
-    }
-    var grouped = groupByTier(filtered);
-    tiers = grouped.keys;
+      var speeds = params.get('speeds') || params.get('speed') || params.get('tier');
+      if (speeds) {
+        selectedTiers = speeds.split(',').map(function(s){
+          s = decodeURIComponent(s).trim();
+          if (activeTab === 'nbn' && !/^nbn/i.test(s) && /^\d+$/.test(s)) return 'NBN ' + s;
+          if (activeTab === 'mobile' && !/gb$/i.test(s) && /^\d+$/.test(s)) return s + 'GB';
+          return s;
+        }).filter(Boolean);
+      }
 
-    var html = '';
-    html += '<button class="deals-tier-btn' + (activeTier === null ? ' is-active' : '') + '" data-tier="">All</button>';
-    tiers.forEach(function (t) {
-      html += '<button class="deals-tier-btn' + (activeTier === t ? ' is-active' : '') + '" data-tier="' + escAttr(t) + '">' + esc(tierDisplayLabel(t)) + '</button>';
+      var provs = params.get('providers') || params.get('provider');
+      if (provs) {
+        selectedProviders = provs.split(',').map(function(p){ return decodeURIComponent(p).trim(); }).filter(Boolean);
+      }
+
+      var sort = params.get('sort');
+      if (sort && ['totalfirstyear', 'totalsixmonth', 'savings', 'cheapest'].indexOf(sort) !== -1) {
+        activeSort = sort;
+        if (sortSelect) sortSelect.value = sort;
+      }
+
+      var upload = params.get('upload');
+      if (upload === 'fast' || upload === 'high' || upload === '1') {
+        highUploadOnly = true;
+      }
+    } catch (e) {}
+  }
+
+  function syncUrlState() {
+    try {
+      var params = new URLSearchParams();
+      if (activeTab !== 'nbn') params.set('service', activeTab);
+      if (selectedTiers.length > 0) {
+        var cleanTiers = selectedTiers.map(function(t){
+          return activeTab === 'nbn' ? t.replace(/^NBN\s*/i, '') : t.replace(/GB$/i, '');
+        });
+        params.set('speeds', cleanTiers.join(','));
+      }
+      if (selectedProviders.length > 0) {
+        params.set('providers', selectedProviders.join(','));
+      }
+      if (activeSort !== 'totalfirstyear') {
+        params.set('sort', activeSort);
+      }
+      if (highUploadOnly && activeTab === 'nbn') {
+        params.set('upload', 'fast');
+      }
+
+      var qs = params.toString();
+      var newUrl = window.location.pathname + (qs ? '?' + qs : '');
+      if (window.location.search !== (qs ? '?' + qs : '')) {
+        window.history.replaceState(null, '', newUrl);
+      }
+    } catch (e) {}
+  }
+
+  // --- Provider Multiselect Dropdown ---
+  function getProvidersForTab() {
+    var counts = {};
+    deals.forEach(function (d) {
+      if (d.serviceType === activeTab) {
+        counts[d.provider] = (counts[d.provider] || 0) + 1;
+      }
     });
-    tierTabs.innerHTML = html;
+    var names = Object.keys(counts).sort();
+    return { names: names, counts: counts };
+  }
 
-    tierTabs.querySelectorAll('[data-tier]').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        activeTier = btn.getAttribute('data-tier') || null;
+  function updateMultiselectLabel(allCount) {
+    if (selectedProviders.length === 0) {
+      multiselectLabel.textContent = 'All providers (' + allCount + ')';
+      selectedProvidersCount.textContent = '';
+    } else if (selectedProviders.length === 1) {
+      multiselectLabel.textContent = selectedProviders[0];
+      selectedProvidersCount.textContent = '1 selected';
+    } else if (selectedProviders.length === 2) {
+      multiselectLabel.textContent = selectedProviders.join(', ');
+      selectedProvidersCount.textContent = '2 selected';
+    } else {
+      multiselectLabel.textContent = selectedProviders.length + ' providers selected';
+      selectedProvidersCount.textContent = selectedProviders.length + ' selected';
+    }
+  }
+
+  function renderProviderDropdown() {
+    var data = getProvidersForTab();
+    var provs = data.names;
+    var counts = data.counts;
+
+    // Filter out selectedProviders that don't exist in current tab
+    selectedProviders = selectedProviders.filter(function (p) { return provs.indexOf(p) !== -1; });
+
+    updateMultiselectLabel(provs.length);
+
+    var query = (multiselectSearch ? multiselectSearch.value : '').toLowerCase().trim();
+    var html = '';
+
+    provs.forEach(function (p) {
+      if (query && p.toLowerCase().indexOf(query) === -1) return;
+      var checked = selectedProviders.indexOf(p) !== -1;
+      html +=
+        '<label class="deals-ms-item">' +
+          '<input type="checkbox" data-provider-checkbox value="' + escAttr(p) + '"' + (checked ? ' checked' : '') + '>' +
+          '<span>' + esc(p) + '</span>' +
+          '<span class="deals-ms-count">' + (counts[p] || 0) + '</span>' +
+        '</label>';
+    });
+
+    if (!html) {
+      html = '<div style="padding: 8px; text-align: center; color: var(--w-ink-50); font-size: 0.8rem;">No providers match search</div>';
+    }
+
+    multiselectList.innerHTML = html;
+
+    multiselectList.querySelectorAll('[data-provider-checkbox]').forEach(function (cb) {
+      cb.addEventListener('change', function () {
+        var val = cb.value;
+        if (cb.checked) {
+          if (selectedProviders.indexOf(val) === -1) selectedProviders.push(val);
+        } else {
+          selectedProviders = selectedProviders.filter(function (p) { return p !== val; });
+        }
+        updateMultiselectLabel(provs.length);
         resetVisible();
+        syncUrlState();
         renderTierTabs();
         renderList();
       });
     });
   }
 
+  function setupMultiselectEvents() {
+    if (!multiselectBtn) return;
+
+    multiselectBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var isOpen = multiselectWrap.classList.contains('is-open');
+      if (isOpen) {
+        closeMultiselect();
+      } else {
+        openMultiselect();
+      }
+    });
+
+    document.addEventListener('click', function (e) {
+      if (multiselectWrap && !multiselectWrap.contains(e.target)) {
+        closeMultiselect();
+      }
+    });
+
+    if (multiselectSearch) {
+      multiselectSearch.addEventListener('input', function () {
+        renderProviderDropdown();
+      });
+      multiselectSearch.addEventListener('click', function (e) {
+        e.stopPropagation();
+      });
+    }
+
+    var allBtn = multiselectMenu.querySelector('[data-action="all"]');
+    var noneBtn = multiselectMenu.querySelector('[data-action="none"]');
+
+    if (allBtn) {
+      allBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        selectedProviders = [];
+        renderProviderDropdown();
+        resetVisible();
+        syncUrlState();
+        renderTierTabs();
+        renderList();
+      });
+    }
+
+    if (noneBtn) {
+      noneBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        selectedProviders = ['__none__']; // Empty state
+        renderProviderDropdown();
+        resetVisible();
+        syncUrlState();
+        renderTierTabs();
+        renderList();
+      });
+    }
+  }
+
+  function openMultiselect() {
+    multiselectWrap.classList.add('is-open');
+    multiselectMenu.hidden = false;
+    multiselectBtn.setAttribute('aria-expanded', 'true');
+    if (multiselectSearch) multiselectSearch.focus();
+  }
+
+  function closeMultiselect() {
+    multiselectWrap.classList.remove('is-open');
+    multiselectMenu.hidden = true;
+    multiselectBtn.setAttribute('aria-expanded', 'false');
+    if (multiselectSearch) multiselectSearch.value = '';
+    renderProviderDropdown();
+  }
+
+  // --- Tier Tabs & High-Upload Filter ---
+  function renderTierTabs() {
+    tierLabel.textContent = activeTab === 'nbn' ? 'NBN speed' : 'Data allowance';
+
+    if (uploadToggleBtn) {
+      uploadToggleBtn.hidden = activeTab !== 'nbn';
+      if (highUploadOnly && activeTab === 'nbn') {
+        uploadToggleBtn.classList.add('is-active');
+      } else {
+        uploadToggleBtn.classList.remove('is-active');
+      }
+    }
+
+    var filtered = deals.filter(function (d) { return d.serviceType === activeTab; });
+    if (selectedProviders.length > 0) {
+      filtered = filtered.filter(function (d) { return selectedProviders.indexOf(d.provider) !== -1; });
+    }
+    var grouped = groupByTier(filtered);
+    tiers = grouped.keys;
+
+    // Remove selectedTiers that don't exist in current tab
+    selectedTiers = selectedTiers.filter(function (t) { return tiers.indexOf(t) !== -1; });
+
+    var html = '';
+    html += '<button class="deals-tier-btn' + (selectedTiers.length === 0 ? ' is-active' : '') + '" data-tier="__all__">All</button>';
+    tiers.forEach(function (t) {
+      var isAct = selectedTiers.indexOf(t) !== -1;
+      html += '<button class="deals-tier-btn' + (isAct ? ' is-active' : '') + '" data-tier="' + escAttr(t) + '">' + esc(tierDisplayLabel(t)) + '</button>';
+    });
+    tierTabs.innerHTML = html;
+
+    tierTabs.querySelectorAll('[data-tier]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var t = btn.getAttribute('data-tier');
+        if (t === '__all__') {
+          selectedTiers = [];
+        } else {
+          var idx = selectedTiers.indexOf(t);
+          if (idx === -1) {
+            selectedTiers.push(t);
+          } else {
+            selectedTiers.splice(idx, 1);
+          }
+        }
+        resetVisible();
+        syncUrlState();
+        renderTierTabs();
+        renderList();
+      });
+    });
+  }
+
+  if (uploadToggleBtn) {
+    uploadToggleBtn.addEventListener('click', function () {
+      highUploadOnly = !highUploadOnly;
+      resetVisible();
+      syncUrlState();
+      renderTierTabs();
+      renderList();
+    });
+  }
+
+  // --- Deals Table Render ---
   function renderList() {
     var filtered = deals.filter(function (d) { return d.serviceType === activeTab; });
 
-    if (activeProvider) {
-      filtered = filtered.filter(function (d) { return d.provider === activeProvider; });
+    if (selectedProviders.length > 0) {
+      if (selectedProviders.indexOf('__none__') !== -1) {
+        filtered = [];
+      } else {
+        filtered = filtered.filter(function (d) { return selectedProviders.indexOf(d.provider) !== -1; });
+      }
     }
 
-    if (activeTier) {
-      filtered = filtered.filter(function (d) { return tierGroupKey(d.tier) === activeTier; });
+    if (selectedTiers.length > 0) {
+      filtered = filtered.filter(function (d) { return selectedTiers.indexOf(tierGroupKey(d.tier)) !== -1; });
+    }
+
+    if (highUploadOnly && activeTab === 'nbn') {
+      filtered = filtered.filter(function (d) { return isFastUpload(d); });
     }
 
     if (activeSort === 'totalfirstyear') {
@@ -372,11 +674,15 @@
       var save = savingsFirstYear(d);
       var savePct = regularPrice > 0 ? Math.round((save / (regularPrice * 12)) * 100) : 0;
       var connection = d.techType || d.tier || '—';
+      var fastUp = isFastUpload(d);
 
       html +=
         '<div class="deal-row">' +
           '<div class="deal-cell deal-cell-provider">' +
-            '<span class="deal-provider-name">' + esc(d.provider) + '</span>' +
+            '<span class="deal-provider-name">' +
+              esc(d.provider) +
+              (fastUp ? ' <span class="deal-badge-upload" title="Fast upload speed (40+ Mbps)">⚡ Fast Upload</span>' : '') +
+            '</span>' +
             '<span class="deal-plan-tier">' + esc(d.tier || d.title || '') + '</span>' +
           '</div>' +
           '<div class="deal-cell deal-cell-speed" data-label="Connection">' +
@@ -420,6 +726,12 @@
             '<a class="deal-link" href="' + esc(d.url) + '" target="_blank" rel="nofollow noopener">View deal' +
               '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>' +
             '</a>' +
+            (d.promoMonths
+              ? '<a class="deal-pm-reminder" href="https://play.google.com/store/apps/details?id=au.com.priceminder.app" target="_blank" rel="noopener" title="Set a ' + d.promoMonths + '-month promo expiry reminder in PriceMinder">' +
+                  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>' +
+                  'Set reminder' +
+                '</a>'
+              : '') +
           '</div>' +
         '</div>';
     });
@@ -429,6 +741,7 @@
   }
 
   function fullRender() {
+    renderProviderDropdown();
     renderTierTabs();
     renderList();
   }
@@ -475,66 +788,98 @@
     wrap.hidden = false;
   }
 
-  function populateProviders() {
-    var providers = [];
-    deals.forEach(function (d) {
-      if (providers.indexOf(d.provider) === -1) providers.push(d.provider);
-    });
-    providers.sort();
-    providers.forEach(function (p) {
-      var opt = document.createElement('option');
-      opt.value = p;
-      opt.textContent = p;
-      providerSelect.appendChild(opt);
+  function showToast(msg) {
+    var existing = document.querySelector('.deals-toast');
+    if (existing) existing.remove();
+
+    var toast = document.createElement('div');
+    toast.className = 'deals-toast';
+    toast.innerHTML =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' +
+      '<span>' + esc(msg) + '</span>';
+    document.body.appendChild(toast);
+
+    setTimeout(function () {
+      if (toast && toast.parentNode) toast.remove();
+    }, 2500);
+  }
+
+  // --- Share Button ---
+  if (shareBtn) {
+    shareBtn.addEventListener('click', function () {
+      syncUrlState();
+      var url = window.location.href;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(function () {
+          showToast('Comparison link copied to clipboard!');
+        }).catch(function () {
+          showToast('Link ready in address bar!');
+        });
+      } else {
+        showToast('Link ready in address bar!');
+      }
     });
   }
 
+  // --- Tab Switcher ---
   tabBtns.forEach(function (btn) {
     btn.addEventListener('click', function () {
       tabBtns.forEach(function (b) { b.classList.remove('is-active'); });
       btn.classList.add('is-active');
       activeTab = btn.getAttribute('data-tab');
-      activeTier = null;
+      selectedTiers = [];
+      selectedProviders = [];
+      highUploadOnly = false;
       resetVisible();
+      syncUrlState();
       fullRender();
     });
   });
 
-  sortSelect.addEventListener('change', function () {
-    activeSort = sortSelect.value;
-    resetVisible();
-    renderList();
-  });
+  if (sortSelect) {
+    sortSelect.addEventListener('change', function () {
+      activeSort = sortSelect.value;
+      resetVisible();
+      syncUrlState();
+      renderList();
+    });
+  }
 
-  providerSelect.addEventListener('change', function () {
-    activeProvider = providerSelect.value;
-    activeTier = null;
-    resetVisible();
-    fullRender();
-  });
+  if (moreBtn) {
+    moreBtn.addEventListener('click', function () {
+      visibleCount += VISIBLE_STEP;
+      renderList();
+    });
+  }
 
-  moreBtn.addEventListener('click', function () {
-    visibleCount += VISIBLE_STEP;
-    renderList();
+  setupMultiselectEvents();
+  readUrlState();
+
+  // Sync tab buttons with activeTab loaded from URL
+  tabBtns.forEach(function (btn) {
+    if (btn.getAttribute('data-tab') === activeTab) {
+      btn.classList.add('is-active');
+    } else {
+      btn.classList.remove('is-active');
+    }
   });
 
   fetch(DATA_URL)
     .then(function (res) { return res.json(); })
     .then(function (data) {
       deals = data;
-      populateProviders();
       updateLastUpdated();
       fullRender();
     })
     .catch(function () {
       gridBody.innerHTML = '<p class="deals-error">Couldn&#8217;t load deals right now. <a href="https://github.com/jeevanshah/au-plans-scraper/blob/main/data/deals.json">View the data directly on GitHub</a>, or check back shortly.</p>';
-      moreBtn.hidden = true;
+      if (moreBtn) moreBtn.hidden = true;
     });
 
   fetch(CHANGELOG_URL)
     .then(function (res) { return res.json(); })
     .then(renderChangelog)
-    .catch(function () { /* changelog is a nice-to-have -- fail silently, block stays hidden */ });
+    .catch(function () { /* fail silently */ });
 })();
 </script>
 </body>
