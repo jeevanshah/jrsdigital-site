@@ -72,7 +72,7 @@
 
         <div class="deals-trust-badge">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          <span>100% Independent &amp; Open Source · Scraped daily · No paid placements · <a href="https://github.com/jeevanshah/au-plans-scraper" target="_blank" rel="noopener">View Scraper GitHub</a></span>
+          <span>100% Independent · Scraped daily · No paid placements or sponsored listings</span>
         </div>
 
         <div class="deals-changelog" data-changelog-wrap hidden>
@@ -96,11 +96,11 @@
     <section class="w-section deals-toolbar-section">
       <div class="deals-toolbar-header">
         <div class="deals-filter-group">
-          <button class="deals-filter-btn is-active" data-tab="nbn">
+          <button type="button" class="deals-filter-btn is-active" data-tab="nbn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5a16 16 0 0 1 18 0"/><path d="M6.5 12.5a10.5 10.5 0 0 1 11 0"/><path d="M10 16.5a5 5 0 0 1 4 0"/><circle cx="12" cy="19.5" r="0.8" fill="currentColor" stroke="none"/></svg>
             NBN Plans
           </button>
-          <button class="deals-filter-btn" data-tab="mobile">
+          <button type="button" class="deals-filter-btn" data-tab="mobile">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
             Mobile Plans
           </button>
@@ -274,7 +274,7 @@
 
   var deals = [];
   var activeTab = 'nbn';
-  var selectedTiers = []; // empty array means "All"
+  var activeTier = null; // null means "All"
   var selectedProviders = []; // empty array means "All"
   var activeSort = 'totalfirstyear';
   var highUploadOnly = false;
@@ -357,18 +357,21 @@
   // --- URL Query Params Synchronization ---
   function readUrlState() {
     try {
+      if (!window.location.search) return;
       var params = new URLSearchParams(window.location.search);
       var tab = params.get('service') || params.get('tab');
       if (tab === 'mobile' || tab === 'nbn') activeTab = tab;
 
-      var speeds = params.get('speeds') || params.get('speed') || params.get('tier');
-      if (speeds) {
-        selectedTiers = speeds.split(',').map(function(s){
-          s = decodeURIComponent(s).trim();
-          if (activeTab === 'nbn' && !/^nbn/i.test(s) && /^\d+$/.test(s)) return 'NBN ' + s;
-          if (activeTab === 'mobile' && !/gb$/i.test(s) && /^\d+$/.test(s)) return s + 'GB';
-          return s;
-        }).filter(Boolean);
+      var speed = params.get('speed') || params.get('speeds') || params.get('tier');
+      if (speed) {
+        speed = decodeURIComponent(speed).trim();
+        if (activeTab === 'nbn' && !/^nbn/i.test(speed) && /^\d+$/.test(speed)) {
+          activeTier = 'NBN ' + speed;
+        } else if (activeTab === 'mobile' && !/gb$/i.test(speed) && /^\d+$/.test(speed)) {
+          activeTier = speed + 'GB';
+        } else {
+          activeTier = speed;
+        }
       }
 
       var provs = params.get('providers') || params.get('provider');
@@ -391,15 +394,15 @@
 
   function syncUrlState() {
     try {
+      if (typeof window === 'undefined' || !window.history || !window.history.replaceState) return;
+      if (window.location.protocol === 'file:') return;
       var params = new URLSearchParams();
       if (activeTab !== 'nbn') params.set('service', activeTab);
-      if (selectedTiers.length > 0) {
-        var cleanTiers = selectedTiers.map(function(t){
-          return activeTab === 'nbn' ? t.replace(/^NBN\s*/i, '') : t.replace(/GB$/i, '');
-        });
-        params.set('speeds', cleanTiers.join(','));
+      if (activeTier) {
+        var cleanTier = activeTab === 'nbn' ? activeTier.replace(/^NBN\s*/i, '') : activeTier.replace(/GB$/i, '');
+        params.set('speed', cleanTier);
       }
-      if (selectedProviders.length > 0) {
+      if (selectedProviders.length > 0 && selectedProviders.indexOf('__none__') === -1) {
         params.set('providers', selectedProviders.join(','));
       }
       if (activeSort !== 'totalfirstyear') {
@@ -577,36 +580,29 @@
     }
 
     var filtered = deals.filter(function (d) { return d.serviceType === activeTab; });
-    if (selectedProviders.length > 0) {
+    if (selectedProviders.length > 0 && selectedProviders.indexOf('__none__') === -1) {
       filtered = filtered.filter(function (d) { return selectedProviders.indexOf(d.provider) !== -1; });
     }
     var grouped = groupByTier(filtered);
     tiers = grouped.keys;
 
-    // Remove selectedTiers that don't exist in current tab
-    selectedTiers = selectedTiers.filter(function (t) { return tiers.indexOf(t) !== -1; });
+    // If activeTier is not in current tab's tiers, reset to null
+    if (activeTier && tiers.indexOf(activeTier) === -1) {
+      activeTier = null;
+    }
 
     var html = '';
-    html += '<button class="deals-tier-btn' + (selectedTiers.length === 0 ? ' is-active' : '') + '" data-tier="__all__">All</button>';
+    html += '<button type="button" class="deals-tier-btn' + (activeTier === null ? ' is-active' : '') + '" data-tier="">All</button>';
     tiers.forEach(function (t) {
-      var isAct = selectedTiers.indexOf(t) !== -1;
-      html += '<button class="deals-tier-btn' + (isAct ? ' is-active' : '') + '" data-tier="' + escAttr(t) + '">' + esc(tierDisplayLabel(t)) + '</button>';
+      var isAct = activeTier === t;
+      html += '<button type="button" class="deals-tier-btn' + (isAct ? ' is-active' : '') + '" data-tier="' + escAttr(t) + '">' + esc(tierDisplayLabel(t)) + '</button>';
     });
     tierTabs.innerHTML = html;
 
     tierTabs.querySelectorAll('[data-tier]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        var t = btn.getAttribute('data-tier');
-        if (t === '__all__') {
-          selectedTiers = [];
-        } else {
-          var idx = selectedTiers.indexOf(t);
-          if (idx === -1) {
-            selectedTiers.push(t);
-          } else {
-            selectedTiers.splice(idx, 1);
-          }
-        }
+        var t = btn.getAttribute('data-tier') || null;
+        activeTier = t;
         resetVisible();
         syncUrlState();
         renderTierTabs();
@@ -637,8 +633,8 @@
       }
     }
 
-    if (selectedTiers.length > 0) {
-      filtered = filtered.filter(function (d) { return selectedTiers.indexOf(tierGroupKey(d.tier)) !== -1; });
+    if (activeTier) {
+      filtered = filtered.filter(function (d) { return tierGroupKey(d.tier) === activeTier; });
     }
 
     if (highUploadOnly && activeTab === 'nbn') {
@@ -827,7 +823,7 @@
       tabBtns.forEach(function (b) { b.classList.remove('is-active'); });
       btn.classList.add('is-active');
       activeTab = btn.getAttribute('data-tab');
-      selectedTiers = [];
+      activeTier = null;
       selectedProviders = [];
       highUploadOnly = false;
       resetVisible();
@@ -872,7 +868,7 @@
       fullRender();
     })
     .catch(function () {
-      gridBody.innerHTML = '<p class="deals-error">Couldn&#8217;t load deals right now. <a href="https://github.com/jeevanshah/au-plans-scraper/blob/main/data/deals.json">View the data directly on GitHub</a>, or check back shortly.</p>';
+      gridBody.innerHTML = '<p class="deals-error">Couldn&#8217;t load deals right now. Please check back shortly.</p>';
       if (moreBtn) moreBtn.hidden = true;
     });
 
