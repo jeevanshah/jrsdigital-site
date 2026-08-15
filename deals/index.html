@@ -205,7 +205,7 @@
       <div class="deals-table-wrap">
         <div class="deals-table-head">
           <span>Provider &amp; Plan</span>
-          <span class="deals-th-with-info">Connection
+          <span class="deals-th-with-info" data-th-connection>Connection
             <span class="deals-info" tabindex="0" title="From each provider's published plan tier and technology type — not an independent speed test.">i</span>
           </span>
           <span>Promo Price<small>Introductory period</small></span>
@@ -1553,7 +1553,18 @@
     moreBtn.hidden = filtered.length <= visibleCount;
   }
 
+  function updateTableHeader() {
+    var th = document.querySelector('[data-th-connection]');
+    if (!th) return;
+    if (activeTab === 'nbn') {
+      th.innerHTML = 'Connection <span class="deals-info" tabindex="0" title="From each provider\'s published plan tier and technology type — not an independent speed test.">i</span>';
+    } else {
+      th.innerHTML = 'Network &amp; Tech <span class="deals-info" tabindex="0" title="Underlying wholesale cellular network (Telstra / Optus / Vodafone) and technology.">i</span>';
+    }
+  }
+
   function fullRender() {
+    updateTableHeader();
     renderProviderDropdown();
     renderTierTabs();
     renderList();
@@ -1657,6 +1668,10 @@
       activeUpload = null;
       selectedProviders = [];
       highUploadOnly = false;
+      cgnatOnly = false;
+      noNoticeOnly = false;
+      activeNetwork = null;
+      activeExpiry = null;
       resetVisible();
       syncUrlState();
       fullRender();
