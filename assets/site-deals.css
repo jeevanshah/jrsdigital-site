@@ -665,6 +665,18 @@
 .deals-upload-toggle svg { color: #0A6C58; }
 .deals-cgnat-toggle svg { color: #2563EB; }
 .deals-notice-toggle svg { color: #D97706; }
+.deals-expiry-toggle svg { color: #854D0E; }
+
+.deals-net-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.deals-net-dot--telstra { background: #0064D2; }
+.deals-net-dot--optus { background: #E5A500; }
+.deals-net-dot--vodafone { background: #E60000; }
 
 .deals-toggle-chip:hover {
   border-color: var(--w-accent);
@@ -676,6 +688,28 @@
   border-color: #04342C;
 }
 .deals-toggle-chip.is-active svg { color: #9FE1CB; }
+.deals-toggle-chip.is-active .deals-net-dot { background: #9FE1CB; }
+
+.deals-net-toggle--telstra.is-active {
+  background: #0052B4;
+  color: #FFFFFF;
+  border-color: #0052B4;
+}
+.deals-net-toggle--telstra.is-active .deals-net-dot { background: #FFFFFF; }
+
+.deals-net-toggle--optus.is-active {
+  background: #E5A500;
+  color: #111827;
+  border-color: #D97706;
+}
+.deals-net-toggle--optus.is-active .deals-net-dot { background: #111827; }
+
+.deals-net-toggle--vodafone.is-active {
+  background: #C8102E;
+  color: #FFFFFF;
+  border-color: #C8102E;
+}
+.deals-net-toggle--vodafone.is-active .deals-net-dot { background: #FFFFFF; }
 
 /* ---------- comparison table ---------- */
 .deals-table-section { padding-top: 0; padding-bottom: 12px; }
@@ -921,6 +955,59 @@ button.deal-badge[aria-expanded="true"] {
   background: rgba(4, 52, 44, 0.08);
   color: #04342C;
   border: 1px solid rgba(4, 52, 44, 0.2);
+}
+
+.deal-badge-network {
+  background: #F3F4F6;
+  color: #1F2937;
+  border: 1px solid #E5E7EB;
+}
+.deal-badge-network--telstra {
+  background: rgba(0, 100, 210, 0.08);
+  color: #0052B4;
+  border-color: rgba(0, 100, 210, 0.25);
+}
+.deal-badge-network--optus {
+  background: rgba(255, 184, 0, 0.12);
+  color: #92400E;
+  border-color: rgba(217, 119, 6, 0.3);
+}
+.deal-badge-network--vodafone {
+  background: rgba(230, 0, 0, 0.08);
+  color: #B91C1C;
+  border-color: rgba(230, 0, 0, 0.25);
+}
+
+.deal-badge-value {
+  background: rgba(4, 52, 44, 0.08);
+  color: #04342C;
+  border: 1px solid rgba(4, 52, 44, 0.25);
+  font-weight: 700;
+}
+
+.deal-badge-banking {
+  background: rgba(37, 99, 235, 0.08);
+  color: #1D4ED8;
+  border: 1px solid rgba(37, 99, 235, 0.25);
+}
+
+.deal-badge-esim {
+  background: #F3F4F6;
+  color: #374151;
+  border: 1px solid #E5E7EB;
+}
+
+.deal-badge-expiry {
+  background: rgba(254, 243, 199, 0.85);
+  color: #92400E;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  font-weight: 700;
+}
+
+.deal-badge-cycle {
+  background: #F3F4F6;
+  color: #4B5563;
+  border: 1px solid #E5E7EB;
 }
 
 .deal-pm-subtle {

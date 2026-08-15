@@ -116,18 +116,36 @@
         <div class="deals-filter-col deals-filter-col--speed">
           <div class="deals-filter-label">
             <span data-tier-label>NBN speed</span>
-            <div class="deals-feature-toggles" data-feature-toggles>
+            <div class="deals-feature-toggles" data-nbn-toggles>
               <button class="deals-toggle-chip deals-upload-toggle" data-upload-toggle type="button" title="Filter plans with 40+ Mbps upload speed (e.g. 100/40, 250/100, 1000/400)">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                 Fast Upload (40+)
               </button>
               <button class="deals-toggle-chip deals-cgnat-toggle" data-cgnat-toggle type="button" title="Filter providers with no CGNAT or free opt-out (Aussie Broadband, Leaptel, Superloop, Tangerine, Telstra, Optus, etc.)">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z"/></svg>
                 No CGNAT / Free Opt-out
               </button>
               <button class="deals-toggle-chip deals-notice-toggle" data-notice-toggle type="button" title="Filter providers that do not require a 30-day written cancellation notice (Leaptel, Aussie Broadband, Tangerine, Neptune, Telstra, etc.)">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                 No 30-Day Notice
+              </button>
+            </div>
+            <div class="deals-feature-toggles" data-mobile-toggles hidden>
+              <button class="deals-toggle-chip deals-net-toggle deals-net-toggle--telstra" data-network-toggle="telstra" type="button" title="Filter plans on the Telstra Network (Boost Mobile, ALDImobile, Telstra)">
+                <span class="deals-net-dot deals-net-dot--telstra"></span>
+                Telstra Network
+              </button>
+              <button class="deals-toggle-chip deals-net-toggle deals-net-toggle--optus" data-network-toggle="optus" type="button" title="Filter plans on the Optus Network (amaysim, Moose Mobile, Dodo, Aussie Broadband)">
+                <span class="deals-net-dot deals-net-dot--optus"></span>
+                Optus Network
+              </button>
+              <button class="deals-toggle-chip deals-net-toggle deals-net-toggle--vodafone" data-network-toggle="vodafone" type="button" title="Filter plans on the Vodafone / TPG Network (Felix, Kogan Mobile, TPG, Vodafone)">
+                <span class="deals-net-dot deals-net-dot--vodafone"></span>
+                Vodafone Network
+              </button>
+              <button class="deals-toggle-chip deals-expiry-toggle" data-expiry-toggle="long" type="button" title="Filter for 180-day and 365-day Long Expiry recharge packs">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                365-Day Long Expiry
               </button>
             </div>
           </div>
@@ -292,7 +310,10 @@
   var uploadToggleBtn = document.querySelector('[data-upload-toggle]');
   var cgnatToggleBtn = document.querySelector('[data-cgnat-toggle]');
   var noticeToggleBtn = document.querySelector('[data-notice-toggle]');
-  var featureTogglesWrap = document.querySelector('[data-feature-toggles]');
+  var nbnTogglesWrap = document.querySelector('[data-nbn-toggles]');
+  var mobileTogglesWrap = document.querySelector('[data-mobile-toggles]');
+  var netToggleBtns = document.querySelectorAll('[data-network-toggle]');
+  var expiryToggleBtns = document.querySelectorAll('[data-expiry-toggle]');
   var mineInput = document.querySelector('[data-mine-input]');
   var mineClearBtn = document.querySelector('[data-mine-clear]');
 
@@ -478,10 +499,102 @@
     }
   };
 
+  var MOBILE_PROVIDER_METADATA = {
+    'Boost Mobile': {
+      network: 'telstra',
+      networkType: 'full',
+      networkLabel: 'Telstra Full Network',
+      networkTooltip: 'Uses the full Telstra 5G/4G retail network (covers 99.6% of Australians), unlike standard Telstra wholesale MVNOs.',
+      dataBanking: 'Roll over unused data on active recharge',
+      eSim: true,
+      cisUrl: 'https://boost.com.au/pages/critical-information-summaries'
+    },
+    'ALDImobile': {
+      network: 'telstra',
+      networkType: 'wholesale',
+      networkLabel: 'Telstra Wholesale',
+      networkTooltip: 'Uses the Telstra Wholesale 5G/4G network (covers 98.8% of Australians).',
+      dataBanking: 'Continuous data rollover',
+      eSim: true,
+      cisUrl: 'https://www.aldimobile.com.au/pages/legals'
+    },
+    'Telstra': {
+      network: 'telstra',
+      networkType: 'full',
+      networkLabel: 'Telstra Direct',
+      networkTooltip: 'Direct Telstra 5G/4G Network (99.6% population coverage).',
+      dataBanking: 'No data banking',
+      eSim: true,
+      cisUrl: 'https://www.telstra.com.au/help/critical-information-summaries'
+    },
+    'amaysim': {
+      network: 'optus',
+      networkLabel: 'Optus 5G / 4G',
+      networkTooltip: 'Powered by the Optus 5G/4G Mobile Network (covers 98.5% of Australians).',
+      dataBanking: 'Unlimited Data Banking',
+      eSim: true,
+      cisUrl: 'https://www.amaysim.com.au/terms-policies/critical-information-summaries'
+    },
+    'Moose Mobile': {
+      network: 'optus',
+      networkLabel: 'Optus 5G / 4G',
+      networkTooltip: 'Uses the Optus 5G/4G Mobile Network.',
+      dataBanking: 'Data banking up to 200GB',
+      eSim: true,
+      cisUrl: 'https://moosemobile.com.au/critical-information-summaries/'
+    },
+    'Dodo': {
+      network: 'optus',
+      networkLabel: 'Optus 4G / 5G',
+      networkTooltip: 'Uses the Optus Mobile Network.',
+      dataBanking: 'Data rollover available',
+      eSim: false,
+      cisUrl: 'https://www.dodo.com/plan-summaries/mobile-cis'
+    },
+    'Aussie Broadband': {
+      network: 'optus',
+      networkLabel: 'Optus 5G / 4G',
+      networkTooltip: 'Uses the Optus 5G/4G Mobile Network.',
+      dataBanking: 'Data sharing available',
+      eSim: true,
+      cisUrl: 'https://www.aussiebroadband.com.au/forms/cis/'
+    },
+    'Felix': {
+      network: 'vodafone',
+      networkLabel: 'Vodafone Network',
+      networkTooltip: 'Powered by the Vodafone (TPG Telecom) 5G/4G Mobile Network. 100% renewable electricity & 1 tree planted per month.',
+      dataBanking: 'Unlimited data banking',
+      eSim: true,
+      cisUrl: 'https://felixmobile.com.au/terms-and-conditions/'
+    },
+    'Kogan Mobile': {
+      network: 'vodafone',
+      networkLabel: 'Vodafone Network',
+      networkTooltip: 'Powered by the Vodafone 5G/4G Mobile Network.',
+      dataBanking: 'Data rollover available',
+      eSim: true,
+      cisUrl: 'https://www.koganmobile.com.au/cis/'
+    },
+    'TPG': {
+      network: 'vodafone',
+      networkLabel: 'Vodafone Network',
+      networkTooltip: 'Uses the Vodafone 5G/4G Mobile Network.',
+      dataBanking: 'No data banking',
+      eSim: true,
+      cisUrl: 'https://www.tpg.com.au/terms_conditions/CIS/mobile'
+    },
+    'Vodafone': {
+      network: 'vodafone',
+      networkLabel: 'Vodafone Direct',
+      networkTooltip: 'Vodafone direct 5G/4G Mobile Network (covers 96%+ of Australians). Endless data at 2Mbps after allowance.',
+      dataBanking: 'Endless data at 2Mbps',
+      eSim: true,
+      cisUrl: 'https://www.vodafone.com.au/about/legal/critical-information-summary'
+    }
+  };
+
   // Plain-English "why this matters" copy shown when a badge is tapped/clicked,
-  // aimed at people comparing NBN plans who aren't networking-literate. Each
-  // badge also carries a provider-specific detail (from PROVIDER_METADATA or
-  // POI_DATA) that's appended below this generic explanation.
+  // aimed at people comparing NBN & Mobile plans.
   var BADGE_EXPLAINERS = {
     cgnat: {
       title: "What's CGNAT?",
@@ -511,6 +624,26 @@
         'self-hosting, or WFH. For everyday browsing and streaming it won’t be ' +
         'noticeable, and big carriers often peer privately so a "not published" badge ' +
         'here doesn’t mean their network is worse.'
+    },
+    network: {
+      title: 'Why mobile network coverage matters',
+      body: 'In Australia, all mobile plans run on either the Telstra, Optus, or Vodafone physical networks. Telstra has the widest regional and rural coverage (99.6%), Optus covers 98.5%, and Vodafone covers major cities and highways (96%+). Boost Mobile uniquely gets access to the full Telstra retail network, while other MVNOs use wholesale coverage.'
+    },
+    value: {
+      title: 'Cost per Gigabyte ($/GB)',
+      body: 'This breaks down the exact cost of each gigabyte included in your plan (e.g. $15 for 30GB = $0.50/GB). It helps you compare the real data value between smaller monthly packs and large annual 365-day recharges.'
+    },
+    banking: {
+      title: 'What is Data Banking?',
+      body: 'Data banking lets you roll over any unused data at the end of each recharge cycle into a data vault, instead of losing it. As long as you keep your plan active, your saved data stays ready for heavy streaming or travel months.'
+    },
+    esim: {
+      title: 'eSIM Support',
+      body: 'An eSIM is a digital SIM built into modern smartphones. It allows you to download and activate your new plan instantly online in minutes, without waiting for a physical plastic SIM card to arrive in the mail.'
+    },
+    expiry: {
+      title: 'Billing Cycle & Long Expiry Packs',
+      body: 'Most Australian prepaid plans renew every 28 days (which means 13 recharges a year, not 12). Long expiry packs give you a bulk data allowance for 180 to 365 days upfront — ideal for set-and-forget value with lower monthly equivalent costs.'
     }
   };
 
@@ -518,6 +651,8 @@
   var activeTab = 'nbn';
   var activeTier = null; // null means "All"
   var activeUpload = null; // null means "All" -- upload-speed sub-filter within activeTier
+  var activeNetwork = null; // 'telstra' | 'optus' | 'vodafone' | null
+  var activeExpiry = null; // 'long' | 'monthly' | null
   var selectedProviders = []; // empty array means "All"
   var activeSort = 'totalfirstyear';
   var highUploadOnly = false;
@@ -619,6 +754,24 @@
 
   function isFastUpload(d) {
     return getUploadSpeed(d) >= 40;
+  }
+
+  function parseDataGB(tier) {
+    if (!tier) return 0;
+    var s = String(tier);
+    if (/unlimited/i.test(s)) return Infinity;
+    var m = s.match(/(\d+(\.\d+)?)\s*GB/i);
+    if (m) return parseFloat(m[1]);
+    var numMatch = s.match(/(\d+(\.\d+)?)/);
+    return numMatch ? parseFloat(numMatch[1]) : 0;
+  }
+
+  function getCostPerGb(d) {
+    var gb = parseDataGB(d.tier);
+    if (!gb || gb === Infinity || gb <= 0) return null;
+    var price = parsePrice(d.promoPrice || d.regularPrice);
+    if (price <= 0) return null;
+    return price / gb;
   }
 
   // Base download-speed bucket, ignoring upload entirely -- this is the
@@ -747,6 +900,16 @@
       if (nonotice === '1' || nonotice === 'true' || nonotice === 'none') {
         noNoticeOnly = true;
       }
+
+      var net = params.get('network') || params.get('net');
+      if (net && ['telstra', 'optus', 'vodafone'].indexOf(net) !== -1) {
+        activeNetwork = net;
+      }
+
+      var exp = params.get('expiry') || params.get('cycle');
+      if (exp && ['long', 'monthly'].indexOf(exp) !== -1) {
+        activeExpiry = exp;
+      }
     } catch (e) {}
   }
 
@@ -774,6 +937,12 @@
       }
       if (noNoticeOnly && activeTab === 'nbn') {
         params.set('nonotice', '1');
+      }
+      if (activeNetwork && activeTab === 'mobile') {
+        params.set('network', activeNetwork);
+      }
+      if (activeExpiry && activeTab === 'mobile') {
+        params.set('expiry', activeExpiry);
       }
 
       var qs = params.toString();
@@ -934,12 +1103,15 @@
   function renderTierTabs() {
     tierLabel.textContent = activeTab === 'nbn' ? 'NBN speed' : 'Data allowance';
 
-    if (featureTogglesWrap) {
-      featureTogglesWrap.hidden = activeTab !== 'nbn';
+    if (nbnTogglesWrap) {
+      nbnTogglesWrap.hidden = activeTab !== 'nbn';
+    }
+
+    if (mobileTogglesWrap) {
+      mobileTogglesWrap.hidden = activeTab !== 'mobile';
     }
 
     if (uploadToggleBtn) {
-      uploadToggleBtn.hidden = activeTab !== 'nbn';
       if (highUploadOnly && activeTab === 'nbn') {
         uploadToggleBtn.classList.add('is-active');
       } else {
@@ -948,7 +1120,6 @@
     }
 
     if (cgnatToggleBtn) {
-      cgnatToggleBtn.hidden = activeTab !== 'nbn';
       if (cgnatOnly && activeTab === 'nbn') {
         cgnatToggleBtn.classList.add('is-active');
       } else {
@@ -957,12 +1128,33 @@
     }
 
     if (noticeToggleBtn) {
-      noticeToggleBtn.hidden = activeTab !== 'nbn';
       if (noNoticeOnly && activeTab === 'nbn') {
         noticeToggleBtn.classList.add('is-active');
       } else {
         noticeToggleBtn.classList.remove('is-active');
       }
+    }
+
+    if (netToggleBtns) {
+      netToggleBtns.forEach(function (btn) {
+        var net = btn.getAttribute('data-network-toggle');
+        if (activeNetwork === net && activeTab === 'mobile') {
+          btn.classList.add('is-active');
+        } else {
+          btn.classList.remove('is-active');
+        }
+      });
+    }
+
+    if (expiryToggleBtns) {
+      expiryToggleBtns.forEach(function (btn) {
+        var exp = btn.getAttribute('data-expiry-toggle');
+        if (activeExpiry === exp && activeTab === 'mobile') {
+          btn.classList.add('is-active');
+        } else {
+          btn.classList.remove('is-active');
+        }
+      });
     }
 
     var filtered = deals.filter(function (d) { return d.serviceType === activeTab; });
@@ -1081,6 +1273,32 @@
     });
   }
 
+  if (netToggleBtns) {
+    netToggleBtns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var net = btn.getAttribute('data-network-toggle');
+        activeNetwork = activeNetwork === net ? null : net;
+        resetVisible();
+        syncUrlState();
+        renderTierTabs();
+        renderList();
+      });
+    });
+  }
+
+  if (expiryToggleBtns) {
+    expiryToggleBtns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var exp = btn.getAttribute('data-expiry-toggle');
+        activeExpiry = activeExpiry === exp ? null : exp;
+        resetVisible();
+        syncUrlState();
+        renderTierTabs();
+        renderList();
+      });
+    });
+  }
+
   // Public internet-exchange footprint badge -- NOT a direct read of NBN Co's
   // own POI list (see scraper/poi.py methodology). Deliberately labelled
   // "Public exchange footprint" rather than "POI"/"coverage", and a provider
@@ -1145,6 +1363,24 @@
       });
     }
 
+    if (activeTab === 'mobile') {
+      if (activeNetwork) {
+        filtered = filtered.filter(function (d) {
+          var meta = MOBILE_PROVIDER_METADATA[d.provider];
+          return meta && meta.network === activeNetwork;
+        });
+      }
+      if (activeExpiry === 'long') {
+        filtered = filtered.filter(function (d) {
+          return (d.billingCycleDays || 30) >= 170;
+        });
+      } else if (activeExpiry === 'monthly') {
+        filtered = filtered.filter(function (d) {
+          return isMonthlyish(d.billingCycleDays || 30);
+        });
+      }
+    }
+
     if (activeSort === 'totalfirstyear') {
       filtered.sort(function (a, b) { return totalFirstYear(a) - totalFirstYear(b); });
     } else if (activeSort === 'totalsixmonth') {
@@ -1173,49 +1409,96 @@
       var regularPrice = parsePrice(d.regularPrice);
       var cycleDays = billingCycleDays(d);
       var monthlyish = isMonthlyish(cycleDays);
+      var isLongExpiry = cycleDays >= 170;
+      var is28Day = cycleDays === 28;
       var priceSuffix = cycleSuffix(cycleDays);
       var sixMonth = totalSixMonth(d);
       var firstYear = totalFirstYear(d);
       var save = savingsFirstYear(d);
       var regularMonthlyEq = monthlyEquivalent(regularPrice, d);
       var savePct = regularMonthlyEq > 0 ? Math.round((save / (regularMonthlyEq * 12)) * 100) : 0;
-      var connection = d.techType || d.tier || '—';
-      var fastUp = isFastUpload(d);
       var meta = PROVIDER_METADATA[d.provider];
+      var mobileMeta = MOBILE_PROVIDER_METADATA[d.provider];
+      var costPerGb = getCostPerGb(d);
+      var fastUp = isFastUpload(d);
+
+      var connection = activeTab === 'nbn'
+        ? (d.techType || d.tier || '—')
+        : (d.techType ? (d.techType + ' SIM') : (mobileMeta ? mobileMeta.networkLabel : 'SIM Plan'));
+      var connectionCaption = activeTab === 'nbn' ? 'Connection type' : 'Network & Tech';
+
+      var badgesHtml = '';
+      if (activeTab === 'nbn') {
+        badgesHtml =
+          (fastUp ? (
+            '<button type="button" class="deal-badge deal-badge-upload" ' +
+              'data-badge="upload" title="Fast upload speed (40+ Mbps) — tap to learn why this matters">' +
+              '⚡ Fast Upload <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>'
+          ) : '') +
+          (meta && meta.cgnat ? (
+            '<button type="button" class="deal-badge deal-badge-cgnat ' + (meta.cgnat === 'none' || meta.cgnat === 'free_optout' ? 'deal-badge--good' : 'deal-badge--neutral') + '" ' +
+              'data-badge="cgnat" data-detail="' + escAttr(meta.cgnatTooltip) + '" data-source="' + escAttr(meta.cisUrl || '') + '" ' +
+              'title="' + escAttr(meta.cgnatTooltip + ' Tap to learn why this matters.') + '">' +
+              '🌐 ' + esc(meta.cgnatLabel) + ' <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>'
+          ) : '') +
+          (meta && meta.notice ? (
+            '<button type="button" class="deal-badge deal-badge-notice ' + (meta.notice === '30_days' ? 'deal-badge--warn' : 'deal-badge--good') + '" ' +
+              'data-badge="notice" data-detail="' + escAttr(meta.noticeTooltip) + '" data-source="' + escAttr(meta.cisUrl || '') + '" ' +
+              'title="' + escAttr(meta.noticeTooltip + ' Tap to learn why this matters.') + '">' +
+              (meta.notice === '30_days' ? '⚠️ 30-Day Notice' : '⚡ No Notice') + ' <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>'
+          ) : '') +
+          poiBadgeHtml(d.provider);
+      } else {
+        badgesHtml =
+          (mobileMeta ? (
+            '<button type="button" class="deal-badge deal-badge-network deal-badge-network--' + escAttr(mobileMeta.network) + '" ' +
+              'data-badge="network" data-detail="' + escAttr(mobileMeta.networkTooltip) + '" data-source="' + escAttr(mobileMeta.cisUrl || '') + '" ' +
+              'title="' + escAttr(mobileMeta.networkTooltip + ' Tap to learn why this matters.') + '">' +
+              '<span class="deal-net-dot deal-net-dot--' + escAttr(mobileMeta.network) + '"></span> ' + esc(mobileMeta.networkLabel) + ' <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>'
+          ) : '') +
+          (costPerGb !== null ? (
+            '<button type="button" class="deal-badge deal-badge-value" ' +
+              'data-badge="value" data-detail="Effective cost of $' + costPerGb.toFixed(2) + ' per gigabyte of included data allowance." ' +
+              'title="Data cost value. Tap to learn why this matters.">' +
+              '📊 $' + costPerGb.toFixed(2) + '/GB <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>'
+          ) : '') +
+          (isLongExpiry ? (
+            '<button type="button" class="deal-badge deal-badge-expiry deal-badge--warn" ' +
+              'data-badge="expiry" data-detail="This is a ' + cycleDays + '-day long expiry recharge pack with data provided upfront." ' +
+              'title="Long expiry pack. Tap to learn why this matters.">' +
+              '📦 ' + cycleDays + '-Day Pack <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>'
+          ) : (is28Day ? (
+            '<button type="button" class="deal-badge deal-badge-cycle deal-badge--neutral" ' +
+              'data-badge="expiry" data-detail="28-day prepaid recharge cycle (renews 13 times per year, not 12)." ' +
+              'title="28-day billing cycle. Tap to learn why this matters.">' +
+              '🗓️ 28-Day Cycle <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>'
+          ) : '')) +
+          (mobileMeta && mobileMeta.dataBanking && mobileMeta.dataBanking !== 'No data banking' ? (
+            '<button type="button" class="deal-badge deal-badge-banking deal-badge--good" ' +
+              'data-badge="banking" data-detail="' + escAttr(mobileMeta.dataBanking) + '" ' +
+              'title="' + escAttr(mobileMeta.dataBanking + ' Tap to learn why this matters.') + '">' +
+              '🔄 Data Bank <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>'
+          ) : '') +
+          (mobileMeta && mobileMeta.eSim ? (
+            '<button type="button" class="deal-badge deal-badge-esim deal-badge--neutral" ' +
+              'data-badge="esim" data-detail="eSIM supported for instant download and activation without waiting for a physical plastic SIM in the mail." ' +
+              'title="eSIM supported. Tap to learn why this matters.">' +
+              '⚡ eSIM <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>'
+          ) : '');
+      }
 
       html +=
         '<div class="deal-row">' +
           '<div class="deal-cell deal-cell-provider">' +
             '<span class="deal-provider-name">' + esc(d.provider) + '</span>' +
             '<span class="deal-plan-tier">' + esc(d.tier || d.title || '') + '</span>' +
-            (activeTab === 'nbn' ? (
-              '<div class="deal-provider-badges">' +
-                (fastUp ? (
-                  '<button type="button" class="deal-badge deal-badge-upload" ' +
-                    'data-badge="upload" title="Fast upload speed (40+ Mbps) — tap to learn why this matters">' +
-                    '⚡ Fast Upload <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>'
-                ) : '') +
-                (meta && meta.cgnat ? (
-                  '<button type="button" class="deal-badge deal-badge-cgnat ' + (meta.cgnat === 'none' || meta.cgnat === 'free_optout' ? 'deal-badge--good' : 'deal-badge--neutral') + '" ' +
-                    'data-badge="cgnat" data-detail="' + escAttr(meta.cgnatTooltip) + '" data-source="' + escAttr(meta.cisUrl || '') + '" ' +
-                    'title="' + escAttr(meta.cgnatTooltip + ' Tap to learn why this matters.') + '">' +
-                    '🌐 ' + esc(meta.cgnatLabel) + ' <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>'
-                ) : '') +
-                (meta && meta.notice ? (
-                  '<button type="button" class="deal-badge deal-badge-notice ' + (meta.notice === '30_days' ? 'deal-badge--warn' : 'deal-badge--good') + '" ' +
-                    'data-badge="notice" data-detail="' + escAttr(meta.noticeTooltip) + '" data-source="' + escAttr(meta.cisUrl || '') + '" ' +
-                    'title="' + escAttr(meta.noticeTooltip + ' Tap to learn why this matters.') + '">' +
-                    (meta.notice === '30_days' ? '⚠️ 30-Day Notice' : '⚡ No Notice') + ' <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>'
-                ) : '') +
-                poiBadgeHtml(d.provider) +
-              '</div>' +
-              '<div class="deal-badge-note" data-badge-note hidden></div>'
-            ) : '') +
+            '<div class="deal-provider-badges">' + badgesHtml + '</div>' +
+            '<div class="deal-badge-note" data-badge-note hidden></div>' +
           '</div>' +
           '<div class="deal-cell deal-cell-speed" data-label="Connection">' +
             '<span class="deal-cell-body">' +
               '<span class="deal-cell-value">' + esc(connection) + '</span>' +
-              '<span class="deal-cell-caption">Connection type</span>' +
+              '<span class="deal-cell-caption">' + esc(connectionCaption) + '</span>' +
             '</span>' +
           '</div>' +
           '<div class="deal-cell deal-cell-promo" data-label="Promo Price">' +
