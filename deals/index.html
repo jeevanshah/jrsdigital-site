@@ -504,13 +504,13 @@
     return getUploadSpeed(d) >= 40;
   }
 
-  function tierSortKey(t) {
-    if (!t) return 0;
-    var m = t.match(/(\d+)/);
-    return m ? parseInt(m[1], 10) : 0;
-  }
-
-  function tierGroupKey(rawTier) {
+  // Base download-speed bucket, ignoring upload entirely -- this is the
+  // pre-split grouping. A separate pass in groupByTier() decides whether a
+  // bucket needs to be split further by upload speed (see baseBucketKey's
+  // callers). Kept distinct from tierGroupKey so both the "does this bucket
+  // have multiple upload variants" check and the final per-item key can
+  // share the same bucketing rule without duplicating the threshold table.
+  function baseBucketKey(rawTier) {
     if (!rawTier) return 'Other';
     var s = String(rawTier);
     var firstNum = s.match(/(\d+)/);
@@ -530,14 +530,72 @@
     return speed + 'GB';
   }
 
+  function tierSortKey(t) {
+    if (!t) return 0;
+    var m = t.match(/(\d+)/);
+    var primary = m ? parseInt(m[1], 10) : 0;
+    var upMatch = t.match(/\/(\d+(\.\d+)?)/);
+    var secondary = upMatch ? parseFloat(upMatch[1]) : 0;
+    return primary * 10000 + secondary;
+  }
+
   function tierDisplayLabel(key) {
     return activeTab === 'nbn' ? key.replace(/^NBN\s*/i, '') : key;
   }
 
+  // Builds a bucket -> {uploadSpeed: true} map over the given list, used to
+  // decide which download buckets have more than one upload variant right
+  // now. Shared by groupByTier() and renderList()'s activeTier filter so
+  // both agree on exactly the same split decision for the same dataset.
+  // Upload speed 0 means "not disclosed in this plan's tier string" (e.g.
+  // Telstra publishes plain "NBN 25" with no upload figure at all) rather
+  // than a real 0 Mbps upload -- excluded here so a bucket with one real
+  // upload speed plus some undisclosed-upload plans doesn't get treated as
+  // having two variants and split on a fabricated "/0".
+  function buildUploadsPerBucket(list) {
+    var uploadsPerBucket = {};
+    list.forEach(function (d) {
+      var bucket = baseBucketKey(d.tier);
+      var up = getUploadSpeed(d);
+      if (up <= 0) return;
+      if (!uploadsPerBucket[bucket]) uploadsPerBucket[bucket] = {};
+      uploadsPerBucket[bucket][up] = true;
+    });
+    return uploadsPerBucket;
+  }
+
+  // Final per-item tier key: the plain download bucket ("NBN 1000"), unless
+  // that bucket has more than one distinct (disclosed) upload speed in
+  // uploadsPerBucket, in which case it's split to include upload
+  // ("NBN 1000/400"). A plan with no disclosed upload speed always stays on
+  // the plain bucket, even when siblings in that bucket do split, rather
+  // than inventing a "/0" label for it. Only applies to the NBN tab --
+  // mobile tiers are a plain GB allowance with no upload/download split to
+  // disambiguate.
+  function tierKeyForItem(d, uploadsPerBucket) {
+    var bucket = baseBucketKey(d.tier);
+    if (activeTab !== 'nbn') return bucket;
+    var up = getUploadSpeed(d);
+    if (up <= 0) return bucket;
+    var upVariants = Object.keys(uploadsPerBucket[bucket] || {});
+    if (upVariants.length <= 1) return bucket;
+    var down = bucket.replace(/^NBN\s*/i, '');
+    return 'NBN ' + down + '/' + (up % 1 === 0 ? up : up.toFixed(1));
+  }
+
+  // Groups plans by download-speed bucket, then splits a bucket further by
+  // upload speed only when that bucket actually contains more than one
+  // distinct upload variant right now (e.g. NBN 1000/100 vs NBN 1000/400).
+  // Buckets with a single upload speed (the common case -- every NBN 25
+  // plan on the market is 25/10) stay as a plain "NBN 1000"-style tab, so
+  // the filter row doesn't grow needlessly. This is computed dynamically
+  // off the live dataset rather than a hardcoded list, so it keeps working
+  // as new providers/plans are added without manual upkeep.
   function groupByTier(list) {
+    var uploadsPerBucket = buildUploadsPerBucket(list);
     var groups = {};
     list.forEach(function (d) {
-      var key = tierGroupKey(d.tier);
+      var key = tierKeyForItem(d, uploadsPerBucket);
       if (!groups[key]) groups[key] = [];
       groups[key].push(d);
     });
@@ -889,7 +947,8 @@
     }
 
     if (activeTier) {
-      filtered = filtered.filter(function (d) { return tierGroupKey(d.tier) === activeTier; });
+      var uploadsPerBucketForFilter = buildUploadsPerBucket(filtered);
+      filtered = filtered.filter(function (d) { return tierKeyForItem(d, uploadsPerBucketForFilter) === activeTier; });
     }
 
     if (highUploadOnly && activeTab === 'nbn') {
