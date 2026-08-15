@@ -132,6 +132,7 @@
             </div>
           </div>
           <div class="deals-tier-tabs" data-tier-tabs><!-- populated by JS --></div>
+          <div class="deals-upload-tabs" data-upload-tabs hidden><!-- populated by JS, only shown when the selected tier has multiple upload variants --></div>
         </div>
 
         <div class="deals-filter-col">
@@ -267,6 +268,7 @@
   var gridBody = document.querySelector('[data-grid]');
   var empty = document.querySelector('[data-empty]');
   var tierTabs = document.querySelector('[data-tier-tabs]');
+  var uploadTabs = document.querySelector('[data-upload-tabs]');
   var tierLabel = document.querySelector('[data-tier-label]');
   var sortSelect = document.querySelector('[data-sort]');
   var tabBtns = document.querySelectorAll('[data-tab]');
@@ -462,6 +464,7 @@
   var deals = [];
   var activeTab = 'nbn';
   var activeTier = null; // null means "All"
+  var activeUpload = null; // null means "All" -- upload-speed sub-filter within activeTier
   var selectedProviders = []; // empty array means "All"
   var activeSort = 'totalfirstyear';
   var highUploadOnly = false;
@@ -543,59 +546,17 @@
     return activeTab === 'nbn' ? key.replace(/^NBN\s*/i, '') : key;
   }
 
-  // Builds a bucket -> {uploadSpeed: true} map over the given list, used to
-  // decide which download buckets have more than one upload variant right
-  // now. Shared by groupByTier() and renderList()'s activeTier filter so
-  // both agree on exactly the same split decision for the same dataset.
-  // Upload speed 0 means "not disclosed in this plan's tier string" (e.g.
-  // Telstra publishes plain "NBN 25" with no upload figure at all) rather
-  // than a real 0 Mbps upload -- excluded here so a bucket with one real
-  // upload speed plus some undisclosed-upload plans doesn't get treated as
-  // having two variants and split on a fabricated "/0".
-  function buildUploadsPerBucket(list) {
-    var uploadsPerBucket = {};
-    list.forEach(function (d) {
-      var bucket = baseBucketKey(d.tier);
-      var up = getUploadSpeed(d);
-      if (up <= 0) return;
-      if (!uploadsPerBucket[bucket]) uploadsPerBucket[bucket] = {};
-      uploadsPerBucket[bucket][up] = true;
-    });
-    return uploadsPerBucket;
-  }
-
-  // Final per-item tier key: the plain download bucket ("NBN 1000"), unless
-  // that bucket has more than one distinct (disclosed) upload speed in
-  // uploadsPerBucket, in which case it's split to include upload
-  // ("NBN 1000/400"). A plan with no disclosed upload speed always stays on
-  // the plain bucket, even when siblings in that bucket do split, rather
-  // than inventing a "/0" label for it. Only applies to the NBN tab --
-  // mobile tiers are a plain GB allowance with no upload/download split to
-  // disambiguate.
-  function tierKeyForItem(d, uploadsPerBucket) {
-    var bucket = baseBucketKey(d.tier);
-    if (activeTab !== 'nbn') return bucket;
-    var up = getUploadSpeed(d);
-    if (up <= 0) return bucket;
-    var upVariants = Object.keys(uploadsPerBucket[bucket] || {});
-    if (upVariants.length <= 1) return bucket;
-    var down = bucket.replace(/^NBN\s*/i, '');
-    return 'NBN ' + down + '/' + (up % 1 === 0 ? up : up.toFixed(1));
-  }
-
-  // Groups plans by download-speed bucket, then splits a bucket further by
-  // upload speed only when that bucket actually contains more than one
-  // distinct upload variant right now (e.g. NBN 1000/100 vs NBN 1000/400).
-  // Buckets with a single upload speed (the common case -- every NBN 25
-  // plan on the market is 25/10) stay as a plain "NBN 1000"-style tab, so
-  // the filter row doesn't grow needlessly. This is computed dynamically
-  // off the live dataset rather than a hardcoded list, so it keeps working
-  // as new providers/plans are added without manual upkeep.
+  // Groups plans by download-speed bucket only (e.g. "NBN 1000"). Upload
+  // speed is handled as its own secondary filter (see getUploadOptions /
+  // renderUploadTabs below) rather than folded into this key, so a bucket
+  // with several upload variants doesn't need a combinatorial tab per
+  // combination (NBN 750 alone has 4-5 distinct upload speeds across
+  // providers -- "750/42", "750/43", "750/50", "750/85" as separate tier
+  // tabs would clutter the row; a within-tier upload chip row reads better).
   function groupByTier(list) {
-    var uploadsPerBucket = buildUploadsPerBucket(list);
     var groups = {};
     list.forEach(function (d) {
-      var key = tierKeyForItem(d, uploadsPerBucket);
+      var key = baseBucketKey(d.tier);
       if (!groups[key]) groups[key] = [];
       groups[key].push(d);
     });
@@ -603,6 +564,19 @@
       return tierSortKey(a) - tierSortKey(b);
     });
     return { keys: keys, groups: groups };
+  }
+
+  // Distinct disclosed upload speeds (sorted ascending) among the given
+  // list, excluding undisclosed ones (getUploadSpeed returns 0 for plans
+  // like Telstra's that publish plain "NBN 25" with no upload figure at
+  // all -- 0 there means "unknown", not a real 0 Mbps upload).
+  function getUploadOptions(list) {
+    var seen = {};
+    list.forEach(function (d) {
+      var up = getUploadSpeed(d);
+      if (up > 0) seen[up] = true;
+    });
+    return Object.keys(seen).map(Number).sort(function (a, b) { return a - b; });
   }
 
   function resetVisible() {
@@ -882,6 +856,7 @@
     // If activeTier is not in current tab's tiers, reset to null
     if (activeTier && tiers.indexOf(activeTab === 'nbn' ? activeTier : activeTier) === -1) {
       activeTier = null;
+      activeUpload = null;
     }
 
     var html = '';
@@ -895,10 +870,63 @@
     tierTabs.querySelectorAll('[data-tier]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var t = btn.getAttribute('data-tier') || null;
+        if (t !== activeTier) activeUpload = null;
         activeTier = t;
         resetVisible();
         syncUrlState();
         renderTierTabs();
+        renderList();
+      });
+    });
+
+    renderUploadTabs(filtered);
+  }
+
+  // Secondary upload-speed chip row, shown only when a specific NBN tier is
+  // selected and that tier actually has more than one distinct upload speed
+  // among the currently filtered plans (e.g. selecting "1000" surfaces
+  // "100 Mbps" / "400 Mbps" chips; selecting "25" usually shows nothing
+  // since every provider's 25 plan is 25/10 or 25/8-ish, a single variant).
+  function renderUploadTabs(tabFilteredList) {
+    if (!uploadTabs) return;
+
+    if (activeTab !== 'nbn' || !activeTier) {
+      uploadTabs.hidden = true;
+      uploadTabs.innerHTML = '';
+      return;
+    }
+
+    var tierList = tabFilteredList.filter(function (d) { return baseBucketKey(d.tier) === activeTier; });
+    var options = getUploadOptions(tierList);
+
+    if (options.length <= 1) {
+      uploadTabs.hidden = true;
+      uploadTabs.innerHTML = '';
+      if (activeUpload !== null) activeUpload = null;
+      return;
+    }
+
+    if (activeUpload !== null && options.indexOf(activeUpload) === -1) {
+      activeUpload = null;
+    }
+
+    uploadTabs.hidden = false;
+    var html = '<span class="deals-upload-tabs-label">Upload speed</span>';
+    html += '<button type="button" class="deals-upload-btn' + (activeUpload === null ? ' is-active' : '') + '" data-upload="">All</button>';
+    options.forEach(function (up) {
+      var isAct = activeUpload === up;
+      var label = (up % 1 === 0 ? up : up.toFixed(1)) + ' Mbps';
+      html += '<button type="button" class="deals-upload-btn' + (isAct ? ' is-active' : '') + '" data-upload="' + up + '">' + esc(label) + '</button>';
+    });
+    uploadTabs.innerHTML = html;
+
+    uploadTabs.querySelectorAll('[data-upload]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var v = btn.getAttribute('data-upload');
+        activeUpload = v === '' ? null : parseFloat(v);
+        resetVisible();
+        syncUrlState();
+        renderUploadTabs(tabFilteredList);
         renderList();
       });
     });
@@ -947,8 +975,11 @@
     }
 
     if (activeTier) {
-      var uploadsPerBucketForFilter = buildUploadsPerBucket(filtered);
-      filtered = filtered.filter(function (d) { return tierKeyForItem(d, uploadsPerBucketForFilter) === activeTier; });
+      filtered = filtered.filter(function (d) { return baseBucketKey(d.tier) === activeTier; });
+    }
+
+    if (activeUpload !== null && activeTab === 'nbn') {
+      filtered = filtered.filter(function (d) { return getUploadSpeed(d) === activeUpload; });
     }
 
     if (highUploadOnly && activeTab === 'nbn') {
@@ -1167,6 +1198,7 @@
       btn.classList.add('is-active');
       activeTab = btn.getAttribute('data-tab');
       activeTier = null;
+      activeUpload = null;
       selectedProviders = [];
       highUploadOnly = false;
       resetVisible();
