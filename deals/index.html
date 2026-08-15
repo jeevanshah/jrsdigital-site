@@ -516,22 +516,40 @@
     return parseFloat(String(v).replace('$', '').replace(',', '')) || 0;
   }
 
+  // Average days per month (365.25/12) -- used to convert a mobile plan's
+  // real per-cycle price into a monthly-equivalent figure before it's used
+  // in any monthly/annual cost math. Most mobile plans bill every ~30 days
+  // (billingCycleDays defaults to 30, a no-op here), but prepaid SIMs sell
+  // 7/14/28/184/365-day cycles at a flat total price for that whole cycle --
+  // treating that total as if it were a monthly price is a real, confirmed
+  // bug (a $270/365-day plan was showing as $270/MONTH, ~12x too high).
+  // NBN deals never carry billingCycleDays, so this is a no-op for them.
+  var AVG_DAYS_PER_MONTH = 30.4368;
+
+  function billingCycleDays(d) {
+    return d.billingCycleDays || 30;
+  }
+
+  function monthlyEquivalent(price, d) {
+    return price * (AVG_DAYS_PER_MONTH / billingCycleDays(d));
+  }
+
   function totalFirstYear(d) {
-    var promo = parsePrice(d.promoPrice);
-    var regular = parsePrice(d.regularPrice);
+    var promo = monthlyEquivalent(parsePrice(d.promoPrice), d);
+    var regular = monthlyEquivalent(parsePrice(d.regularPrice), d);
     var months = Math.max(0, Math.min(12, parseInt(d.promoMonths, 10) || 0));
     return promo * months + regular * (12 - months);
   }
 
   function totalSixMonth(d) {
-    var promo = parsePrice(d.promoPrice);
-    var regular = parsePrice(d.regularPrice);
+    var promo = monthlyEquivalent(parsePrice(d.promoPrice), d);
+    var regular = monthlyEquivalent(parsePrice(d.regularPrice), d);
     var months = Math.max(0, Math.min(6, parseInt(d.promoMonths, 10) || 0));
     return promo * months + regular * (6 - months);
   }
 
   function savingsFirstYear(d) {
-    var regular = parsePrice(d.regularPrice);
+    var regular = monthlyEquivalent(parsePrice(d.regularPrice), d);
     return regular * 12 - totalFirstYear(d);
   }
 
@@ -1215,14 +1233,27 @@
     return MONTH_NAMES[parseInt(parts[1], 10) - 1].slice(0, 3) + ' ' + parseInt(parts[2], 10);
   }
 
+  // Small, honest bit of personality on the changelog -- an icon that matches
+  // what actually happened (new provider/plan added vs. an existing price
+  // updated), never a claim about direction we don't have data for (the
+  // message text alone doesn't say if a price went up or down).
+  function changelogIcon(message) {
+    if (/^Added /.test(message)) return '🎉';
+    if (/^Updated /.test(message)) return '🔄';
+    return '📋';
+  }
+
   function renderChangelog(entries) {
     var wrap = document.querySelector('[data-changelog-wrap]');
     var list = document.querySelector('[data-changelog-list]');
     if (!entries || !entries.length) return;
 
     var html = '';
-    entries.slice(0, CHANGELOG_VISIBLE).forEach(function (entry) {
-      html += '<li><strong>' + esc(formatShortDate(entry.date)) + '</strong> — ' + esc(entry.message) + '</li>';
+    entries.slice(0, CHANGELOG_VISIBLE).forEach(function (entry, i) {
+      html += '<li class="deals-changelog-item" style="animation-delay:' + (i * 70) + 'ms">' +
+        '<span class="deals-changelog-icon" aria-hidden="true">' + changelogIcon(entry.message) + '</span>' +
+        '<span><strong>' + esc(formatShortDate(entry.date)) + '</strong> — ' + esc(entry.message) + '</span>' +
+      '</li>';
     });
     list.innerHTML = html;
     wrap.hidden = false;

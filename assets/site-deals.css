@@ -105,6 +105,46 @@
 }
 .deals-changelog-list strong { color: var(--w-ink); font-weight: 600; }
 
+.deals-changelog-item {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  opacity: 0;
+  transform: translateY(4px);
+  animation: dealsChangelogIn 0.4s ease forwards;
+}
+.deals-changelog-icon {
+  flex: none;
+  font-size: 0.9em;
+  line-height: 1;
+  transform-origin: 50% 60%;
+}
+/* A tiny, one-shot wiggle on the icon after it lands -- just enough to draw
+   the eye without turning the changelog into a distraction. */
+.deals-changelog-item:hover .deals-changelog-icon {
+  animation: dealsChangelogIconPop 0.35s ease;
+}
+@keyframes dealsChangelogIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes dealsChangelogIconPop {
+  0% { transform: scale(1) rotate(0deg); }
+  40% { transform: scale(1.35) rotate(-8deg); }
+  70% { transform: scale(1.1) rotate(4deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .deals-changelog-item {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+  .deals-changelog-item:hover .deals-changelog-icon {
+    animation: none;
+  }
+}
+
 /* ---------- hero illustration (layered PNG/WebP assets, absolutely
    positioned over the background art) ---------- */
 /* Unclipped ancestor for the bleed accents below — .deals-hero-art itself
