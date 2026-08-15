@@ -304,6 +304,109 @@
   min-height: 24px;
 }
 
+.deals-mine-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 12px 18px;
+  border: 1px solid var(--w-border);
+  border-radius: var(--w-radius);
+  background: #FFF8F5;
+}
+.deals-mine-icon { font-size: 1.15rem; line-height: 1; }
+.deals-mine-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--w-ink);
+  white-space: nowrap;
+}
+.deals-mine-input-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 5px 10px;
+  border: 1.5px solid rgba(17, 24, 39, 0.16);
+  border-radius: 8px;
+  background: #FFFFFF;
+}
+.deals-mine-input-wrap:focus-within { border-color: var(--w-accent); }
+.deals-mine-dollar, .deals-mine-suffix {
+  font-size: 0.82rem;
+  color: var(--w-ink-50);
+  font-weight: 600;
+}
+#deals-mine-input {
+  width: 76px;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--w-ink);
+  -moz-appearance: textfield;
+}
+#deals-mine-input::-webkit-outer-spin-button,
+#deals-mine-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.deals-mine-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(17, 24, 39, 0.16);
+  background: #FFFFFF;
+  color: var(--w-ink-50);
+  font-size: 0.72rem;
+  cursor: pointer;
+  flex: none;
+}
+.deals-mine-clear:hover { border-color: var(--w-accent); color: var(--w-accent); }
+.deals-mine-clear[hidden] { display: none; }
+.deals-mine-hint {
+  font-size: 0.72rem;
+  color: var(--w-ink-50);
+  flex: 1 1 220px;
+}
+
+.deal-cell-vsmine {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 4px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.deal-cell-vsmine--good {
+  background: rgba(4, 52, 44, 0.08);
+  color: #04342C;
+}
+.deal-cell-vsmine--warn {
+  background: rgba(254, 243, 199, 0.85);
+  color: #92400E;
+}
+.deal-cell-vsmine--neutral {
+  background: #F3F4F6;
+  color: #4B5563;
+}
+
+@media (max-width: 720px) {
+  .deals-mine-bar {
+    padding: 10px 14px;
+  }
+  .deals-mine-hint {
+    flex-basis: 100%;
+  }
+}
+
 .deals-select {
   width: 100%;
   min-width: 0;

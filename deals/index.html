@@ -168,6 +168,19 @@
           </select>
         </div>
       </div>
+
+      <div class="deals-mine-bar">
+        <span class="deals-mine-icon" aria-hidden="true">🐷</span>
+        <label class="deals-mine-label" for="deals-mine-input">What do you pay now?</label>
+        <span class="deals-mine-input-wrap">
+          <span class="deals-mine-dollar">$</span>
+          <input type="number" id="deals-mine-input" data-mine-input inputmode="decimal" min="0" step="0.01"
+            placeholder="e.g. 89.95" aria-describedby="deals-mine-hint">
+          <span class="deals-mine-suffix">/mo</span>
+        </span>
+        <button type="button" class="deals-mine-clear" data-mine-clear hidden aria-label="Clear comparison">✕</button>
+        <span class="deals-mine-hint" id="deals-mine-hint">See how every deal below compares to what you pay now — kept on this device only, never shared or sent anywhere.</span>
+      </div>
     </section>
 
     <section class="w-section deals-table-section">
@@ -280,6 +293,8 @@
   var cgnatToggleBtn = document.querySelector('[data-cgnat-toggle]');
   var noticeToggleBtn = document.querySelector('[data-notice-toggle]');
   var featureTogglesWrap = document.querySelector('[data-feature-toggles]');
+  var mineInput = document.querySelector('[data-mine-input]');
+  var mineClearBtn = document.querySelector('[data-mine-clear]');
 
   var multiselectWrap = document.querySelector('[data-provider-multiselect]');
   var multiselectBtn = document.querySelector('[data-provider-btn]');
@@ -510,6 +525,8 @@
   var noNoticeOnly = false;
   var tiers = [];
   var visibleCount = VISIBLE_STEP;
+  var MINE_STORAGE_KEY = 'dealsMyMonthlyPrice';
+  var myMonthlyPrice = null; // what the visitor says they pay now, for "vs yours" -- device-local only, never synced to the URL or a server
 
   function parsePrice(v) {
     if (typeof v === 'number') return v;
@@ -1213,6 +1230,7 @@
               '<span class="deal-price-navy">$' + regularPrice.toFixed(2) + '<small>' + priceSuffix + '</small></span>' +
               (monthlyish ? '' : '<span class="deal-cell-subnote">≈$' + monthlyEquivalent(regularPrice, d).toFixed(2) + '/mo avg</span>') +
               '<span class="deal-cell-caption">ongoing</span>' +
+              vsMineHtml(regularPrice, d) +
             '</span>' +
           '</div>' +
           '<div class="deal-cell deal-cell-sixmonth" data-label="Total 6 Months">' +
@@ -1433,8 +1451,75 @@
     });
   }
 
+  // "What do you pay now?" comparison -- stored only in localStorage, never
+  // synced to the URL or sent anywhere, so sharing a comparison link never
+  // leaks what someone currently pays. Feeds a small "vs yours" badge per
+  // row in renderList().
+  function loadMyMonthlyPrice() {
+    try {
+      var raw = window.localStorage.getItem(MINE_STORAGE_KEY);
+      var n = raw ? parseFloat(raw) : NaN;
+      myMonthlyPrice = isFinite(n) && n > 0 ? n : null;
+    } catch (e) { myMonthlyPrice = null; }
+  }
+
+  function saveMyMonthlyPrice() {
+    try {
+      if (myMonthlyPrice) {
+        window.localStorage.setItem(MINE_STORAGE_KEY, String(myMonthlyPrice));
+      } else {
+        window.localStorage.removeItem(MINE_STORAGE_KEY);
+      }
+    } catch (e) { /* localStorage unavailable (private browsing etc) -- fine, just session-only */ }
+  }
+
+  function syncMineBarUi() {
+    if (mineInput) mineInput.value = myMonthlyPrice ? myMonthlyPrice : '';
+    if (mineClearBtn) mineClearBtn.hidden = !myMonthlyPrice;
+  }
+
+  function setupMineBar() {
+    if (!mineInput) return;
+    syncMineBarUi();
+
+    mineInput.addEventListener('input', function () {
+      var n = parseFloat(mineInput.value);
+      myMonthlyPrice = isFinite(n) && n > 0 ? n : null;
+      saveMyMonthlyPrice();
+      if (mineClearBtn) mineClearBtn.hidden = !myMonthlyPrice;
+      renderList();
+    });
+
+    if (mineClearBtn) {
+      mineClearBtn.addEventListener('click', function () {
+        myMonthlyPrice = null;
+        saveMyMonthlyPrice();
+        syncMineBarUi();
+        renderList();
+      });
+    }
+  }
+
+  // "vs yours" badge for a single row, comparing the plan's ongoing
+  // (post-promo) monthly-equivalent cost against what the visitor says they
+  // pay now. Compares ongoing cost, not the promo price, since that's the
+  // steady-state number a switch is actually judged against.
+  function vsMineHtml(regularPrice, d) {
+    if (!myMonthlyPrice) return '';
+    var diff = monthlyEquivalent(regularPrice, d) - myMonthlyPrice;
+    if (Math.abs(diff) < 0.01) {
+      return '<span class="deal-cell-vsmine deal-cell-vsmine--neutral">Same as yours</span>';
+    }
+    if (diff < 0) {
+      return '<span class="deal-cell-vsmine deal-cell-vsmine--good">-$' + Math.abs(diff).toFixed(2) + '/mo vs yours</span>';
+    }
+    return '<span class="deal-cell-vsmine deal-cell-vsmine--warn">+$' + diff.toFixed(2) + '/mo vs yours</span>';
+  }
+
   setupMultiselectEvents();
   setupBadgeExplainers();
+  loadMyMonthlyPrice();
+  setupMineBar();
   readUrlState();
 
   // Sync tab buttons with activeTab loaded from URL
