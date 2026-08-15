@@ -463,6 +463,39 @@
     }
   };
 
+  // Plain-English "why this matters" copy shown when a badge is tapped/clicked,
+  // aimed at people comparing NBN plans who aren't networking-literate. Each
+  // badge also carries a provider-specific detail (from PROVIDER_METADATA or
+  // POI_DATA) that's appended below this generic explanation.
+  var BADGE_EXPLAINERS = {
+    cgnat: {
+      title: "What's CGNAT?",
+      body: 'You share one public internet address with other households instead of ' +
+        'having your own. It won’t affect normal browsing, streaming or gaming — ' +
+        'but it can cause problems for things like remote security cameras, hosting a ' +
+        'game server, or some VPN setups.'
+    },
+    notice: {
+      title: 'Why notice period matters',
+      body: 'This is how much warning you must give before cancelling or switching ' +
+        'providers. A 30-day notice means you keep paying for another month after you ' +
+        'decide to leave — worth factoring in if you’re comparing a short promo deal ' +
+        'against the ongoing cost.'
+    },
+    upload: {
+      title: 'Why upload speed matters',
+      body: 'Plans usually advertise download speed, but upload speed is what limits ' +
+        'video calls, live streaming, and backing up photos or files to the cloud.'
+    },
+    poi: {
+      title: 'What this badge means',
+      body: 'This shows which states a provider connects to directly via public ' +
+        'internet exchanges — a technical detail about how their network is built. ' +
+        'It doesn’t measure speed or reliability at your address, so most people can ' +
+        'safely ignore it.'
+    }
+  };
+
   var deals = [];
   var activeTab = 'nbn';
   var activeTier = null; // null means "All"
@@ -973,18 +1006,21 @@
   function poiBadgeHtml(provider) {
     var poi = POI_DATA[provider];
     if (!poi) return '';
-    var viaText = poi.viaWholesaler ? (' Delivered via ' + esc(poi.viaWholesaler) + '’s network.') : '';
+    var viaText = poi.viaWholesaler ? (' Delivered via ' + poi.viaWholesaler + '’s network.') : '';
     if (poi.noPublicIxData) {
-      return '<a class="deal-badge deal-badge-poi deal-badge--neutral" ' +
-        'href="' + escAttr(poi.sourceUrl) + '" target="_blank" rel="noopener noreferrer" ' +
-        'title="' + escAttr('This provider doesn’t publish a footprint via public internet exchanges (common for large national carriers, who mostly peer privately) — this is not a measure of their real coverage.' + viaText + ' Source: Hurricane Electric BGP Toolkit (opens in new tab).') + '">' +
-        '📍 Public exchange data: not published</a>';
+      var detailUnpublished = 'This provider doesn’t publish a footprint via public internet ' +
+        'exchanges (common for large national carriers, who mostly peer privately).' + viaText;
+      return '<button type="button" class="deal-badge deal-badge-poi deal-badge--neutral" ' +
+        'data-badge="poi" data-detail="' + escAttr(detailUnpublished) + '" data-source="' + escAttr(poi.sourceUrl) + '" ' +
+        'title="' + escAttr(detailUnpublished + ' Tap to learn what this means.') + '">' +
+        '📍 Public exchange data: not published <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>';
     }
     if (!poi.states || poi.states.length === 0) return '';
-    return '<a class="deal-badge deal-badge-poi deal-badge--neutral" ' +
-      'href="' + escAttr(poi.sourceUrl) + '" target="_blank" rel="noopener noreferrer" ' +
-      'title="' + escAttr('Public internet-exchange peering footprint (not NBN Co’s own POI list): ' + poi.states.join(', ') + '.' + viaText + ' Source: Hurricane Electric BGP Toolkit (opens in new tab).') + '">' +
-      '📍 Public exchange footprint: ' + esc(poi.states.join(', ')) + '</a>';
+    var detailStates = 'States with a direct presence: ' + poi.states.join(', ') + '.' + viaText;
+    return '<button type="button" class="deal-badge deal-badge-poi deal-badge--neutral" ' +
+      'data-badge="poi" data-detail="' + escAttr(detailStates) + '" data-source="' + escAttr(poi.sourceUrl) + '" ' +
+      'title="' + escAttr(detailStates + ' Tap to learn what this means.') + '">' +
+      '📍 Public exchange footprint: ' + esc(poi.states.join(', ')) + ' <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>';
   }
 
   // --- Deals Table Render ---
@@ -1064,21 +1100,26 @@
             '<span class="deal-plan-tier">' + esc(d.tier || d.title || '') + '</span>' +
             (activeTab === 'nbn' ? (
               '<div class="deal-provider-badges">' +
-                (fastUp ? '<span class="deal-badge deal-badge-upload" title="Fast upload speed (40+ Mbps)">⚡ Fast Upload</span>' : '') +
+                (fastUp ? (
+                  '<button type="button" class="deal-badge deal-badge-upload" ' +
+                    'data-badge="upload" title="Fast upload speed (40+ Mbps) — tap to learn why this matters">' +
+                    '⚡ Fast Upload <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>'
+                ) : '') +
                 (meta && meta.cgnat ? (
-                  '<a class="deal-badge deal-badge-cgnat ' + (meta.cgnat === 'none' || meta.cgnat === 'free_optout' ? 'deal-badge--good' : 'deal-badge--neutral') + '" ' +
-                    'href="' + escAttr(meta.cisUrl || '#') + '" target="_blank" rel="noopener noreferrer" ' +
-                    'title="' + escAttr(meta.cgnatTooltip + (meta.cisUrl ? ' Source: provider Critical Information Summary (opens in new tab).' : '')) + '">' +
-                    '🌐 ' + esc(meta.cgnatLabel) + '</a>'
+                  '<button type="button" class="deal-badge deal-badge-cgnat ' + (meta.cgnat === 'none' || meta.cgnat === 'free_optout' ? 'deal-badge--good' : 'deal-badge--neutral') + '" ' +
+                    'data-badge="cgnat" data-detail="' + escAttr(meta.cgnatTooltip) + '" data-source="' + escAttr(meta.cisUrl || '') + '" ' +
+                    'title="' + escAttr(meta.cgnatTooltip + ' Tap to learn why this matters.') + '">' +
+                    '🌐 ' + esc(meta.cgnatLabel) + ' <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>'
                 ) : '') +
                 (meta && meta.notice ? (
-                  '<a class="deal-badge deal-badge-notice ' + (meta.notice === '30_days' ? 'deal-badge--warn' : 'deal-badge--good') + '" ' +
-                    'href="' + escAttr(meta.cisUrl || '#') + '" target="_blank" rel="noopener noreferrer" ' +
-                    'title="' + escAttr(meta.noticeTooltip + (meta.cisUrl ? ' Source: provider Critical Information Summary (opens in new tab).' : '')) + '">' +
-                    (meta.notice === '30_days' ? '⚠️ 30-Day Notice' : '⚡ No Notice') + '</a>'
+                  '<button type="button" class="deal-badge deal-badge-notice ' + (meta.notice === '30_days' ? 'deal-badge--warn' : 'deal-badge--good') + '" ' +
+                    'data-badge="notice" data-detail="' + escAttr(meta.noticeTooltip) + '" data-source="' + escAttr(meta.cisUrl || '') + '" ' +
+                    'title="' + escAttr(meta.noticeTooltip + ' Tap to learn why this matters.') + '">' +
+                    (meta.notice === '30_days' ? '⚠️ 30-Day Notice' : '⚡ No Notice') + ' <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>'
                 ) : '') +
                 poiBadgeHtml(d.provider) +
-              '</div>'
+              '</div>' +
+              '<div class="deal-badge-note" data-badge-note hidden></div>'
             ) : '') +
           '</div>' +
           '<div class="deal-cell deal-cell-speed" data-label="Connection">' +
@@ -1249,7 +1290,63 @@
     });
   }
 
+  // Badge explainers -- tapping a provider badge (CGNAT, notice period, fast
+  // upload, public exchange footprint) opens a plain-English note in normal
+  // document flow (not a floating popover, which the horizontally-scrolling
+  // table wrapper would clip). Delegated on gridBody since rows are replaced
+  // wholesale on every renderList() call.
+  function closeAllBadgeNotes() {
+    document.querySelectorAll('[data-badge-note]').forEach(function (n) {
+      n.hidden = true;
+      n.removeAttribute('data-open-type');
+    });
+    document.querySelectorAll('[data-badge][aria-expanded="true"]').forEach(function (b) {
+      b.removeAttribute('aria-expanded');
+    });
+  }
+
+  function setupBadgeExplainers() {
+    if (!gridBody) return;
+
+    gridBody.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-badge]');
+      if (!btn) return;
+      e.stopPropagation();
+
+      var cell = btn.closest('.deal-cell-provider');
+      var note = cell ? cell.querySelector('[data-badge-note]') : null;
+      if (!note) return;
+
+      var type = btn.getAttribute('data-badge');
+      var alreadyOpen = !note.hidden && note.getAttribute('data-open-type') === type;
+
+      closeAllBadgeNotes();
+      if (alreadyOpen) return;
+
+      var info = BADGE_EXPLAINERS[type];
+      if (!info) return;
+
+      var detail = btn.getAttribute('data-detail') || '';
+      var source = btn.getAttribute('data-source') || '';
+
+      note.innerHTML =
+        '<strong>' + esc(info.title) + '</strong>' +
+        '<p>' + esc(info.body) + '</p>' +
+        (detail ? '<p class="deal-badge-note-detail">' + esc(detail) + '</p>' : '') +
+        (source ? '<a href="' + escAttr(source) + '" target="_blank" rel="noopener noreferrer">View source →</a>' : '');
+      note.hidden = false;
+      note.setAttribute('data-open-type', type);
+      btn.setAttribute('aria-expanded', 'true');
+    });
+
+    document.addEventListener('click', function () { closeAllBadgeNotes(); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeAllBadgeNotes();
+    });
+  }
+
   setupMultiselectEvents();
+  setupBadgeExplainers();
   readUrlState();
 
   // Sync tab buttons with activeTab loaded from URL
