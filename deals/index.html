@@ -326,9 +326,17 @@
     var s = String(rawTier);
     var firstNum = s.match(/(\d+)/);
     if (!firstNum) return s;
-    var speed = firstNum[1];
-    if (/nbn/i.test(s) || /\//.test(s)) {
-      return 'NBN ' + speed;
+    var speed = parseInt(firstNum[1], 10);
+    if (activeTab === 'nbn' || /nbn/i.test(s) || /\//.test(s)) {
+      if (speed <= 12) return 'NBN 12';
+      if (speed <= 30) return 'NBN 25';
+      if (speed <= 60) return 'NBN 50';
+      if (speed <= 150) return 'NBN 100';
+      if (speed <= 350) return 'NBN 250';
+      if (speed <= 600) return 'NBN 500';
+      if (speed <= 800) return 'NBN 750';
+      if (speed <= 1200) return 'NBN 1000';
+      return 'NBN 2000';
     }
     return speed + 'GB';
   }
