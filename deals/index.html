@@ -114,13 +114,23 @@
 
       <div class="deals-filters-box">
         <div class="deals-filter-col deals-filter-col--speed">
-          <span class="deals-filter-label">
+          <div class="deals-filter-label">
             <span data-tier-label>NBN speed</span>
-            <button class="deals-upload-toggle" data-upload-toggle type="button" title="Filter for plans with 40+ Mbps upload speed (e.g. 100/40, 250/100, 1000/400)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-              Fast Upload (40+ Mbps)
-            </button>
-          </span>
+            <div class="deals-feature-toggles" data-feature-toggles>
+              <button class="deals-toggle-chip deals-upload-toggle" data-upload-toggle type="button" title="Filter plans with 40+ Mbps upload speed (e.g. 100/40, 250/100, 1000/400)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                Fast Upload (40+)
+              </button>
+              <button class="deals-toggle-chip deals-cgnat-toggle" data-cgnat-toggle type="button" title="Filter providers with no CGNAT or free opt-out (Aussie Broadband, Leaptel, Superloop, Tangerine, Telstra, Optus, etc.)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                No CGNAT / Free Opt-out
+              </button>
+              <button class="deals-toggle-chip deals-notice-toggle" data-notice-toggle type="button" title="Filter providers that do not require a 30-day written cancellation notice (Leaptel, Aussie Broadband, Tangerine, Neptune, Telstra, etc.)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                No 30-Day Notice
+              </button>
+            </div>
+          </div>
           <div class="deals-tier-tabs" data-tier-tabs><!-- populated by JS --></div>
         </div>
 
@@ -263,6 +273,9 @@
   var moreBtn = document.querySelector('[data-more]');
   var shareBtn = document.querySelector('[data-share-btn]');
   var uploadToggleBtn = document.querySelector('[data-upload-toggle]');
+  var cgnatToggleBtn = document.querySelector('[data-cgnat-toggle]');
+  var noticeToggleBtn = document.querySelector('[data-notice-toggle]');
+  var featureTogglesWrap = document.querySelector('[data-feature-toggles]');
 
   var multiselectWrap = document.querySelector('[data-provider-multiselect]');
   var multiselectBtn = document.querySelector('[data-provider-btn]');
@@ -272,12 +285,169 @@
   var multiselectList = document.querySelector('[data-provider-list]');
   var selectedProvidersCount = document.querySelector('[data-selected-providers-count]');
 
+  var PROVIDER_METADATA = {
+    'Aussie Broadband': {
+      cgnat: 'free_optout',
+      cgnatLabel: 'Free CGNAT Opt-out',
+      cgnatTooltip: 'Opt-out of CGNAT for a free dynamic public IPv4 directly in the Aussie BB app.',
+      notice: 'none',
+      noticeLabel: 'No notice period',
+      noticeTooltip: 'Cancel or churn anytime with no 30-day notice requirement.'
+    },
+    'Leaptel': {
+      cgnat: 'free_optout',
+      cgnatLabel: 'Free CGNAT Opt-out',
+      cgnatTooltip: 'Free opt-out of CGNAT for dynamic public IPv4 via customer portal or support.',
+      notice: 'none',
+      noticeLabel: 'No notice period',
+      noticeTooltip: 'Cancel or churn anytime with pro-rata refunds.'
+    },
+    'Superloop': {
+      cgnat: 'free_optout',
+      cgnatLabel: 'Free CGNAT Opt-out',
+      cgnatTooltip: 'Free CGNAT opt-out available via member portal (or $5/mo static IP).',
+      notice: '30_days',
+      noticeLabel: '30-day notice',
+      noticeTooltip: 'Requires 30 days written notice to churn or cancel.'
+    },
+    'Exetel': {
+      cgnat: 'free_optout',
+      cgnatLabel: 'Free CGNAT Opt-out',
+      cgnatTooltip: 'Free CGNAT opt-out available via member portal.',
+      notice: '30_days',
+      noticeLabel: '30-day notice',
+      noticeTooltip: 'Requires 30 days written notice to churn or cancel.'
+    },
+    'Tangerine': {
+      cgnat: 'free_optout',
+      cgnatLabel: 'Free CGNAT Opt-out',
+      cgnatTooltip: 'Free dynamic public IPv4 available on request via support ticket or live chat.',
+      notice: 'none',
+      noticeLabel: 'No notice period',
+      noticeTooltip: 'Cancel or churn anytime with no 30-day penalty.'
+    },
+    'More Telecom': {
+      cgnat: 'free_optout',
+      cgnatLabel: 'Free CGNAT Opt-out',
+      cgnatTooltip: 'Free dynamic public IPv4 opt-out on request via customer portal.',
+      notice: 'none',
+      noticeLabel: 'No notice period',
+      noticeTooltip: 'Cancel or churn anytime.'
+    },
+    'Swoop': {
+      cgnat: 'free_optout',
+      cgnatLabel: 'Free CGNAT Opt-out',
+      cgnatTooltip: 'Free dynamic public IP on request or $5/mo static IP.',
+      notice: '30_days',
+      noticeLabel: '30-day notice',
+      noticeTooltip: 'Standard 30 days written notice required to cancel.'
+    },
+    'Neptune Internet': {
+      cgnat: 'free_optout',
+      cgnatLabel: 'Free CGNAT Opt-out',
+      cgnatTooltip: 'Free dynamic public IPv4 assigned or free opt-out upon request.',
+      notice: 'none',
+      noticeLabel: 'No notice period',
+      noticeTooltip: 'Cancel or churn anytime with no notice penalty.'
+    },
+    'Purple Connect': {
+      cgnat: 'free_optout',
+      cgnatLabel: 'Free CGNAT Opt-out',
+      cgnatTooltip: 'Free public dynamic IP / opt-out included.',
+      notice: 'none',
+      noticeLabel: 'No notice period',
+      noticeTooltip: 'No lock-in contract or notice period.'
+    },
+    'Telstra': {
+      cgnat: 'none',
+      cgnatLabel: 'Dynamic Public IP',
+      cgnatTooltip: 'Telstra assigns dynamic public IPv4 addresses by default to home broadband.',
+      notice: 'none',
+      noticeLabel: 'No notice period',
+      noticeTooltip: 'No lock-in contract or notice period.'
+    },
+    'Optus': {
+      cgnat: 'none',
+      cgnatLabel: 'Dynamic Public IP',
+      cgnatTooltip: 'Optus assigns dynamic public IPv4 addresses by default to home broadband.',
+      notice: 'none',
+      noticeLabel: 'No notice period',
+      noticeTooltip: 'No notice period (modem payout applies if leaving within 36 months).'
+    },
+    'Arctel': {
+      cgnat: 'paid_static',
+      cgnatLabel: 'CGNAT ($5 Static IP)',
+      cgnatTooltip: 'Uses CGNAT by default. Static public IPv4 available for $5/mo.',
+      notice: 'none',
+      noticeLabel: 'No notice period',
+      noticeTooltip: 'No lock-in contract or notice period.'
+    },
+    'Flip': {
+      cgnat: 'paid_static',
+      cgnatLabel: 'CGNAT ($5 Static IP)',
+      cgnatTooltip: 'Uses CGNAT. Static public IPv4 available for $5/mo.',
+      notice: 'none',
+      noticeLabel: 'No notice period',
+      noticeTooltip: 'No lock-in contract or notice period.'
+    },
+    'Dodo': {
+      cgnat: 'paid_static',
+      cgnatLabel: 'CGNAT ($5 Static IP)',
+      cgnatTooltip: 'Uses CGNAT. Static public IPv4 available for $5/mo.',
+      notice: '30_days',
+      noticeLabel: '30-day notice',
+      noticeTooltip: 'Requires 30 days notice to cancel.'
+    },
+    'TPG': {
+      cgnat: 'paid_static',
+      cgnatLabel: 'CGNAT ($10 Static IP)',
+      cgnatTooltip: 'Uses CGNAT on newer connections. Static IP available for $10/mo.',
+      notice: '30_days',
+      noticeLabel: '30-day notice',
+      noticeTooltip: 'Requires 30 days written notice before cancellation date.'
+    },
+    'iiNet': {
+      cgnat: 'paid_static',
+      cgnatLabel: 'CGNAT ($10 Static IP)',
+      cgnatTooltip: 'Uses CGNAT on newer connections. Static IP available for $10/mo.',
+      notice: '30_days',
+      noticeLabel: '30-day notice',
+      noticeTooltip: 'Requires 30 days written notice to cancel.'
+    },
+    'SpinTel': {
+      cgnat: 'paid_static',
+      cgnatLabel: 'CGNAT ($5 Static IP)',
+      cgnatTooltip: 'Uses CGNAT. Static public IPv4 available for $5/mo.',
+      notice: '30_days',
+      noticeLabel: '30-day notice',
+      noticeTooltip: 'Requires 30 days written notice to cancel or churn.'
+    },
+    'Vodafone': {
+      cgnat: 'paid_static',
+      cgnatLabel: 'CGNAT ($5 Static IP)',
+      cgnatTooltip: 'Uses CGNAT. Static public IPv4 available for $5/mo.',
+      notice: 'none',
+      noticeLabel: 'No notice period',
+      noticeTooltip: 'No lock-in contract or notice period.'
+    },
+    'amaysim': {
+      cgnat: 'paid_static',
+      cgnatLabel: 'CGNAT',
+      cgnatTooltip: 'Uses CGNAT (Optus wholesale backhaul).',
+      notice: 'none',
+      noticeLabel: 'No notice period',
+      noticeTooltip: 'No lock-in contract or notice period.'
+    }
+  };
+
   var deals = [];
   var activeTab = 'nbn';
   var activeTier = null; // null means "All"
   var selectedProviders = []; // empty array means "All"
   var activeSort = 'totalfirstyear';
   var highUploadOnly = false;
+  var cgnatOnly = false;
+  var noNoticeOnly = false;
   var tiers = [];
   var visibleCount = VISIBLE_STEP;
 
@@ -397,6 +567,16 @@
       if (upload === 'fast' || upload === 'high' || upload === '1') {
         highUploadOnly = true;
       }
+
+      var cgnat = params.get('cgnat');
+      if (cgnat === '1' || cgnat === 'true' || cgnat === 'free') {
+        cgnatOnly = true;
+      }
+
+      var nonotice = params.get('nonotice') || params.get('notice');
+      if (nonotice === '1' || nonotice === 'true' || nonotice === 'none') {
+        noNoticeOnly = true;
+      }
     } catch (e) {}
   }
 
@@ -418,6 +598,12 @@
       }
       if (highUploadOnly && activeTab === 'nbn') {
         params.set('upload', 'fast');
+      }
+      if (cgnatOnly && activeTab === 'nbn') {
+        params.set('cgnat', '1');
+      }
+      if (noNoticeOnly && activeTab === 'nbn') {
+        params.set('nonotice', '1');
       }
 
       var qs = params.toString();
@@ -578,12 +764,34 @@
   function renderTierTabs() {
     tierLabel.textContent = activeTab === 'nbn' ? 'NBN speed' : 'Data allowance';
 
+    if (featureTogglesWrap) {
+      featureTogglesWrap.hidden = activeTab !== 'nbn';
+    }
+
     if (uploadToggleBtn) {
       uploadToggleBtn.hidden = activeTab !== 'nbn';
       if (highUploadOnly && activeTab === 'nbn') {
         uploadToggleBtn.classList.add('is-active');
       } else {
         uploadToggleBtn.classList.remove('is-active');
+      }
+    }
+
+    if (cgnatToggleBtn) {
+      cgnatToggleBtn.hidden = activeTab !== 'nbn';
+      if (cgnatOnly && activeTab === 'nbn') {
+        cgnatToggleBtn.classList.add('is-active');
+      } else {
+        cgnatToggleBtn.classList.remove('is-active');
+      }
+    }
+
+    if (noticeToggleBtn) {
+      noticeToggleBtn.hidden = activeTab !== 'nbn';
+      if (noNoticeOnly && activeTab === 'nbn') {
+        noticeToggleBtn.classList.add('is-active');
+      } else {
+        noticeToggleBtn.classList.remove('is-active');
       }
     }
 
@@ -595,7 +803,7 @@
     tiers = grouped.keys;
 
     // If activeTier is not in current tab's tiers, reset to null
-    if (activeTier && tiers.indexOf(activeTier) === -1) {
+    if (activeTier && tiers.indexOf(activeTab === 'nbn' ? activeTier : activeTier) === -1) {
       activeTier = null;
     }
 
@@ -629,6 +837,26 @@
     });
   }
 
+  if (cgnatToggleBtn) {
+    cgnatToggleBtn.addEventListener('click', function () {
+      cgnatOnly = !cgnatOnly;
+      resetVisible();
+      syncUrlState();
+      renderTierTabs();
+      renderList();
+    });
+  }
+
+  if (noticeToggleBtn) {
+    noticeToggleBtn.addEventListener('click', function () {
+      noNoticeOnly = !noNoticeOnly;
+      resetVisible();
+      syncUrlState();
+      renderTierTabs();
+      renderList();
+    });
+  }
+
   // --- Deals Table Render ---
   function renderList() {
     var filtered = deals.filter(function (d) { return d.serviceType === activeTab; });
@@ -647,6 +875,20 @@
 
     if (highUploadOnly && activeTab === 'nbn') {
       filtered = filtered.filter(function (d) { return isFastUpload(d); });
+    }
+
+    if (cgnatOnly && activeTab === 'nbn') {
+      filtered = filtered.filter(function (d) {
+        var meta = PROVIDER_METADATA[d.provider];
+        return meta && (meta.cgnat === 'none' || meta.cgnat === 'free_optout');
+      });
+    }
+
+    if (noNoticeOnly && activeTab === 'nbn') {
+      filtered = filtered.filter(function (d) {
+        var meta = PROVIDER_METADATA[d.provider];
+        return meta && meta.notice === 'none';
+      });
     }
 
     if (activeSort === 'totalfirstyear') {
@@ -679,15 +921,28 @@
       var savePct = regularPrice > 0 ? Math.round((save / (regularPrice * 12)) * 100) : 0;
       var connection = d.techType || d.tier || '—';
       var fastUp = isFastUpload(d);
+      var meta = PROVIDER_METADATA[d.provider];
 
       html +=
         '<div class="deal-row">' +
           '<div class="deal-cell deal-cell-provider">' +
-            '<span class="deal-provider-name">' +
-              esc(d.provider) +
-              (fastUp ? ' <span class="deal-badge-upload" title="Fast upload speed (40+ Mbps)">⚡ Fast Upload</span>' : '') +
-            '</span>' +
+            '<span class="deal-provider-name">' + esc(d.provider) + '</span>' +
             '<span class="deal-plan-tier">' + esc(d.tier || d.title || '') + '</span>' +
+            (activeTab === 'nbn' ? (
+              '<div class="deal-provider-badges">' +
+                (fastUp ? '<span class="deal-badge deal-badge-upload" title="Fast upload speed (40+ Mbps)">⚡ Fast Upload</span>' : '') +
+                (meta && meta.cgnat ? (
+                  meta.cgnat === 'none' || meta.cgnat === 'free_optout'
+                    ? '<span class="deal-badge deal-badge-cgnat deal-badge--good" title="' + escAttr(meta.cgnatTooltip) + '">🌐 ' + esc(meta.cgnatLabel) + '</span>'
+                    : '<span class="deal-badge deal-badge-cgnat deal-badge--neutral" title="' + escAttr(meta.cgnatTooltip) + '">🌐 ' + esc(meta.cgnatLabel) + '</span>'
+                ) : '') +
+                (meta && meta.notice ? (
+                  meta.notice === '30_days'
+                    ? '<span class="deal-badge deal-badge-notice deal-badge--warn" title="' + escAttr(meta.noticeTooltip) + '">⚠️ 30-Day Notice</span>'
+                    : '<span class="deal-badge deal-badge-notice deal-badge--good" title="' + escAttr(meta.noticeTooltip) + '">⚡ No Notice</span>'
+                ) : '') +
+              '</div>'
+            ) : '') +
           '</div>' +
           '<div class="deal-cell deal-cell-speed" data-label="Connection">' +
             '<span class="deal-cell-body">' +
