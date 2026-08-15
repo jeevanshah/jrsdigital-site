@@ -488,11 +488,14 @@
         'video calls, live streaming, and backing up photos or files to the cloud.'
     },
     poi: {
-      title: 'What this badge means',
-      body: 'This shows which states a provider connects to directly via public ' +
-        'internet exchanges — a technical detail about how their network is built. ' +
-        'It doesn’t measure speed or reliability at your address, so most people can ' +
-        'safely ignore it.'
+      title: 'Why this matters (mostly for gamers & remote workers)',
+      body: 'This shows which states a provider peers directly at a public internet ' +
+        'exchange, instead of routing everything through a wholesaler. A direct local ' +
+        'presence can mean a shorter, lower-latency path to gaming servers, work VPNs ' +
+        'and other Australian-hosted services — worth checking if you’re gaming, ' +
+        'self-hosting, or WFH. For everyday browsing and streaming it won’t be ' +
+        'noticeable, and big carriers often peer privately so a "not published" badge ' +
+        'here doesn’t mean their network is worse.'
     }
   };
 
@@ -1012,14 +1015,14 @@
         'exchanges (common for large national carriers, who mostly peer privately).' + viaText;
       return '<button type="button" class="deal-badge deal-badge-poi deal-badge--neutral" ' +
         'data-badge="poi" data-detail="' + escAttr(detailUnpublished) + '" data-source="' + escAttr(poi.sourceUrl) + '" ' +
-        'title="' + escAttr(detailUnpublished + ' Tap to learn what this means.') + '">' +
+        'title="' + escAttr(detailUnpublished + ' Tap to learn why this matters.') + '">' +
         '📍 Public exchange data: not published <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>';
     }
     if (!poi.states || poi.states.length === 0) return '';
     var detailStates = 'States with a direct presence: ' + poi.states.join(', ') + '.' + viaText;
     return '<button type="button" class="deal-badge deal-badge-poi deal-badge--neutral" ' +
       'data-badge="poi" data-detail="' + escAttr(detailStates) + '" data-source="' + escAttr(poi.sourceUrl) + '" ' +
-      'title="' + escAttr(detailStates + ' Tap to learn what this means.') + '">' +
+      'title="' + escAttr(detailStates + ' Tap to learn why this matters.') + '">' +
       '📍 Public exchange footprint: ' + esc(poi.states.join(', ')) + ' <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>';
   }
 
