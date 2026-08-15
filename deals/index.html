@@ -633,7 +633,12 @@
   function tierSortKey(t) {
     if (!t) return 0;
     var m = t.match(/(\d+)/);
-    var primary = m ? parseInt(m[1], 10) : 0;
+    // A bucket with no digit at all is a plan like "Unlimited" -- the
+    // largest possible data allowance, not the smallest. Sorting it as 0
+    // put it in the tab row right after "All" and before "2GB", reading
+    // backwards from every other provider's plan comparison.
+    if (!m) return Infinity;
+    var primary = parseInt(m[1], 10);
     var upMatch = t.match(/\/(\d+(\.\d+)?)/);
     var secondary = upMatch ? parseFloat(upMatch[1]) : 0;
     return primary * 10000 + secondary;
@@ -951,7 +956,7 @@
     tiers = grouped.keys;
 
     // If activeTier is not in current tab's tiers, reset to null
-    if (activeTier && tiers.indexOf(activeTab === 'nbn' ? activeTier : activeTier) === -1) {
+    if (activeTier && tiers.indexOf(activeTier) === -1) {
       activeTier = null;
       activeUpload = null;
     }
