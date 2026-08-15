@@ -516,41 +516,82 @@
     return parseFloat(String(v).replace('$', '').replace(',', '')) || 0;
   }
 
-  // Average days per month (365.25/12) -- used to convert a mobile plan's
-  // real per-cycle price into a monthly-equivalent figure before it's used
-  // in any monthly/annual cost math. Most mobile plans bill every ~30 days
-  // (billingCycleDays defaults to 30, a no-op here), but prepaid SIMs sell
-  // 7/14/28/184/365-day cycles at a flat total price for that whole cycle --
-  // treating that total as if it were a monthly price is a real, confirmed
-  // bug (a $270/365-day plan was showing as $270/MONTH, ~12x too high).
-  // NBN deals never carry billingCycleDays, so this is a no-op for them.
+  // Average days per month (365.25/12) -- only used to convert a genuinely
+  // non-monthly billing cycle (a prepaid SIM's 7/14/84/168/365-day pack) into
+  // a monthly-equivalent figure for display/sorting. Never applied to actual
+  // monthly-billed plans -- see isMonthlyish().
   var AVG_DAYS_PER_MONTH = 30.4368;
 
   function billingCycleDays(d) {
     return d.billingCycleDays || 30;
   }
 
+  // True for anything billed roughly monthly (undisclosed cycle defaults to
+  // 30 here too). Deliberately a range, not === 30, so a provider billing
+  // "every 28 days" isn't treated as a different cadence from one billing
+  // "every 31 days" -- both are a month, in the way anyone shopping for a
+  // plan means it.
+  function isMonthlyish(days) {
+    return days >= 28 && days <= 31;
+  }
+
+  // Monthly-equivalent price, for DISPLAY/SORTING/comparison only (a
+  // secondary "≈$X/mo avg" line, and the default price sort) -- never fed
+  // into the exact totals below, which prorate by real days instead. A
+  // no-op for monthly-ish cycles, so it can't quietly inflate/deflate the
+  // vast majority of plans that already bill monthly.
   function monthlyEquivalent(price, d) {
-    return price * (AVG_DAYS_PER_MONTH / billingCycleDays(d));
+    var days = billingCycleDays(d);
+    if (isMonthlyish(days)) return price;
+    return price * (AVG_DAYS_PER_MONTH / days);
+  }
+
+  // Cost over a fixed period, split between the promo price and the regular
+  // (ongoing) price. Monthly-ish plans use the legacy exact-cycle-count
+  // model (a $X/mo promo for N months is exactly N charges of $X, not a
+  // days-based approximation of N months). Non-monthly cycles (prepaid data
+  // packs billed weekly/quarterly/yearly) have no clean "N months" concept,
+  // so they're prorated by real days instead -- this is what actually keeps
+  // a $95/365-day pack showing as $95.00 for the year, not $95.06.
+  function costOverPeriod(d, periodDays, periodMonths) {
+    var days = billingCycleDays(d);
+    var promo = parsePrice(d.promoPrice);
+    var regular = parsePrice(d.regularPrice);
+    if (isMonthlyish(days)) {
+      var months = Math.max(0, Math.min(periodMonths, parseInt(d.promoMonths, 10) || 0));
+      return promo * months + regular * (periodMonths - months);
+    }
+    var promoDays = Math.max(0, Math.min(periodDays, (parseInt(d.promoMonths, 10) || 0) * AVG_DAYS_PER_MONTH));
+    var regularDays = periodDays - promoDays;
+    return (promo / days) * promoDays + (regular / days) * regularDays;
   }
 
   function totalFirstYear(d) {
-    var promo = monthlyEquivalent(parsePrice(d.promoPrice), d);
-    var regular = monthlyEquivalent(parsePrice(d.regularPrice), d);
-    var months = Math.max(0, Math.min(12, parseInt(d.promoMonths, 10) || 0));
-    return promo * months + regular * (12 - months);
+    return costOverPeriod(d, 365, 12);
   }
 
   function totalSixMonth(d) {
-    var promo = monthlyEquivalent(parsePrice(d.promoPrice), d);
-    var regular = monthlyEquivalent(parsePrice(d.regularPrice), d);
-    var months = Math.max(0, Math.min(6, parseInt(d.promoMonths, 10) || 0));
-    return promo * months + regular * (6 - months);
+    return costOverPeriod(d, 182.5, 6);
   }
 
   function savingsFirstYear(d) {
-    var regular = monthlyEquivalent(parsePrice(d.regularPrice), d);
-    return regular * 12 - totalFirstYear(d);
+    var days = billingCycleDays(d);
+    var regular = parsePrice(d.regularPrice);
+    var regularYear = isMonthlyish(days) ? regular * 12 : (regular / days) * 365;
+    return regularYear - totalFirstYear(d);
+  }
+
+  // Human label for a plan's actual billing cycle, so a lump-sum prepaid
+  // pack never gets mislabeled "/mo" for a price you're not actually billed
+  // every month (a $95/365-day pack is $95 once a year, not $95/month).
+  function cycleSuffix(days) {
+    if (isMonthlyish(days)) return '/mo';
+    if (days === 7) return '/wk';
+    if (days === 14) return '/fortnight';
+    if (days >= 80 && days <= 95) return '/3mo';
+    if (days >= 175 && days <= 190) return '/6mo';
+    if (days >= 360 && days <= 370) return '/yr';
+    return '/' + days + 'd';
   }
 
   function getUploadSpeed(d) {
@@ -1089,7 +1130,9 @@
     } else if (activeSort === 'savings') {
       filtered.sort(function (a, b) { return savingsFirstYear(b) - savingsFirstYear(a); });
     } else {
-      filtered.sort(function (a, b) { return parsePrice(a.promoPrice) - parsePrice(b.promoPrice); });
+      filtered.sort(function (a, b) {
+        return monthlyEquivalent(parsePrice(a.promoPrice), a) - monthlyEquivalent(parsePrice(b.promoPrice), b);
+      });
     }
 
     if (filtered.length === 0) {
@@ -1106,10 +1149,14 @@
     visible.forEach(function (d) {
       var promoPrice = parsePrice(d.promoPrice);
       var regularPrice = parsePrice(d.regularPrice);
+      var cycleDays = billingCycleDays(d);
+      var monthlyish = isMonthlyish(cycleDays);
+      var priceSuffix = cycleSuffix(cycleDays);
       var sixMonth = totalSixMonth(d);
       var firstYear = totalFirstYear(d);
       var save = savingsFirstYear(d);
-      var savePct = regularPrice > 0 ? Math.round((save / (regularPrice * 12)) * 100) : 0;
+      var regularMonthlyEq = monthlyEquivalent(regularPrice, d);
+      var savePct = regularMonthlyEq > 0 ? Math.round((save / (regularMonthlyEq * 12)) * 100) : 0;
       var connection = d.techType || d.tier || '—';
       var fastUp = isFastUpload(d);
       var meta = PROVIDER_METADATA[d.provider];
@@ -1151,13 +1198,15 @@
           '</div>' +
           '<div class="deal-cell deal-cell-promo" data-label="Promo Price">' +
             '<span class="deal-cell-body">' +
-              '<span class="deal-price-orange">$' + promoPrice.toFixed(2) + '<small>/mo</small></span>' +
-              '<span class="deal-cell-caption">' + (d.promoMonths ? 'for ' + d.promoMonths + ' months' : 'introductory') + '</span>' +
+              '<span class="deal-price-orange">$' + promoPrice.toFixed(2) + '<small>' + priceSuffix + '</small></span>' +
+              (monthlyish ? '' : '<span class="deal-cell-subnote">≈$' + monthlyEquivalent(promoPrice, d).toFixed(2) + '/mo avg</span>') +
+              '<span class="deal-cell-caption">' + (monthlyish && d.promoMonths ? 'for ' + d.promoMonths + ' months' : 'introductory') + '</span>' +
             '</span>' +
           '</div>' +
           '<div class="deal-cell deal-cell-after" data-label="After Promo">' +
             '<span class="deal-cell-body">' +
-              '<span class="deal-price-navy">$' + regularPrice.toFixed(2) + '<small>/mo</small></span>' +
+              '<span class="deal-price-navy">$' + regularPrice.toFixed(2) + '<small>' + priceSuffix + '</small></span>' +
+              (monthlyish ? '' : '<span class="deal-cell-subnote">≈$' + monthlyEquivalent(regularPrice, d).toFixed(2) + '/mo avg</span>') +
               '<span class="deal-cell-caption">ongoing</span>' +
             '</span>' +
           '</div>' +

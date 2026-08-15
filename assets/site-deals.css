@@ -653,6 +653,11 @@
 
 .deal-cell-value { font-weight: 600; font-size: 0.9rem; color: var(--w-ink); }
 .deal-cell-caption { font-size: 0.74rem; color: var(--w-ink-50); }
+.deal-cell-subnote {
+  font-size: 0.7rem;
+  color: var(--w-ink-50);
+  font-style: italic;
+}
 
 .deal-price-orange, .deal-price-navy {
   font-family: 'Space Grotesk', sans-serif;
