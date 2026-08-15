@@ -647,6 +647,14 @@
   border-radius: 4px;
   line-height: 1.25;
   white-space: nowrap;
+  text-decoration: none;
+}
+
+a.deal-badge:hover,
+a.deal-badge:focus-visible {
+  filter: brightness(0.95);
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .deal-badge--good {
