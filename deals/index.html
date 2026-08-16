@@ -786,14 +786,8 @@
         'video calls, live streaming, and backing up photos or files to the cloud.'
     },
     poi: {
-      title: 'Why this matters (mostly for gamers & remote workers)',
-      body: 'This shows which states a provider peers directly at a public internet ' +
-        'exchange, instead of routing everything through a wholesaler. A direct local ' +
-        'presence can mean a shorter, lower-latency path to gaming servers, work VPNs ' +
-        'and other Australian-hosted services — worth checking if you’re gaming, ' +
-        'self-hosting, or WFH. For everyday browsing and streaming it won’t be ' +
-        'noticeable, and big carriers often peer privately so a "not published" badge ' +
-        'here doesn’t mean their network is worse.'
+      title: 'Public IX vs Private Peering (PNI)',
+      body: 'Australian ISPs exchange traffic locally in two main ways: (1) Public Internet Exchanges (IXPs): Challenger ISPs (Aussie Broadband, Superloop, Leaptel, Pentanet, Swoop, Neptune, Dodo) connect to open exchange fabrics (like WA-IX, EdgeIX, MegaIX) to route local Perth and interstate traffic directly without tromboning east. (2) Private Network Interconnects (PNIs): Tier-1 carriers (Telstra, Optus, Vodafone/TPG) exchange massive traffic directly via private 100G+ cross-connects in capital cities nationwide. They do not appear on public IX route servers because their traffic is carried over private bilateral links. Both keep local traffic local for low gaming/VPN latency.'
     },
     network: {
       title: 'Why mobile network coverage matters',
@@ -1479,20 +1473,26 @@
     var poi = POI_DATA[provider];
     if (!poi) return '';
     var viaText = poi.viaWholesaler ? (' Delivered via ' + poi.viaWholesaler + '’s network.') : '';
+    if (poi.peeringType === 'private_pni' || (poi.noPublicIxData && (provider === 'Telstra' || provider === 'Optus' || provider === 'Vodafone' || provider === 'iiNet' || provider === 'amaysim'))) {
+      var detailPrivate = (poi.peeringNote || 'Major Tier-1 network with nationwide direct private peering (PNI / data-centre cross-connects). Traffic is exchanged directly rather than via public exchange route servers.') + viaText;
+      return '<button type="button" class="deal-badge deal-badge-poi deal-badge--neutral" ' +
+        'data-badge="poi" data-detail="' + escAttr(detailPrivate) + '" data-source="' + escAttr(poi.sourceUrl) + '" ' +
+        'title="' + escAttr(detailPrivate + ' Tap to learn why this matters.') + '">' +
+        '🔒 Private Peering (PNI) <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>';
+    }
     if (poi.noPublicIxData) {
-      var detailUnpublished = 'This provider doesn’t publish a footprint via public internet ' +
-        'exchanges (common for large national carriers, who mostly peer privately).' + viaText;
+      var detailUnpublished = 'This provider doesn’t publish a footprint on public exchange route servers.' + viaText;
       return '<button type="button" class="deal-badge deal-badge-poi deal-badge--neutral" ' +
         'data-badge="poi" data-detail="' + escAttr(detailUnpublished) + '" data-source="' + escAttr(poi.sourceUrl) + '" ' +
         'title="' + escAttr(detailUnpublished + ' Tap to learn why this matters.') + '">' +
-        '📍 Public exchange data: not published <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>';
+        '📍 Public IX: not published <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>';
     }
     if (!poi.states || poi.states.length === 0) return '';
-    var detailStates = 'States with a direct presence: ' + poi.states.join(', ') + '.' + viaText;
+    var detailStates = 'Direct public Internet Exchange (IX) presence across: ' + poi.states.join(', ') + ' (' + poi.exchangeCount + ' exchanges).' + viaText;
     return '<button type="button" class="deal-badge deal-badge-poi deal-badge--neutral" ' +
       'data-badge="poi" data-detail="' + escAttr(detailStates) + '" data-source="' + escAttr(poi.sourceUrl) + '" ' +
       'title="' + escAttr(detailStates + ' Tap to learn why this matters.') + '">' +
-      '📍 Public exchange footprint: ' + esc(poi.states.join(', ')) + ' <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>';
+      '📍 Public IX: ' + esc(poi.states.join(', ')) + ' <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>';
   }
 
   // --- Deals Table Render ---
