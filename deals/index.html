@@ -654,6 +654,18 @@
       noticeLabel: 'No notice period',
       noticeTooltip: 'No lock-in contract or notice period.',
       cisUrl: 'https://www.amaysim.com.au/terms-policies/critical-information-summaries'
+    },
+    'Pentanet': {
+      cgnat: 'paid_static',
+      cgnatLabel: 'CGNAT ($10 Static IP)',
+      cgnatTooltip: 'Uses CGNAT by default. Static public IPv4 available for $10/mo.',
+      notice: 'none',
+      noticeLabel: 'No notice period',
+      noticeTooltip: 'No lock-in contract or notice period.',
+      cisUrl: 'https://pentanet.com.au/for-home/nbn',
+      region: 'WA',
+      regionLabel: 'WA Local ISP',
+      regionTooltip: 'Perth-headquartered ISP with local Western Australia network presence (AS10214) and local Perth support team.'
     }
   };
 
@@ -1606,6 +1618,12 @@
               'data-badge="notice" data-detail="' + escAttr(meta.noticeTooltip) + '" data-source="' + escAttr(meta.cisUrl || '') + '" ' +
               'title="' + escAttr(meta.noticeTooltip + ' Tap to learn why this matters.') + '">' +
               (meta.notice === '30_days' ? '⚠️ 30-Day Notice' : '⚡ No Notice') + ' <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>'
+          ) : '') +
+          (meta && meta.region ? (
+            '<button type="button" class="deal-badge deal-badge-region deal-badge--good" ' +
+              'data-badge="region" data-detail="' + escAttr(meta.regionTooltip) + '" data-source="' + escAttr(meta.cisUrl || '') + '" ' +
+              'title="' + escAttr(meta.regionTooltip + ' Tap to learn why this matters.') + '">' +
+              '📍 ' + esc(meta.regionLabel) + ' <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>'
           ) : '') +
           poiBadgeHtml(d.provider);
       } else {
