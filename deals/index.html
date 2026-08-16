@@ -287,8 +287,8 @@
       <div class="deals-table-wrap">
         <div class="deals-table-head">
           <span>Provider &amp; Plan</span>
-          <span class="deals-th-with-info" data-th-connection>Connection
-            <span class="deals-info" tabindex="0" title="From each provider's published plan tier and technology type — not an independent speed test.">i</span>
+          <span class="deals-th-with-info" data-th-connection>Speed &amp; Tech
+            <span class="deals-info" tabindex="0" title="Typical evening peak speeds (7pm-11pm) published by providers under ACCC guidelines, alongside connection technology.">i</span>
           </span>
           <span>Promo Price<small>Introductory period</small></span>
           <span>After Promo<small>Ongoing cost</small></span>
@@ -1581,9 +1581,11 @@
       var fastUp = isFastUpload(d);
 
       var connection = activeTab === 'nbn'
-        ? (d.techType || d.tier || '—')
+        ? (d.typicalEveningSpeed ? ('~' + d.typicalEveningSpeed + ' Mbps') : (d.techType || d.tier || '—'))
         : (d.techType ? (d.techType + ' SIM') : (mobileMeta ? mobileMeta.networkLabel : 'SIM Plan'));
-      var connectionCaption = activeTab === 'nbn' ? 'Connection type' : 'Network & Tech';
+      var connectionCaption = activeTab === 'nbn'
+        ? (d.typicalEveningSpeed ? ((d.techType ? d.techType + ' • ' : '') + 'Typical evening') : 'Connection type')
+        : 'Network & Tech';
 
       var badgesHtml = '';
       if (activeTab === 'nbn') {
@@ -1653,7 +1655,7 @@
             '<div class="deal-provider-badges">' + badgesHtml + '</div>' +
             '<div class="deal-badge-note" data-badge-note hidden></div>' +
           '</div>' +
-          '<div class="deal-cell deal-cell-speed" data-label="Connection">' +
+          '<div class="deal-cell deal-cell-speed" data-label="' + (activeTab === 'nbn' ? 'Speed &amp; Tech' : 'Network &amp; Tech') + '">' +
             '<span class="deal-cell-body">' +
               '<span class="deal-cell-value">' + esc(connection) + '</span>' +
               '<span class="deal-cell-caption">' + esc(connectionCaption) + '</span>' +
