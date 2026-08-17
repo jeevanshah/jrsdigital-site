@@ -1,5 +1,8 @@
 """Pre-renders the deals page's dynamic sections into static HTML so
-crawlers that don't execute JavaScript still see real pricing data.
+crawlers that don't execute JavaScript still see real pricing data, plus
+generates Product/ItemList JSON-LD for the full deals catalog (not just
+whatever's paginated into view) so Google has structured data on every
+plan regardless of on-page pagination.
 
 The page's own client-side JS always rebuilds these sections' innerHTML
 from freshly fetched JSON regardless of what was already there, so this
@@ -10,6 +13,7 @@ Usage: python scripts/prerender.py [--port 8123] [--base-url URL]
 Run from anywhere; paths are resolved relative to the repo root.
 """
 import argparse
+import json
 import re
 import subprocess
 import sys
@@ -21,6 +25,9 @@ from playwright.sync_api import sync_playwright
 
 REPO_ROOT = Path(__file__).parent.parent
 DEALS_HTML = REPO_ROOT / "deals" / "index.html"
+
+# Must match DATA_URL in deals/index.html.
+DEALS_JSON_URL = "https://raw.githubusercontent.com/jeevanshah/au-plans-scraper/main/data/deals.json"
 
 MARKERS = {
     "UPDATED": "[data-updated]",
@@ -48,6 +55,56 @@ def splice(html: str, name: str, replacement: str) -> str:
     if count != 1:
         raise RuntimeError(f"Expected exactly one {name} marker pair, found {count}")
     return new_html
+
+
+def build_deal_schema(deals: list[dict]) -> dict:
+    """Full ItemList/Product/Offer schema for every deal, independent of
+    whatever's paginated into the visible grid -- Google should know about
+    all of them even if a human only ever scrolls through the first page."""
+    items = []
+    for i, d in enumerate(deals, start=1):
+        promo = d.get("promoPrice")
+        regular = d.get("regularPrice")
+        months = d.get("promoMonths")
+        price = promo if promo is not None else regular
+        if price is None:
+            continue
+
+        if promo is not None and regular is not None and promo != regular and months:
+            description = (
+                f"Introductory price ${promo:.2f}/month for {months} months, "
+                f"then ${regular:.2f}/month ongoing."
+            )
+        else:
+            description = f"${regular if regular is not None else price:.2f}/month, no introductory period."
+
+        name = f"{d.get('provider', '')} {d.get('tier', '')}".strip()
+        items.append({
+            "@type": "ListItem",
+            "position": i,
+            "item": {
+                "@type": "Product",
+                "name": name,
+                "brand": {"@type": "Brand", "name": d.get("provider", "")},
+                "category": "Internet Service" if d.get("serviceType") == "nbn" else "Mobile Phone Service",
+                "description": description,
+                "offers": {
+                    "@type": "Offer",
+                    "price": f"{price:.2f}",
+                    "priceCurrency": "AUD",
+                    "url": d.get("url") or "https://jrsdigital.net/deals/",
+                    "availability": "https://schema.org/InStock",
+                },
+            },
+        })
+
+    return {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": "Australian NBN & Mobile Plan Deals",
+        "numberOfItems": len(items),
+        "itemListElement": items,
+    }
 
 
 def main():
@@ -78,6 +135,17 @@ def main():
             # rather than silently snapshotting a stuck "Loading..." state.
             page.wait_for_selector(".deal-row", timeout=15000)
 
+            # Default pagination only shows the first page of results (cheapest
+            # ~8) -- expand fully via the real "View more" control so the
+            # snapshot represents the whole (default-tab) catalog, not an
+            # arbitrary slice.
+            more_button = page.locator("[data-more]")
+            for _ in range(200):  # generous cap, not an expected iteration count
+                if not more_button.is_visible():
+                    break
+                more_button.click()
+                page.wait_for_timeout(100)
+
             captured = {
                 name: page.eval_on_selector(selector, "el => el.outerHTML")
                 for name, selector in MARKERS.items()
@@ -88,11 +156,21 @@ def main():
             server.terminate()
             server.wait(timeout=5)
 
+    with urllib.request.urlopen(DEALS_JSON_URL, timeout=15) as resp:
+        all_deals = json.loads(resp.read())
+    schema = build_deal_schema(all_deals)
+    schema_html = '<script type="application/ld+json">\n' + json.dumps(schema, indent=2) + "\n</script>"
+
     html = DEALS_HTML.read_text(encoding="utf-8")
     for name, outer_html in captured.items():
         html = splice(html, name, outer_html)
+    html = splice(html, "SCHEMA", schema_html)
     DEALS_HTML.write_text(html, encoding="utf-8")
-    print("Pre-rendered deals/index.html:", {k: len(v) for k, v in captured.items()})
+    print(
+        "Pre-rendered deals/index.html:",
+        {k: len(v) for k, v in captured.items()},
+        f"schema items: {len(schema['itemListElement'])}",
+    )
 
 
 if __name__ == "__main__":
