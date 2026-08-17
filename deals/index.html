@@ -5730,7 +5730,10 @@
             '</span>' +
           '</div>' +
           '<div class="deal-cell deal-cell-action">' +
-            '<a class="deal-link" href="' + esc(d.url) + '" target="_blank" rel="nofollow noopener">View deal' +
+            '<a class="deal-link" href="' + esc(d.url) + '" target="_blank" rel="nofollow noopener" ' +
+              'data-outbound="deal" data-provider="' + escAttr(d.provider) + '" data-plan="' + escAttr(d.title || d.tier || '') + '" ' +
+              'data-tier="' + escAttr(d.tier || '') + '" data-regular="' + regularPrice.toFixed(2) + '" data-promo="' + promoPrice.toFixed(2) + '" ' +
+              'data-type="' + escAttr(d.serviceType || activeTab) + '">View deal' +
               '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>' +
             '</a>' +
             (d.promoMonths
@@ -6008,6 +6011,59 @@
     return '<span class="deal-cell-vsmine deal-cell-vsmine--warn">+$' + diff.toFixed(2) + '/mo vs yours</span>';
   }
 
+  // --- GA4 Outbound Click & Conversion Tracking ---
+  function setupOutboundTracking() {
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a.deal-link, a.pm-cta-badge, a.deal-pm-subtle, a[data-outbound], .deal-badge-note a');
+      if (!link) return;
+
+      var href = link.href || link.getAttribute('href');
+      if (!href) return;
+
+      if (link.classList.contains('deal-link') || link.getAttribute('data-outbound') === 'deal') {
+        var provider = link.getAttribute('data-provider') || '';
+        var plan = link.getAttribute('data-plan') || '';
+        var tier = link.getAttribute('data-tier') || '';
+        var regPrice = parseFloat(link.getAttribute('data-regular') || '0');
+        var promoPrice = parseFloat(link.getAttribute('data-promo') || '0');
+        var serviceType = link.getAttribute('data-type') || activeTab || 'nbn';
+
+        if (typeof gtag === 'function') {
+          gtag('event', 'outbound_deal_click', {
+            'event_category': 'Outbound Deal',
+            'event_label': provider + ' - ' + (tier || plan),
+            'provider': provider,
+            'plan_name': plan,
+            'tier': tier,
+            'regular_price': regPrice,
+            'promo_price': promoPrice,
+            'service_type': serviceType,
+            'destination_url': href,
+            'value': promoPrice || regPrice,
+            'currency': 'AUD'
+          });
+        }
+      } else if (link.classList.contains('pm-cta-badge') || link.classList.contains('deal-pm-subtle')) {
+        if (typeof gtag === 'function') {
+          gtag('event', 'priceminder_reminder_click', {
+            'event_category': 'App Promotion',
+            'event_label': 'PriceMinder CTA',
+            'destination_url': href
+          });
+        }
+      } else if (link.closest('.deal-badge-note')) {
+        if (typeof gtag === 'function') {
+          gtag('event', 'badge_source_click', {
+            'event_category': 'Badge Source',
+            'event_label': 'CIS / BGP Source Click',
+            'destination_url': href
+          });
+        }
+      }
+    }, true);
+  }
+
+  setupOutboundTracking();
   setupMultiselectEvents();
   setupBadgeExplainers();
   loadMyMonthlyPrice();
