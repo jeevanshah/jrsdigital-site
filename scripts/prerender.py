@@ -86,7 +86,9 @@ def build_deal_schema(deals: list[dict]) -> dict:
                 "@type": "Product",
                 "name": name,
                 "brand": {"@type": "Brand", "name": d.get("provider", "")},
-                "category": "Internet Service" if d.get("serviceType") == "nbn" else "Mobile Phone Service",
+                "category": {"nbn": "Internet Service", "mobile": "Mobile Phone Service", "satellite": "Satellite Internet Service"}.get(
+                d.get("serviceType"), "Internet Service"
+            ),
                 "description": description,
                 "offers": {
                     "@type": "Offer",

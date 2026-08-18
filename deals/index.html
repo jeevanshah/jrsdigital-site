@@ -4480,6 +4480,10 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
             Mobile Plans
           </button>
+          <button type="button" class="deals-filter-btn" data-tab="satellite">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="2.2"/><path d="M12 9.8V4M12 4l-2.2 2.2M12 4l2.2 2.2"/><path d="M7 15 4 18M4 18H8M4 18V14"/><path d="M17 15l3 3M20 18h-4M20 18v-4"/></svg>
+            Remote &amp; Satellite
+          </button>
         </div>
 
         <button class="deals-share-btn" data-share-btn type="button" title="Copy shareable link with your active filters">
@@ -5213,12 +5217,19 @@
     return (promo / days) * promoDays + (regular / days) * regularDays;
   }
 
+  // One-time hardware/install cost (e.g. a Starlink dish) -- charged once,
+  // not per billing cycle, so it's added on top of the recurring cost
+  // rather than folded into costOverPeriod's per-day/per-month math.
+  function hardwareCost(d) {
+    return parseFloat(d.upfrontHardwareCost) || 0;
+  }
+
   function totalFirstYear(d) {
-    return costOverPeriod(d, 365, 12);
+    return costOverPeriod(d, 365, 12) + hardwareCost(d);
   }
 
   function totalSixMonth(d) {
-    return costOverPeriod(d, 182.5, 6);
+    return costOverPeriod(d, 182.5, 6) + hardwareCost(d);
   }
 
   function savingsFirstYear(d) {
@@ -5356,7 +5367,7 @@
       if (!window.location.search) return;
       var params = new URLSearchParams(window.location.search);
       var tab = params.get('service') || params.get('tab');
-      if (tab === 'mobile' || tab === 'nbn') activeTab = tab;
+      if (tab === 'mobile' || tab === 'nbn' || tab === 'satellite') activeTab = tab;
 
       var speed = params.get('speed') || params.get('speeds') || params.get('tier');
       if (speed) {
@@ -5595,7 +5606,17 @@
   }
 
   // --- Tier Tabs & High-Upload Filter ---
+  var speedFilterCol = document.querySelector('.deals-filter-col--speed');
   function renderTierTabs() {
+    if (speedFilterCol) speedFilterCol.style.display = activeTab === 'satellite' ? 'none' : '';
+    if (activeTab === 'satellite') {
+      tiers = [];
+      activeTier = null;
+      activeUpload = null;
+      tierTabs.innerHTML = '';
+      return;
+    }
+
     tierLabel.textContent = activeTab === 'nbn' ? 'NBN speed' : 'Data allowance';
 
     if (nbnTogglesWrap) {
@@ -5925,13 +5946,24 @@
 
       var connection = activeTab === 'nbn'
         ? (d.typicalEveningSpeed ? ('~' + d.typicalEveningSpeed + ' Mbps') : (d.techType || d.tier || '—'))
+        : activeTab === 'satellite'
+        ? (d.techType || d.tier || '—')
         : (d.techType ? (d.techType + ' SIM') : (mobileMeta ? mobileMeta.networkLabel : 'SIM Plan'));
       var connectionCaption = activeTab === 'nbn'
         ? (d.typicalEveningSpeed ? ((d.techType ? d.techType + ' • ' : '') + 'Typical evening') : 'Connection type')
+        : activeTab === 'satellite'
+        ? 'Satellite network'
         : 'Network & Tech';
 
       var badgesHtml = '';
-      if (activeTab === 'nbn') {
+      if (activeTab === 'satellite') {
+        badgesHtml = d.upfrontHardwareCost
+          ? ('<button type="button" class="deal-badge deal-badge--neutral" ' +
+              'data-badge="hardware" data-detail="One-time hardware/install cost of $' + parseFloat(d.upfrontHardwareCost).toFixed(2) + ', separate from the monthly price." ' +
+              'title="One-time hardware cost. Tap to learn why this matters.">' +
+              '📡 $' + parseFloat(d.upfrontHardwareCost).toFixed(2) + ' upfront <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>')
+          : '';
+      } else if (activeTab === 'nbn') {
         badgesHtml =
           (fastUp ? (
             '<button type="button" class="deal-badge deal-badge-upload" ' +
@@ -6004,7 +6036,7 @@
             '<div class="deal-provider-badges">' + badgesHtml + '</div>' +
             '<div class="deal-badge-note" data-badge-note hidden></div>' +
           '</div>' +
-          '<div class="deal-cell deal-cell-speed" data-label="' + (activeTab === 'nbn' ? 'Speed &amp; Tech' : 'Network &amp; Tech') + '">' +
+          '<div class="deal-cell deal-cell-speed" data-label="' + (activeTab === 'nbn' ? 'Speed &amp; Tech' : (activeTab === 'satellite' ? 'Satellite Network' : 'Network &amp; Tech')) + '">' +
             '<span class="deal-cell-body">' +
               '<span class="deal-cell-value">' + esc(connection) + '</span>' +
               '<span class="deal-cell-caption">' + esc(connectionCaption) + '</span>' +
@@ -6034,6 +6066,7 @@
           '<div class="deal-cell deal-cell-total" data-label="Total First Year">' +
             '<span class="deal-cell-body">' +
               '<span class="deal-price-orange">$' + firstYear.toFixed(2) + '</span>' +
+              (d.upfrontHardwareCost ? '<span class="deal-cell-subnote">incl. $' + parseFloat(d.upfrontHardwareCost).toFixed(2) + ' hardware</span>' : '') +
               '<span class="deal-cell-caption">first year</span>' +
             '</span>' +
           '</div>' +
@@ -6070,6 +6103,8 @@
     if (!th) return;
     if (activeTab === 'nbn') {
       th.innerHTML = 'Connection <span class="deals-info" tabindex="0" title="From each provider\'s published plan tier and technology type — not an independent speed test.">i</span>';
+    } else if (activeTab === 'satellite') {
+      th.innerHTML = 'Satellite Network <span class="deals-info" tabindex="0" title="Underlying satellite network (Starlink, Sky Muster) and technology.">i</span>';
     } else {
       th.innerHTML = 'Network &amp; Tech <span class="deals-info" tabindex="0" title="Underlying wholesale cellular network (Telstra / Optus / Vodafone) and technology.">i</span>';
     }
