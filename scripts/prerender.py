@@ -86,7 +86,7 @@ def build_deal_schema(deals: list[dict]) -> dict:
                 "@type": "Product",
                 "name": name,
                 "brand": {"@type": "Brand", "name": d.get("provider", "")},
-                "category": {"nbn": "Internet Service", "mobile": "Mobile Phone Service", "satellite": "Satellite Internet Service"}.get(
+                "category": {"nbn": "Internet Service", "opticomm": "Fibre Internet Service", "mobile": "Mobile Phone Service", "satellite": "Satellite Internet Service"}.get(
                 d.get("serviceType"), "Internet Service"
             ),
                 "description": description,
@@ -158,8 +158,15 @@ def main():
             server.terminate()
             server.wait(timeout=5)
 
-    with urllib.request.urlopen(DEALS_JSON_URL, timeout=15) as resp:
-        all_deals = json.loads(resp.read())
+    try:
+        with urllib.request.urlopen(DEALS_JSON_URL, timeout=15) as resp:
+            all_deals = json.loads(resp.read())
+    except Exception:
+        local_path = REPO_ROOT.parent / "au-plans-scraper" / "data" / "deals.json"
+        if local_path.exists():
+            all_deals = json.loads(local_path.read_text(encoding="utf-8"))
+        else:
+            raise
     schema = build_deal_schema(all_deals)
     schema_html = '<script type="application/ld+json">\n' + json.dumps(schema, indent=2) + "\n</script>"
 

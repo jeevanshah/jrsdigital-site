@@ -4750,6 +4750,10 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5a16 16 0 0 1 18 0"/><path d="M6.5 12.5a10.5 10.5 0 0 1 11 0"/><path d="M10 16.5a5 5 0 0 1 4 0"/><circle cx="12" cy="19.5" r="0.8" fill="currentColor" stroke="none"/></svg>
             NBN Plans
           </button>
+          <button type="button" class="deals-filter-btn" data-tab="opticomm">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+            OptiComm
+          </button>
           <button type="button" class="deals-filter-btn" data-tab="mobile">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
             Mobile Plans
@@ -5765,16 +5769,18 @@
     var firstNum = s.match(/(\d+)/);
     if (!firstNum) return s;
     var speed = parseInt(firstNum[1], 10);
-    if (activeTab === 'nbn' || /nbn/i.test(s) || /\//.test(s)) {
-      if (speed <= 12) return 'NBN 12';
-      if (speed <= 30) return 'NBN 25';
-      if (speed <= 60) return 'NBN 50';
-      if (speed <= 150) return 'NBN 100';
-      if (speed <= 350) return 'NBN 250';
-      if (speed <= 600) return 'NBN 500';
-      if (speed <= 800) return 'NBN 750';
-      if (speed <= 1200) return 'NBN 1000';
-      return 'NBN 2000';
+    if (activeTab === 'nbn' || activeTab === 'opticomm' || /nbn/i.test(s) || /opticomm/i.test(s) || /\//.test(s)) {
+      var isOpti = activeTab === 'opticomm' || /opticomm/i.test(s);
+      var prefix = isOpti ? 'OptiComm ' : 'NBN ';
+      if (speed <= 12) return prefix + '12';
+      if (speed <= 30) return prefix + '25';
+      if (speed <= 60) return prefix + '50';
+      if (speed <= 150) return prefix + '100';
+      if (speed <= 350) return prefix + '250';
+      if (speed <= 600) return prefix + '500';
+      if (speed <= 800) return prefix + '750';
+      if (speed <= 1200) return prefix + '1000';
+      return prefix + '2000';
     }
     return speed + 'GB';
   }
@@ -5794,7 +5800,9 @@
   }
 
   function tierDisplayLabel(key) {
-    return activeTab === 'nbn' ? key.replace(/^NBN\s*/i, '') : key;
+    if (activeTab === 'nbn') return key.replace(/^NBN\s*/i, '');
+    if (activeTab === 'opticomm') return key.replace(/^OptiComm\s*/i, '');
+    return key;
   }
 
   // Groups plans by download-speed bucket only (e.g. "NBN 1000"). Upload
@@ -5840,13 +5848,15 @@
       if (!window.location.search) return;
       var params = new URLSearchParams(window.location.search);
       var tab = params.get('service') || params.get('tab');
-      if (tab === 'mobile' || tab === 'nbn' || tab === 'satellite') activeTab = tab;
+      if (tab === 'mobile' || tab === 'nbn' || tab === 'satellite' || tab === 'opticomm') activeTab = tab;
 
       var speed = params.get('speed') || params.get('speeds') || params.get('tier');
       if (speed) {
         speed = decodeURIComponent(speed).trim();
         if (activeTab === 'nbn' && !/^nbn/i.test(speed) && /^\d+$/.test(speed)) {
           activeTier = 'NBN ' + speed;
+        } else if (activeTab === 'opticomm' && !/^opticomm/i.test(speed) && /^\d+$/.test(speed)) {
+          activeTier = 'OptiComm ' + speed;
         } else if (activeTab === 'mobile' && !/gb$/i.test(speed) && /^\d+$/.test(speed)) {
           activeTier = speed + 'GB';
         } else {
@@ -5899,7 +5909,11 @@
       var params = new URLSearchParams();
       if (activeTab !== 'nbn') params.set('service', activeTab);
       if (activeTier) {
-        var cleanTier = activeTab === 'nbn' ? activeTier.replace(/^NBN\s*/i, '') : activeTier.replace(/GB$/i, '');
+        var cleanTier = activeTab === 'nbn'
+          ? activeTier.replace(/^NBN\s*/i, '')
+          : activeTab === 'opticomm'
+          ? activeTier.replace(/^OptiComm\s*/i, '')
+          : activeTier.replace(/GB$/i, '');
         params.set('speed', cleanTier);
       }
       if (selectedProviders.length > 0 && selectedProviders.indexOf('__none__') === -1) {
@@ -5908,13 +5922,13 @@
       if (activeSort !== 'totalfirstyear') {
         params.set('sort', activeSort);
       }
-      if (highUploadOnly && activeTab === 'nbn') {
+      if (highUploadOnly && (activeTab === 'nbn' || activeTab === 'opticomm')) {
         params.set('upload', 'fast');
       }
-      if (cgnatOnly && activeTab === 'nbn') {
+      if (cgnatOnly && (activeTab === 'nbn' || activeTab === 'opticomm')) {
         params.set('cgnat', '1');
       }
-      if (noNoticeOnly && activeTab === 'nbn') {
+      if (noNoticeOnly && (activeTab === 'nbn' || activeTab === 'opticomm')) {
         params.set('nonotice', '1');
       }
       if (activeNetwork && activeTab === 'mobile') {
@@ -6090,10 +6104,10 @@
       return;
     }
 
-    tierLabel.textContent = activeTab === 'nbn' ? 'NBN speed' : 'Data allowance';
+    tierLabel.textContent = activeTab === 'nbn' ? 'NBN speed' : activeTab === 'opticomm' ? 'OptiComm speed' : 'Data allowance';
 
     if (nbnTogglesWrap) {
-      nbnTogglesWrap.hidden = activeTab !== 'nbn';
+      nbnTogglesWrap.hidden = (activeTab !== 'nbn' && activeTab !== 'opticomm');
     }
 
     if (mobileTogglesWrap) {
@@ -6101,7 +6115,7 @@
     }
 
     if (uploadToggleBtn) {
-      if (highUploadOnly && activeTab === 'nbn') {
+      if (highUploadOnly && (activeTab === 'nbn' || activeTab === 'opticomm')) {
         uploadToggleBtn.classList.add('is-active');
       } else {
         uploadToggleBtn.classList.remove('is-active');
@@ -6109,7 +6123,7 @@
     }
 
     if (cgnatToggleBtn) {
-      if (cgnatOnly && activeTab === 'nbn') {
+      if (cgnatOnly && (activeTab === 'nbn' || activeTab === 'opticomm')) {
         cgnatToggleBtn.classList.add('is-active');
       } else {
         cgnatToggleBtn.classList.remove('is-active');
@@ -6117,7 +6131,7 @@
     }
 
     if (noticeToggleBtn) {
-      if (noNoticeOnly && activeTab === 'nbn') {
+      if (noNoticeOnly && (activeTab === 'nbn' || activeTab === 'opticomm')) {
         noticeToggleBtn.classList.add('is-active');
       } else {
         noticeToggleBtn.classList.remove('is-active');
@@ -6190,7 +6204,7 @@
   function renderUploadTabs(tabFilteredList) {
     if (!uploadTabs) return;
 
-    if (activeTab !== 'nbn' || !activeTier) {
+    if ((activeTab !== 'nbn' && activeTab !== 'opticomm') || !activeTier) {
       uploadTabs.hidden = true;
       uploadTabs.innerHTML = '';
       return;
@@ -6336,22 +6350,22 @@
       filtered = filtered.filter(function (d) { return baseBucketKey(d.tier) === activeTier; });
     }
 
-    if (activeUpload !== null && activeTab === 'nbn') {
+    if (activeUpload !== null && (activeTab === 'nbn' || activeTab === 'opticomm')) {
       filtered = filtered.filter(function (d) { return getUploadSpeed(d) === activeUpload; });
     }
 
-    if (highUploadOnly && activeTab === 'nbn') {
+    if (highUploadOnly && (activeTab === 'nbn' || activeTab === 'opticomm')) {
       filtered = filtered.filter(function (d) { return isFastUpload(d); });
     }
 
-    if (cgnatOnly && activeTab === 'nbn') {
+    if (cgnatOnly && (activeTab === 'nbn' || activeTab === 'opticomm')) {
       filtered = filtered.filter(function (d) {
         var meta = PROVIDER_METADATA[d.provider];
         return meta && (meta.cgnat === 'none' || meta.cgnat === 'free_optout');
       });
     }
 
-    if (noNoticeOnly && activeTab === 'nbn') {
+    if (noNoticeOnly && (activeTab === 'nbn' || activeTab === 'opticomm')) {
       filtered = filtered.filter(function (d) {
         var meta = PROVIDER_METADATA[d.provider];
         return meta && meta.notice === 'none';
@@ -6417,12 +6431,12 @@
       var costPerGb = getCostPerGb(d);
       var fastUp = isFastUpload(d);
 
-      var connection = activeTab === 'nbn'
-        ? (d.typicalEveningSpeed ? ('~' + d.typicalEveningSpeed + ' Mbps') : (d.techType || d.tier || '—'))
+      var connection = (activeTab === 'nbn' || activeTab === 'opticomm')
+        ? (d.typicalEveningSpeed ? ('~' + d.typicalEveningSpeed + ' Mbps') : (d.techType || d.tier || 'Fibre'))
         : activeTab === 'satellite'
         ? (d.techType || d.tier || '—')
         : (d.techType ? (d.techType + ' SIM') : (mobileMeta ? mobileMeta.networkLabel : 'SIM Plan'));
-      var connectionCaption = activeTab === 'nbn'
+      var connectionCaption = (activeTab === 'nbn' || activeTab === 'opticomm')
         ? (d.typicalEveningSpeed ? ((d.techType ? d.techType + ' • ' : '') + 'Typical evening') : 'Connection type')
         : activeTab === 'satellite'
         ? 'Satellite network'
@@ -6436,7 +6450,7 @@
               'title="One-time hardware cost. Tap to learn why this matters.">' +
               '📡 $' + parseFloat(d.upfrontHardwareCost).toFixed(2) + ' upfront <span class="deal-badge-i" aria-hidden="true">ⓘ</span></button>')
           : '';
-      } else if (activeTab === 'nbn') {
+      } else if (activeTab === 'nbn' || activeTab === 'opticomm') {
         badgesHtml =
           (fastUp ? (
             '<button type="button" class="deal-badge deal-badge-upload" ' +
@@ -6585,7 +6599,7 @@
   function updateTableHeader() {
     var th = document.querySelector('[data-th-connection]');
     if (!th) return;
-    if (activeTab === 'nbn') {
+    if (activeTab === 'nbn' || activeTab === 'opticomm') {
       th.innerHTML = 'Connection <span class="deals-info" tabindex="0" title="From each provider\'s published plan tier and technology type — not an independent speed test.">i</span>';
     } else if (activeTab === 'satellite') {
       th.innerHTML = 'Satellite Network <span class="deals-info" tabindex="0" title="Underlying satellite network (Starlink, Sky Muster) and technology.">i</span>';
