@@ -82,6 +82,8 @@ The repository includes pre-packaged skills in `.agents/skills/`:
    Maintain color tokens (`--w-bg`, `--w-ink`, `--w-accent`), typography (Playfair / Inter / Outfit), glassmorphism, responsive navigation, and OpenGraph/SEO tags.
 4. **`community-audit-webhook`** (`.agents/skills/community-audit-webhook/SKILL.md`):
    Maintain and test the community plan audit bottom sheet drawer, honeypot spam protection, and Google Apps Script endpoint.
+5. **`anti-ai-slop`** (`.agents/skills/anti-ai-slop/SKILL.md`):
+   Design and build web UI with actual taste via wide-net iteration (5 aesthetic variants -> 3 refinements -> nail hero -> transitions -> live tweaks panel) rather than generic one-shot AI templates.
 
 ---
 
