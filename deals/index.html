@@ -5256,15 +5256,35 @@
         </div><!-- PRERENDER:CHANGELOG:END -->
       </div>
 
-      <div class="deals-hero-art-wrap">
-        <div class="deals-hero-art" aria-hidden="true">
-          <img class="deals-hero-bg" src="/assets/img/hero-bg.webp" alt="">
-          <img class="deals-hero-house" src="/assets/img/hero-house.webp" alt="">
-          <img class="deals-hero-wifi" src="/assets/img/hero-wifi.webp" alt="">
-          <img class="deals-hero-phone" src="/assets/img/hero-phone.webp" alt="">
+      <div class="deals-hero-stats-wrap">
+        <div class="deals-hero-stats-card">
+          <div class="deals-stats-header">
+            <span class="deals-stats-pulse" aria-hidden="true"></span>
+            <span class="deals-stats-title">Live Independent Telemetry</span>
+          </div>
+          <div class="deals-stats-grid">
+            <div class="deals-stat-item">
+              <strong class="deals-stat-number" id="stats-plan-count">242</strong>
+              <span class="deals-stat-label">Plans Verified</span>
+            </div>
+            <div class="deals-stat-item">
+              <strong class="deals-stat-number" id="stats-provider-count">25</strong>
+              <span class="deals-stat-label">ISPs Tracked</span>
+            </div>
+            <div class="deals-stat-item">
+              <strong class="deals-stat-number">100%</strong>
+              <span class="deals-stat-label">Unbiased &amp; Unpaid</span>
+            </div>
+            <div class="deals-stat-item">
+              <strong class="deals-stat-number">Daily</strong>
+              <span class="deals-stat-label">BGP &amp; Price Audited</span>
+            </div>
+          </div>
+          <div class="deals-stats-footer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>Auditing true 1st-year totals, CGNAT, &amp; 30-day notice traps</span>
+          </div>
         </div>
-        <img class="deals-hero-bleed deals-hero-bleed-l" src="/assets/img/hero-foliage-1.webp" alt="" aria-hidden="true">
-        <img class="deals-hero-bleed deals-hero-bleed-r" src="/assets/img/hero-foliage-2.webp" alt="" aria-hidden="true">
       </div>
     </section>
 
@@ -7912,10 +7932,6 @@
     })
     .catch(function () { /* fail silently -- POI badges are an enhancement, not core data */ });
 })();
-</script>
-<script type="module">
-  import { mountDealScout } from "/assets/deal-scout-rive.js";
-  mountDealScout({ rivSrc: "/assets/deal-scout.riv" });
 </script>
 </body>
 </html>
