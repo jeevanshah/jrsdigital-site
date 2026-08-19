@@ -753,15 +753,20 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  border: 1px solid var(--w-ink-50);
   color: var(--w-ink-50);
-  font-size: 0.62rem;
-  font-style: italic;
-  font-weight: 700;
   cursor: help;
+  opacity: 0.75;
+  transition: opacity 0.15s ease, color 0.15s ease;
+  vertical-align: middle;
+}
+.deals-info:hover {
+  opacity: 1;
+  color: var(--w-accent);
+}
+.deals-info svg {
+  width: 12px;
+  height: 12px;
+  display: block;
 }
 
 .deals-loading, .deals-error, .deals-empty {
