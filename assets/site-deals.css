@@ -1974,3 +1974,83 @@ button.deal-badge[aria-expanded="true"] {
 
 
 
+
+
+/* ---------- Refined SVG Icon Badges & Tabular Numerals (Anti-AI-Slop Craftsmanship) ---------- */
+.deal-price-orange,
+.deal-price-navy,
+.deal-savings-amt,
+.deal-cell-value,
+.deal-cell-num,
+.deals-mine-input,
+.deal-mine-diff,
+.reminder-calc-val,
+.deal-savings-pct {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.deal-badge-icon {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: -1px;
+}
+
+.deal-badge-i {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 2px;
+  opacity: 0.6;
+}
+.deal-badge-i svg {
+  width: 9px;
+  height: 9px;
+  display: block;
+}
+
+.deals-mine-icon-svg {
+  width: 18px;
+  height: 18px;
+  color: var(--jrs-green);
+  flex-shrink: 0;
+  display: block;
+}
+
+.audit-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-right: 6px;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+.audit-dot--green { background: #10B981; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
+.audit-dot--amber { background: #F59E0B; box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2); }
+.audit-dot--red   { background: #EF4444; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2); }
+.audit-dot--warn  { background: #D97706; box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.2); }
+
+.privacy-note-svg, .reminder-tag-svg, .success-check-svg {
+  width: 12px;
+  height: 12px;
+  vertical-align: -1.5px;
+  display: inline-block;
+  margin-right: 5px;
+}
+.reminder-tag-svg {
+  color: var(--jrs-green);
+}
+.success-check-svg {
+  color: #10B981;
+  width: 14px;
+  height: 14px;
+}
+
+.deals-changelog-icon svg {
+  width: 13px;
+  height: 13px;
+  display: block;
+  color: var(--w-accent);
+}
