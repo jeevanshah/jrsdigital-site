@@ -35,7 +35,7 @@ Every page across `jrsdigital-site` must include:
 {
   "@type": "Organization",
   "@id": "https://jrsdigital.net/#organization",
-  "name": "JRS Digital Pty Ltd",
+  "name": "JRS Digital",
   "url": "https://jrsdigital.net/",
   "logo": "https://jrsdigital.net/assets/img/logo.png"
 }
