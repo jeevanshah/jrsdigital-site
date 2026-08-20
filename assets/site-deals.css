@@ -145,43 +145,79 @@
   }
 }
 
-/* ---------- hero signal card (Friendly & Tasteful) ---------- */
+/* ---------- hero signal card (Friendly & Tasteful with Botanical Foliage) ---------- */
 .deals-hero-badge-wrap {
+  position: relative;
   width: 100%;
 }
 .deals-hero-signal-card {
+  position: relative;
   background: #FFFFFF;
   border: 1.5px solid var(--w-border);
   border-radius: var(--w-radius);
-  padding: 20px 22px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  padding: 22px 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
   display: flex;
   align-items: center;
   gap: 18px;
+  z-index: 1;
 }
+.deals-hero-bleed {
+  position: absolute;
+  height: auto;
+  pointer-events: none;
+  z-index: 2;
+  filter: drop-shadow(0 4px 10px rgba(0, 50, 40, 0.12));
+}
+.deals-hero-bleed-l {
+  left: -22px;
+  bottom: -22px;
+  width: 90px;
+  transform: rotate(-4deg);
+}
+.deals-hero-bleed-r {
+  right: -18px;
+  top: -20px;
+  width: 95px;
+  transform: rotate(8deg);
+}
+@media (max-width: 640px) {
+  .deals-hero-bleed-l { width: 52px; left: -8px; bottom: -8px; }
+  .deals-hero-bleed-r { width: 58px; right: -6px; top: -10px; }
+}
+
 .deals-signal-icon-box {
   flex-shrink: 0;
-  width: 62px;
-  height: 62px;
+  width: 64px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 75, 22, 0.06);
+  background: rgba(4, 52, 44, 0.05);
   border-radius: 14px;
-  border: 1px solid rgba(255, 75, 22, 0.14);
+  border: 1px solid rgba(4, 52, 44, 0.12);
 }
 .deals-signal-img {
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
   object-fit: contain;
   display: block;
 }
 .deals-signal-body {
   flex: 1;
 }
+.deals-signal-eyebrow {
+  display: inline-block;
+  font-size: 0.70rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--w-accent);
+  margin-bottom: 2px;
+}
 .deals-signal-title {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.05rem;
+  font-size: 1.08rem;
   font-weight: 700;
   color: var(--w-ink);
   margin: 0 0 4px;
@@ -189,7 +225,7 @@
 .deals-signal-desc {
   font-size: 0.84rem;
   color: var(--w-ink-70);
-  line-height: 1.4;
+  line-height: 1.45;
   margin: 0 0 8px;
 }
 .deals-signal-tags {
