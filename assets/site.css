@@ -22,7 +22,21 @@
   src: url('fonts/plus-jakarta-sans-600.woff2') format('woff2');
 }
 @font-face {
-  font-family: 'Space Grotesk';
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('fonts/plus-jakarta-sans-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('fonts/plus-jakarta-sans-800.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Plus Jakarta Sans';
   font-style: normal;
   font-weight: 500;
   font-display: swap;
@@ -102,7 +116,7 @@ h1, h2, h3 {
 }
 
 .figure {
-  font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 500;
 }
 
@@ -262,7 +276,7 @@ section h2 {
   top: 140px;
   writing-mode: vertical-rl;
   transform: rotate(180deg);
-  font-family: 'Space Grotesk', monospace;
+  font-family: 'Plus Jakarta Sans', monospace;
   font-size: 0.72rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;

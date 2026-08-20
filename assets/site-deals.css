@@ -10,7 +10,7 @@
 }
 
 .deals-eyebrow {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -20,7 +20,7 @@
 }
 
 .deals-h1 {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 500;
   font-size: clamp(2rem, 3vw, 2.6rem);
   line-height: 1.1;
@@ -294,7 +294,7 @@
   padding: 11px 20px;
   font-size: 0.88rem;
   font-weight: 600;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   border-width: 1.5px 1.5px 0 1.5px;
   border-style: solid;
   border-color: rgba(17, 24, 39, 0.16);
@@ -343,7 +343,7 @@
   border: 1.5px solid rgba(17, 24, 39, 0.16);
   border-radius: 8px;
   padding: 8px 14px;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--w-ink);
@@ -1027,7 +1027,7 @@
 }
 
 .deal-provider-name {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 700;
   font-size: 0.98rem;
   color: var(--w-ink);
@@ -1057,7 +1057,7 @@
 
 .deal-price-orange,
 .deal-price-navy {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 700;
   font-size: 1.05rem;
 }
@@ -1084,7 +1084,7 @@
 }
 
 .deal-savings-amt {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 700;
   font-size: 1rem;
   color: var(--jrs-green);
@@ -1107,7 +1107,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 600;
   font-size: 0.82rem;
   color: #FFFFFF;
@@ -1378,7 +1378,7 @@ button.deal-badge[aria-expanded="true"] {
   padding: 12px 0;
   background: none;
   border: none;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 600;
   font-size: 0.88rem;
   color: var(--jrs-green);
@@ -1424,7 +1424,7 @@ button.deal-badge[aria-expanded="true"] {
 }
 
 .deals-priceminder-banner h2 {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 500;
   font-size: 1.15rem;
   color: var(--w-ink);
@@ -1665,7 +1665,7 @@ button.deal-badge[aria-expanded="true"] {
 }
 
 .deals-guide-header h2 {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 1.45rem;
   font-weight: 700;
   color: var(--w-ink);
@@ -1709,7 +1709,7 @@ button.deal-badge[aria-expanded="true"] {
   justify-content: space-between;
   gap: 12px;
   padding: 15px 18px;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 0.96rem;
   font-weight: 600;
   color: var(--w-ink);
@@ -2066,7 +2066,7 @@ button.deal-badge[aria-expanded="true"] {
 }
 
 .audit-title {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 1.15rem;
   font-weight: 700;
   color: var(--w-ink);
@@ -2188,7 +2188,7 @@ button.deal-badge[aria-expanded="true"] {
   border: none;
   border-radius: 12px;
   padding: 12px 20px;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
@@ -2346,7 +2346,7 @@ button.deal-badge[aria-expanded="true"] {
 }
 
 .reminder-title {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 1.15rem;
   font-weight: 700;
   color: var(--w-ink);

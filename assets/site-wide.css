@@ -84,7 +84,7 @@ body.wide-theme {
   gap: 14px;
 }
 .w-brand {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 500;
   font-size: 1.15rem;
   color: var(--w-ink);
@@ -129,7 +129,7 @@ body.wide-theme {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 0.78rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -145,7 +145,7 @@ body.wide-theme {
   display: none;
 }
 .w-h1 {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 500;
   font-size: clamp(2.2rem, 3.4vw, 3.2rem);
   line-height: 1.14;
@@ -160,7 +160,7 @@ body.wide-theme {
   gap: 10px;
   background: var(--w-accent);
   color: var(--w-accent-ink);
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 600;
   font-size: 0.92rem;
   padding: 13px 22px;
@@ -199,7 +199,7 @@ body.wide-theme {
     0 50px 90px -26px rgba(23, 40, 31, 0.3);
 }
 .w-filmstrip .film-item { text-align: center; }
-.w-filmstrip .cap { font-size: 0.72rem; color: var(--w-ink-50); margin-top: 10px; font-family: 'Space Grotesk', sans-serif; }
+.w-filmstrip .cap { font-size: 0.72rem; color: var(--w-ink-50); margin-top: 10px; font-family: 'Plus Jakarta Sans', sans-serif; }
 
 /* Horizontal stat ribbon — full width, evenly spaced, replacing a small
    stacked stat block with a band that spans the whole container. */
@@ -219,12 +219,12 @@ body.wide-theme {
   border-left: 1px solid var(--w-border);
 }
 .w-ribbon .stat:first-child { border-left: none; padding-left: 0; }
-.w-ribbon .stat .v { font-family: 'Space Grotesk', sans-serif; font-size: 1.4rem; color: var(--w-ink); }
+.w-ribbon .stat .v { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.4rem; color: var(--w-ink); }
 .w-ribbon .stat .l { font-size: 0.78rem; color: var(--w-ink-50); text-transform: uppercase; letter-spacing: 0.03em; }
 
 .w-section { padding: 52px 0; }
 .w-section h2 {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 500;
   font-size: 1.4rem;
   margin: 0 0 24px;
@@ -256,7 +256,7 @@ body.wide-theme {
   font-weight: 700;
 }
 .w-work-card h3 {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 500;
   font-size: 1.5rem;
   margin: 10px 0 12px;
@@ -330,7 +330,7 @@ body.wide-theme {
   gap: 7px;
   background: var(--w-accent);
   color: var(--w-accent-ink);
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 600;
   font-size: 0.82rem;
   padding: 10px 18px;
@@ -407,7 +407,7 @@ body.wide-theme {
 /* ---------- shared intro block (About / Work / Contact page headers) ---------- */
 .w-intro { padding: 56px 0 40px; max-width: 60ch; }
 .w-intro h1 {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 500;
   font-size: clamp(2rem, 3.2vw, 2.6rem);
   line-height: 1.16;
@@ -423,7 +423,7 @@ body.wide-theme {
   padding-top: 18px;
 }
 .w-belief .num {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   color: var(--w-accent);
   font-size: 0.95rem;
   font-weight: 700;
@@ -431,7 +431,7 @@ body.wide-theme {
   margin-bottom: 10px;
 }
 .w-belief h3 {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 500;
   font-size: 1.08rem;
   margin: 0 0 8px;
@@ -471,7 +471,7 @@ body.wide-theme {
    same shell, fonts and tokens as every other page. ---------- */
 .w-prose { max-width: 720px; padding: 4px 0 64px; }
 .w-prose h1 {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 500;
   font-size: clamp(1.8rem, 3vw, 2.3rem);
   line-height: 1.2;
@@ -479,7 +479,7 @@ body.wide-theme {
 }
 .w-prose .meta { color: var(--w-ink-50); font-size: 0.9rem; margin: 0 0 28px; }
 .w-prose h2 {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 500;
   font-size: 1.15rem;
   margin: 2.1rem 0 0.7rem;
@@ -590,7 +590,7 @@ body.wide-theme .mockup-caption { color: var(--w-ink-50); }
   gap: 10px;
   background: var(--w-accent);
   color: var(--w-accent-ink);
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 600;
   font-size: 0.92rem;
   padding: 13px 22px;
@@ -638,7 +638,7 @@ body.wide-theme .mockup-caption { color: var(--w-ink-50); }
 .bonsai-popover[hidden] { display: none; }
 .bonsai-popover strong {
   display: block;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 500;
   font-size: 0.92rem;
   color: #fff;
