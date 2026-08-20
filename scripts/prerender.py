@@ -57,12 +57,30 @@ def splice(html: str, name: str, replacement: str) -> str:
     return new_html
 
 
+def billing_cycle_label(days: int | None) -> str:
+    """Human-readable cadence matching the labels used by the live table."""
+    days = days or 30
+    if 29 <= days <= 31:
+        return "month"
+    if days == 7:
+        return "week"
+    if days == 14:
+        return "fortnight"
+    if 80 <= days <= 95:
+        return "3 months"
+    if 175 <= days <= 190:
+        return "6 months"
+    if 360 <= days <= 370:
+        return "year"
+    return f"{days} days"
+
+
 def build_deal_schema(deals: list[dict]) -> dict:
     """Full ItemList/Product/Offer schema for every deal, independent of
     whatever's paginated into the visible grid -- Google should know about
     all of them even if a human only ever scrolls through the first page."""
     items = []
-    for i, d in enumerate(deals, start=1):
+    for d in deals:
         promo = d.get("promoPrice")
         regular = d.get("regularPrice")
         months = d.get("promoMonths")
@@ -70,21 +88,31 @@ def build_deal_schema(deals: list[dict]) -> dict:
         if price is None:
             continue
 
+        promo = float(promo) if promo is not None else None
+        regular = float(regular) if regular is not None else None
+        price = float(price)
+        cycle = billing_cycle_label(d.get("billingCycleDays"))
+        cycle_phrase = f"per {cycle}"
+
         if promo is not None and regular is not None and promo != regular and months:
+            month_word = "month" if int(months) == 1 else "months"
             description = (
-                f"Introductory price ${promo:.2f}/month for {months} months, "
-                f"then ${regular:.2f}/month ongoing."
+                f"Introductory charge ${promo:.2f} {cycle_phrase} for {months} {month_word}, "
+                f"then ${regular:.2f} {cycle_phrase} ongoing."
             )
         else:
-            description = f"${regular if regular is not None else price:.2f}/month, no introductory period."
+            ongoing = regular if regular is not None else price
+            description = f"${ongoing:.2f} {cycle_phrase}, with no introductory period."
 
         name = f"{d.get('provider', '')} {d.get('tier', '')}".strip()
+        deal_url = d.get("url") or "https://jrsdigital.net/deals/"
         items.append({
             "@type": "ListItem",
-            "position": i,
+            "position": len(items) + 1,
             "item": {
                 "@type": "Product",
                 "name": name,
+                "url": deal_url,
                 "brand": {"@type": "Brand", "name": d.get("provider", "")},
                 "category": {"nbn": "Internet Service", "opticomm": "Fibre Internet Service", "mobile": "Mobile Phone Service", "satellite": "Satellite Internet Service"}.get(
                 d.get("serviceType"), "Internet Service"
@@ -94,8 +122,18 @@ def build_deal_schema(deals: list[dict]) -> dict:
                     "@type": "Offer",
                     "price": f"{price:.2f}",
                     "priceCurrency": "AUD",
-                    "url": d.get("url") or "https://jrsdigital.net/deals/",
+                    "url": deal_url,
                     "availability": "https://schema.org/InStock",
+                    "eligibleRegion": {
+                        "@type": "Country",
+                        "name": "Australia",
+                    },
+                    "priceSpecification": {
+                        "@type": "UnitPriceSpecification",
+                        "price": f"{price:.2f}",
+                        "priceCurrency": "AUD",
+                        "unitText": cycle,
+                    },
                 },
             },
         })
@@ -132,10 +170,7 @@ def main():
             browser = p.chromium.launch()
             page = browser.new_page()
             page.goto(f"{base_url}/deals/", wait_until="networkidle", timeout=30000)
-            # networkidle alone covers all three independent fetches (deals,
-            # changelog, poi) settling, but assert real rows actually landed
-            # rather than silently snapshotting a stuck "Loading..." state.
-            page.wait_for_selector(".deal-row", timeout=15000)
+            page.wait_for_selector(".deal-row, .deals-card", state="attached", timeout=15000)
 
             # Default pagination only shows the first page of results (cheapest
             # ~8) -- expand fully via the real "View more" control so the
@@ -162,8 +197,12 @@ def main():
         with urllib.request.urlopen(DEALS_JSON_URL, timeout=15) as resp:
             all_deals = json.loads(resp.read())
     except Exception:
-        local_path = REPO_ROOT.parent / "au-plans-scraper" / "data" / "deals.json"
-        if local_path.exists():
+        local_candidates = [
+            REPO_ROOT / "data" / "deals.json",
+            REPO_ROOT.parent / "au-plans-scraper" / "data" / "deals.json",
+        ]
+        local_path = next((path for path in local_candidates if path.exists()), None)
+        if local_path:
             all_deals = json.loads(local_path.read_text(encoding="utf-8"))
         else:
             raise
