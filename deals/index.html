@@ -5626,6 +5626,10 @@
 
         <div class="reminder-body">
           <div class="reminder-calc-box">
+            <div class="reminder-calc-row reminder-calc-row--input">
+              <label for="reminder-start-date" class="reminder-calc-label">Plan sign-up date:</label>
+              <input type="date" id="reminder-start-date" class="reminder-date-input" title="Select the date you connected or started your plan" />
+            </div>
             <div class="reminder-calc-row">
               <span class="reminder-calc-label">Promo rate:</span>
               <span class="reminder-calc-val" id="reminder-calc-promo">$0.00/mo</span>
@@ -7653,6 +7657,7 @@
   var reminderBackdrop = document.getElementById('reminder-backdrop');
   var reminderCloseBtn = document.getElementById('reminder-close-btn');
   var reminderSubtitle = document.getElementById('reminder-plan-subtitle');
+  var reminderStartDate = document.getElementById('reminder-start-date');
   var reminderCalcPromo = document.getElementById('reminder-calc-promo');
   var reminderCalcRegular = document.getElementById('reminder-calc-regular');
   var reminderCalcExpiry = document.getElementById('reminder-calc-expiry');
@@ -7662,6 +7667,7 @@
   var reminderGcalLink = document.getElementById('reminder-gcal-link');
 
   var currentReminderData = null;
+  var currentCalculatedDates = { expiry: null, remindDate: null };
 
   function formatHumanDate(date) {
     return date.getDate() + ' ' + MONTH_NAMES[date.getMonth()] + ' ' + date.getFullYear();
@@ -7674,27 +7680,35 @@
       pad(date.getDate()) + 'T090000';
   }
 
-  function openReminderDrawer(d) {
-    if (!reminderBackdrop) return;
-    currentReminderData = d;
+  function toDateInputValue(date) {
+    function pad(n) { return n < 10 ? '0' + n : n; }
+    return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
+  }
 
+  function updateCalculatedReminder() {
+    if (!currentReminderData) return;
+    var d = currentReminderData;
     var months = parseInt(d.months, 10) || 6;
     var promoPrice = parseFloat(d.promo) || 0;
     var regularPrice = parseFloat(d.regular) || 0;
 
-    var now = new Date();
-    var expiry = new Date(now.getFullYear(), now.getMonth() + months, now.getDate());
-    var remindDate = new Date(expiry.getTime() - 14 * 24 * 60 * 60 * 1000);
+    var baseDate = new Date();
+    if (reminderStartDate && reminderStartDate.value) {
+      var parts = reminderStartDate.value.split('-');
+      if (parts.length === 3) {
+        var parsedYear = parseInt(parts[0], 10);
+        var parsedMonth = parseInt(parts[1], 10) - 1;
+        var parsedDay = parseInt(parts[2], 10);
+        if (!isNaN(parsedYear) && !isNaN(parsedMonth) && !isNaN(parsedDay)) {
+          baseDate = new Date(parsedYear, parsedMonth, parsedDay);
+        }
+      }
+    }
 
-    if (reminderSubtitle) {
-      reminderSubtitle.textContent = d.provider + (d.tier ? ' (' + d.tier + ')' : '') + ' • ' + months + '-month promo period';
-    }
-    if (reminderCalcPromo) {
-      reminderCalcPromo.textContent = '$' + promoPrice.toFixed(2) + '/mo';
-    }
-    if (reminderCalcRegular) {
-      reminderCalcRegular.textContent = '$' + regularPrice.toFixed(2) + '/mo';
-    }
+    var expiry = new Date(baseDate.getFullYear(), baseDate.getMonth() + months, baseDate.getDate());
+    var remindDate = new Date(expiry.getTime() - 14 * 24 * 60 * 60 * 1000);
+    currentCalculatedDates = { expiry: expiry, remindDate: remindDate };
+
     if (reminderCalcExpiry) {
       reminderCalcExpiry.textContent = formatHumanDate(expiry);
     }
@@ -7713,6 +7727,31 @@
       );
       reminderGcalLink.href = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + gcalTitle + '&dates=' + startStr + '/' + endStr + '&details=' + gcalDetails;
     }
+  }
+
+  function openReminderDrawer(d) {
+    if (!reminderBackdrop) return;
+    currentReminderData = d;
+
+    var months = parseInt(d.months, 10) || 6;
+    var promoPrice = parseFloat(d.promo) || 0;
+    var regularPrice = parseFloat(d.regular) || 0;
+
+    if (reminderSubtitle) {
+      reminderSubtitle.textContent = d.provider + (d.tier ? ' (' + d.tier + ')' : '') + ' • ' + months + '-month promo period';
+    }
+    if (reminderCalcPromo) {
+      reminderCalcPromo.textContent = '$' + promoPrice.toFixed(2) + '/mo';
+    }
+    if (reminderCalcRegular) {
+      reminderCalcRegular.textContent = '$' + regularPrice.toFixed(2) + '/mo';
+    }
+
+    if (reminderStartDate) {
+      reminderStartDate.value = toDateInputValue(new Date());
+    }
+
+    updateCalculatedReminder();
 
     reminderBackdrop.classList.add('is-open');
     reminderBackdrop.setAttribute('aria-hidden', 'false');
@@ -7728,6 +7767,11 @@
     }
   }
 
+  if (reminderStartDate) {
+    reminderStartDate.addEventListener('input', updateCalculatedReminder);
+    reminderStartDate.addEventListener('change', updateCalculatedReminder);
+  }
+
   function closeReminderDrawer() {
     if (!reminderBackdrop) return;
     reminderBackdrop.classList.remove('is-open');
@@ -7741,9 +7785,8 @@
     var promoPrice = parseFloat(d.promo) || 0;
     var regularPrice = parseFloat(d.regular) || 0;
 
-    var now = new Date();
-    var expiry = new Date(now.getFullYear(), now.getMonth() + months, now.getDate());
-    var remindDate = new Date(expiry.getTime() - 14 * 24 * 60 * 60 * 1000);
+    var expiry = currentCalculatedDates.expiry || new Date();
+    var remindDate = currentCalculatedDates.remindDate || new Date();
     var dtstamp = formatIcsDate(new Date()) + 'Z';
     var dtstart = formatIcsDate(remindDate);
     var dtend = formatIcsDate(new Date(remindDate.getTime() + 60 * 60 * 1000));

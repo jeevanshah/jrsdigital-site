@@ -2396,6 +2396,29 @@ button.deal-badge[aria-expanded="true"] {
   margin-bottom: 6px;
 }
 
+.reminder-calc-row--input {
+  margin-bottom: 10px;
+}
+
+.reminder-date-input {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--w-ink);
+  background: #FFFFFF;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 8px;
+  padding: 5px 8px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.reminder-date-input:focus {
+  border-color: var(--w-accent);
+  box-shadow: 0 0 0 3px rgba(255, 75, 22, 0.14);
+}
+
 .reminder-calc-row:last-child {
   margin-bottom: 0;
 }
