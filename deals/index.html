@@ -5610,15 +5610,14 @@
       </div>
     </div>
 
-    <!-- Churn & Rate Rise Reminder Drawer / Bottom Sheet -->
+    <!-- Promo Expiry Reminder Modal -->
     <div class="reminder-backdrop" id="reminder-backdrop" aria-hidden="true">
       <div class="reminder-sheet" role="dialog" aria-labelledby="reminder-title" aria-modal="true">
         <div class="reminder-drag-handle"></div>
         <div class="reminder-header">
           <div>
-            <span class="reminder-tag"><svg class="reminder-tag-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Never overpay after a promo</span>
-            <h3 class="reminder-title" id="reminder-title">Set Churn &amp; Price Rise Reminder</h3>
-            <p class="reminder-subtitle" id="reminder-plan-subtitle">Plan details loading...</p>
+            <h3 class="reminder-title" id="reminder-title">Promo expiry reminder</h3>
+            <p class="reminder-subtitle" id="reminder-plan-subtitle">Plan details</p>
           </div>
           <button type="button" class="reminder-close-btn" id="reminder-close-btn" aria-label="Close">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
@@ -5628,80 +5627,67 @@
         <div class="reminder-body">
           <div class="reminder-calc-box">
             <div class="reminder-calc-row">
-              <span class="reminder-calc-label">Introductory Rate:</span>
+              <span class="reminder-calc-label">Promo rate:</span>
               <span class="reminder-calc-val" id="reminder-calc-promo">$0.00/mo</span>
             </div>
             <div class="reminder-calc-row">
-              <span class="reminder-calc-label">Ongoing Rate after Promo:</span>
+              <span class="reminder-calc-label">Standard rate after promo:</span>
               <span class="reminder-calc-val reminder-calc-val--warn" id="reminder-calc-regular">$0.00/mo</span>
             </div>
             <div class="reminder-calc-divider"></div>
             <div class="reminder-calc-row">
-              <span class="reminder-calc-label">Estimated Rate Rise Date:</span>
+              <span class="reminder-calc-label">Estimated price rise:</span>
               <span class="reminder-calc-val" id="reminder-calc-expiry">—</span>
             </div>
             <div class="reminder-calc-row">
-              <span class="reminder-calc-label">Suggested Reminder Date:</span>
+              <span class="reminder-calc-label">Suggested reminder date:</span>
               <span class="reminder-calc-val reminder-calc-val--good" id="reminder-calc-remind-date"><strong>— (14 days before)</strong></span>
             </div>
           </div>
 
-          <h4 class="reminder-options-heading">Choose how to get reminded:</h4>
-
           <div class="reminder-options-list">
-            <!-- Option 1: PriceMinder Android App -->
-            <a class="reminder-option-card reminder-option-card--pm" id="reminder-pm-link" href="https://play.google.com/store/apps/details?id=au.com.priceminder.app&amp;referrer=utm_source%3Ddeals_reminder_modal%26utm_medium%3Dreminder_cta%26utm_campaign%3Dchurn_alert" target="_blank" rel="noopener">
-              <div class="reminder-option-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
-              </div>
-              <div class="reminder-option-text">
-                <div class="reminder-option-title-row">
-                  <strong>Track in PriceMinder App</strong>
-                  <span class="reminder-badge-rec">Recommended for Android</span>
-                </div>
-                <p>Automated promo expiry tracking, price-rise alerts, and zero-analytics on-device privacy.</p>
-              </div>
-              <div class="reminder-option-arrow">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
-              </div>
-            </a>
-
-            <!-- Option 2: Apple / iOS / Outlook (.ics) Calendar -->
-            <button type="button" class="reminder-option-card" id="reminder-ics-btn">
-              <div class="reminder-option-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="m9 16 2 2 4-4"/></svg>
-              </div>
-              <div class="reminder-option-text">
-                <div class="reminder-option-title-row">
-                  <strong>Add to Apple / iPhone Calendar (.ics)</strong>
-                  <span class="reminder-badge-subtle">iOS / Mac / Outlook</span>
-                </div>
-                <p>Downloads an instant calendar event with an alert set 14 days before your promo ends.</p>
-              </div>
-              <div class="reminder-option-arrow">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-              </div>
-            </button>
-
-            <!-- Option 3: Google Calendar Web Intent -->
+            <!-- Option 1: Google Calendar -->
             <a class="reminder-option-card" id="reminder-gcal-link" href="#" target="_blank" rel="noopener">
               <div class="reminder-option-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               </div>
               <div class="reminder-option-text">
-                <div class="reminder-option-title-row">
-                  <strong>Add to Google Calendar</strong>
-                  <span class="reminder-badge-subtle">Web / Chrome</span>
-                </div>
-                <p>Opens a pre-filled 1-click Google Calendar reminder in a new tab.</p>
+                <strong>Google Calendar</strong>
+                <p>Opens a pre-filled calendar event in a new tab</p>
               </div>
               <div class="reminder-option-arrow">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+              </div>
+            </a>
+
+            <!-- Option 2: Apple Calendar (.ics) -->
+            <button type="button" class="reminder-option-card" id="reminder-ics-btn">
+              <div class="reminder-option-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="m9 16 2 2 4-4"/></svg>
+              </div>
+              <div class="reminder-option-text">
+                <strong>Apple Calendar (.ics)</strong>
+                <p>Downloads a calendar file with an alert set 14 days prior</p>
+              </div>
+              <div class="reminder-option-arrow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+              </div>
+            </button>
+
+            <!-- Option 3: PriceMinder Android App -->
+            <a class="reminder-option-card" id="reminder-pm-link" href="https://play.google.com/store/apps/details?id=au.com.priceminder.app&amp;referrer=utm_source%3Ddeals_reminder_modal%26utm_medium%3Dreminder_cta%26utm_campaign%3Dchurn_alert" target="_blank" rel="noopener">
+              <div class="reminder-option-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+              </div>
+              <div class="reminder-option-text">
+                <strong>PriceMinder App</strong>
+                <p>Track subscriptions &amp; renewal dates on Android</p>
+              </div>
+              <div class="reminder-option-arrow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
               </div>
             </a>
           </div>
-
-          <p class="reminder-privacy-note"><svg class="privacy-note-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>100% Free &amp; On-Device. No login, no spam, and no personal email collection.</p>
         </div>
       </div>
     </div>

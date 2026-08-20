@@ -2347,10 +2347,10 @@ button.deal-badge[aria-expanded="true"] {
 
 .reminder-title {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 1.15rem;
+  font-size: 1.12rem;
   font-weight: 700;
   color: var(--w-ink);
-  margin: 0 0 4px;
+  margin: 0 0 2px;
 }
 
 .reminder-subtitle {
