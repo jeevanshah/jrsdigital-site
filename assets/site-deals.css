@@ -211,7 +211,7 @@
 
 .deals-hero-bleed {
   position: absolute;
-  bottom: -4%;
+  bottom: 0%;
   height: auto;
   width: 36%;
   z-index: 2;
@@ -219,7 +219,7 @@
 }
 
 .deals-hero-bleed-l {
-  left: -4%;
+  left: -9%;
 }
 
 .deals-hero-bleed-r {
@@ -2788,15 +2788,15 @@ button.deal-badge[aria-expanded="true"] {
 .deals-hero-signal {
   position: absolute;
   left: 45.2%;
-  top: 40.5%;
+  top: 57.5%;
   width: 9%;
   height: auto;
   z-index: 2;
   pointer-events: none;
   transform: translate(-50%, -50%);
-  opacity: 0.2;
+  opacity: 0.25;
   transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  filter: drop-shadow(0 2px 8px rgba(255, 75, 22, 0.15));
+  filter: drop-shadow(0 2px 8px rgba(14, 165, 233, 0.3));
 }
 
 .deals-signal-svg {
@@ -2807,73 +2807,73 @@ button.deal-badge[aria-expanded="true"] {
 }
 
 .deals-signal-arc {
-  opacity: 0.2;
+  opacity: 0.3;
   transform-origin: 60px 58px;
   transition: opacity 0.3s ease, transform 0.3s ease, stroke 0.3s ease;
 }
 
 .deals-signal-dot {
-  opacity: 0.6;
+  opacity: 0.7;
   transition: opacity 0.3s ease, filter 0.3s ease;
 }
 
-/* Hover & Active Broadcast Wave Animation */
+/* High-Contrast Electric Cyan/Sky Blue Broadcast Waves */
 @keyframes waveBroadcast1 {
   0% {
-    opacity: 0.2;
+    opacity: 0.25;
     transform: scale(0.92);
   }
   50% {
     opacity: 1;
     transform: scale(1.04);
-    stroke: #FF4B16;
+    stroke: #0284C7;
   }
   100% {
-    opacity: 0.4;
+    opacity: 0.45;
     transform: scale(0.96);
   }
 }
 
 @keyframes waveBroadcast2 {
   0% {
-    opacity: 0.1;
+    opacity: 0.15;
     transform: scale(0.92);
   }
   50% {
-    opacity: 0.9;
+    opacity: 0.95;
     transform: scale(1.06);
-    stroke: #FF4B16;
+    stroke: #0EA5E9;
   }
   100% {
-    opacity: 0.25;
+    opacity: 0.3;
     transform: scale(0.96);
   }
 }
 
 @keyframes waveBroadcast3 {
   0% {
-    opacity: 0.05;
+    opacity: 0.1;
     transform: scale(0.92);
   }
   50% {
-    opacity: 0.8;
+    opacity: 0.85;
     transform: scale(1.08);
-    stroke: #F59E0B;
+    stroke: #38BDF8;
   }
   100% {
-    opacity: 0.15;
+    opacity: 0.2;
     transform: scale(0.96);
   }
 }
 
 @keyframes beaconLivePulse {
   0%, 100% {
-    fill: #10B981;
-    filter: drop-shadow(0 0 2px rgba(16, 185, 129, 0.4));
+    fill: #0EA5E9;
+    filter: drop-shadow(0 0 2px rgba(14, 165, 233, 0.4));
   }
   50% {
-    fill: #34D399;
-    filter: drop-shadow(0 0 6px rgba(52, 211, 153, 0.95));
+    fill: #38BDF8;
+    filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.95));
   }
 }
 
@@ -2882,7 +2882,7 @@ button.deal-badge[aria-expanded="true"] {
 .deals-hero-signal.is-broadcasting {
   opacity: 1;
   transform: translate(-50%, -50%) scale(1.06);
-  filter: drop-shadow(0 4px 14px rgba(255, 75, 22, 0.35));
+  filter: drop-shadow(0 4px 14px rgba(14, 165, 233, 0.5));
 }
 
 .deals-hero-art:hover .deals-signal-arc--1,
@@ -2906,10 +2906,10 @@ button.deal-badge[aria-expanded="true"] {
   animation: beaconLivePulse 1.6s ease-in-out infinite;
 }
 
-/* Mobile ambient loop when idle (gentle 6s heartbeat) */
+/* Mobile ambient loop when idle */
 @media (hover: none) {
   .deals-hero-signal {
-    opacity: 0.75;
+    opacity: 0.85;
   }
   .deals-signal-arc--1 {
     animation: waveBroadcast1 3.2s ease-in-out infinite;
@@ -2921,7 +2921,7 @@ button.deal-badge[aria-expanded="true"] {
     animation: waveBroadcast3 3.2s ease-in-out infinite 0.8s;
   }
   .deals-signal-dot {
-    opacity: 0.9;
+    opacity: 0.95;
     animation: beaconLivePulse 2s ease-in-out infinite;
   }
 }
