@@ -2782,3 +2782,112 @@ button.deal-badge[aria-expanded="true"] {
   gap: 8px;
   min-width: 0;
 }
+
+/* ---------- Rooftop Broadband Antenna & Motion Graphics ---------- */
+.deals-hero-antenna-wrap {
+  position: absolute;
+  left: 43.8%;
+  top: 41.2%;
+  width: 5.2%;
+  height: auto;
+  z-index: 2;
+  pointer-events: none;
+  transform-origin: 50% 95%;
+}
+
+.deals-hero-antenna-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.08));
+}
+
+@keyframes antennaSway {
+  0% {
+    transform: rotate(-1.5deg);
+  }
+  50% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(1.5deg);
+  }
+}
+
+@keyframes signalPulse1 {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(0.95);
+    stroke: #FF4B16;
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+    stroke: #FF4B16;
+  }
+}
+
+@keyframes signalPulse2 {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.06);
+    stroke: #FF4B16;
+  }
+}
+
+@keyframes signalPulse3 {
+  0%, 100% {
+    opacity: 0.1;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes ledBlink {
+  0%, 100% {
+    fill: #10B981;
+    filter: drop-shadow(0 0 2px rgba(16, 185, 129, 0.4));
+  }
+  50% {
+    fill: #34D399;
+    filter: drop-shadow(0 0 6px rgba(52, 211, 153, 0.9));
+  }
+}
+
+.signal-wave {
+  transform-origin: 50px 60px;
+}
+
+.signal-wave--1 {
+  animation: signalPulse1 2.8s ease-in-out infinite;
+}
+
+.signal-wave--2 {
+  animation: signalPulse2 2.8s ease-in-out infinite 0.4s;
+}
+
+.signal-wave--3 {
+  animation: signalPulse3 2.8s ease-in-out infinite 0.8s;
+}
+
+.antenna-led {
+  animation: ledBlink 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deals-hero-antenna-wrap,
+  .signal-wave--1,
+  .signal-wave--2,
+  .signal-wave--3,
+  .antenna-led {
+    animation: none !important;
+  }
+}
