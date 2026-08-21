@@ -2789,14 +2789,14 @@ button.deal-badge[aria-expanded="true"] {
   position: absolute;
   left: 45.2%;
   top: 57.5%;
-  width: 9%;
+  width: 9.5%;
   height: auto;
   z-index: 2;
   pointer-events: none;
   transform: translate(-50%, -50%);
-  opacity: 0.25;
+  opacity: 0.35;
   transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  filter: drop-shadow(0 2px 8px rgba(14, 165, 233, 0.3));
+  filter: drop-shadow(0 2px 6px rgba(30, 41, 59, 0.25));
 }
 
 .deals-signal-svg {
@@ -2807,73 +2807,73 @@ button.deal-badge[aria-expanded="true"] {
 }
 
 .deals-signal-arc {
-  opacity: 0.3;
+  opacity: 0.4;
   transform-origin: 60px 58px;
   transition: opacity 0.3s ease, transform 0.3s ease, stroke 0.3s ease;
 }
 
 .deals-signal-dot {
-  opacity: 0.7;
+  opacity: 0.8;
   transition: opacity 0.3s ease, filter 0.3s ease;
 }
 
-/* High-Contrast Electric Cyan/Sky Blue Broadcast Waves */
+/* Bold Brand Charcoal & Accent Orange Broadcast Waves */
 @keyframes waveBroadcast1 {
   0% {
-    opacity: 0.25;
-    transform: scale(0.92);
+    opacity: 0.35;
+    transform: scale(0.94);
   }
   50% {
     opacity: 1;
-    transform: scale(1.04);
-    stroke: #0284C7;
+    transform: scale(1.05);
+    stroke: #FF4B16;
   }
   100% {
-    opacity: 0.45;
-    transform: scale(0.96);
+    opacity: 0.5;
+    transform: scale(0.98);
   }
 }
 
 @keyframes waveBroadcast2 {
   0% {
-    opacity: 0.15;
-    transform: scale(0.92);
+    opacity: 0.3;
+    transform: scale(0.94);
   }
   50% {
-    opacity: 0.95;
+    opacity: 1;
     transform: scale(1.06);
-    stroke: #0EA5E9;
+    stroke: #1E293B;
   }
   100% {
-    opacity: 0.3;
-    transform: scale(0.96);
+    opacity: 0.45;
+    transform: scale(0.98);
   }
 }
 
 @keyframes waveBroadcast3 {
   0% {
-    opacity: 0.1;
-    transform: scale(0.92);
+    opacity: 0.2;
+    transform: scale(0.94);
   }
   50% {
-    opacity: 0.85;
+    opacity: 0.9;
     transform: scale(1.08);
-    stroke: #38BDF8;
+    stroke: #FF4B16;
   }
   100% {
-    opacity: 0.2;
-    transform: scale(0.96);
+    opacity: 0.35;
+    transform: scale(0.98);
   }
 }
 
 @keyframes beaconLivePulse {
   0%, 100% {
-    fill: #0EA5E9;
-    filter: drop-shadow(0 0 2px rgba(14, 165, 233, 0.4));
+    fill: #FF4B16;
+    filter: drop-shadow(0 0 2px rgba(255, 75, 22, 0.4));
   }
   50% {
-    fill: #38BDF8;
-    filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.95));
+    fill: #F59E0B;
+    filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.9));
   }
 }
 
@@ -2882,7 +2882,7 @@ button.deal-badge[aria-expanded="true"] {
 .deals-hero-signal.is-broadcasting {
   opacity: 1;
   transform: translate(-50%, -50%) scale(1.06);
-  filter: drop-shadow(0 4px 14px rgba(14, 165, 233, 0.5));
+  filter: drop-shadow(0 4px 12px rgba(30, 41, 59, 0.35));
 }
 
 .deals-hero-art:hover .deals-signal-arc--1,
