@@ -242,25 +242,35 @@
   height: auto;
 }
 
+.deals-hero-bg {
+  opacity: 0.25;
+}
+
+.deals-hero-bleed {
+  display: none;
+}
+
 .deals-hero-house {
-  left: 25%;
-  bottom: 4%;
-  width: 40%;
+  left: 5%;
+  bottom: 0;
+  width: 86%;
   z-index: 1;
 }
 
 .deals-hero-phone {
-  right: -1%;
-  bottom: -2%;
-  width: 16%;
+  right: -2%;
+  bottom: 0;
+  width: 25%;
   z-index: 2;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.08));
 }
 
 .deals-hero-wifi {
-  left: 43%;
-  top: 24%;
-  width: 10%;
-  z-index: 4;
+  left: 44%;
+  top: 8%;
+  width: 13%;
+  z-index: 3;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.06));
 }
 
 /* ---------- toolbar ---------- */
