@@ -213,17 +213,17 @@
   position: absolute;
   bottom: -4%;
   height: auto;
-  width: 41%;
+  width: 36%;
   z-index: 2;
   pointer-events: none;
 }
 
 .deals-hero-bleed-l {
-  left: -8%;
+  left: -4%;
 }
 
 .deals-hero-bleed-r {
-  right: 8%;
+  right: 0%;
 }
 
 .deals-hero-bg {
@@ -251,11 +251,11 @@
 }
 
 .deals-hero-phone {
-  right: -1%;
+  right: 2%;
   bottom: -2%;
   width: 17%;
   z-index: 3;
-  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.14));
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.12));
 }
 
 .deals-hero-wifi {
