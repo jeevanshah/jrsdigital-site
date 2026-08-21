@@ -213,17 +213,20 @@
   position: absolute;
   bottom: -4%;
   height: auto;
-  width: 41%;
+  width: 32%;
   z-index: 2;
   pointer-events: none;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.06));
 }
 
 .deals-hero-bleed-l {
-  left: -8%;
+  left: -5%;
+  bottom: -2%;
 }
 
 .deals-hero-bleed-r {
-  right: 10%;
+  right: 8%;
+  bottom: -3%;
 }
 
 .deals-hero-bg {
@@ -242,34 +245,27 @@
   height: auto;
 }
 
-.deals-hero-bg {
-  opacity: 0.25;
-}
-
-.deals-hero-bleed {
-  display: none;
-}
-
 .deals-hero-house {
-  left: 5%;
+  left: 18%;
   bottom: 0;
-  width: 86%;
+  width: 54%;
   z-index: 1;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.08));
 }
 
 .deals-hero-phone {
-  right: -2%;
-  bottom: 0;
-  width: 25%;
-  z-index: 2;
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.08));
+  right: 0%;
+  bottom: -2%;
+  width: 22%;
+  z-index: 3;
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.12));
 }
 
 .deals-hero-wifi {
-  left: 44%;
+  left: 45%;
   top: 8%;
-  width: 13%;
-  z-index: 3;
+  width: 12%;
+  z-index: 4;
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.06));
 }
 
