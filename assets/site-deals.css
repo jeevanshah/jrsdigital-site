@@ -2786,52 +2786,37 @@ button.deal-badge[aria-expanded="true"] {
 /* ---------- Rooftop Broadband Antenna & Motion Graphics ---------- */
 .deals-hero-antenna-wrap {
   position: absolute;
-  left: 43.8%;
-  top: 41.2%;
-  width: 5.2%;
-  height: auto;
+  left: 41.8%;
+  bottom: 43.8%;
+  height: 52.3%;
+  width: auto;
   z-index: 2;
   pointer-events: none;
-  transform-origin: 50% 95%;
 }
 
 .deals-hero-antenna-svg {
-  width: 100%;
-  height: auto;
+  height: 100%;
+  width: auto;
   display: block;
   overflow: visible;
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.08));
 }
 
-@keyframes antennaSway {
-  0% {
-    transform: rotate(-1.5deg);
-  }
-  50% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(1.5deg);
-  }
-}
-
 @keyframes signalPulse1 {
   0%, 100% {
-    opacity: 0.3;
-    transform: scale(0.95);
-    stroke: #FF4B16;
+    opacity: 0.25;
+    transform: scale(0.96);
   }
   50% {
     opacity: 1;
-    transform: scale(1.05);
-    stroke: #FF4B16;
+    transform: scale(1.04);
   }
 }
 
 @keyframes signalPulse2 {
   0%, 100% {
-    opacity: 0.2;
-    transform: scale(0.95);
+    opacity: 0.18;
+    transform: scale(0.96);
   }
   50% {
     opacity: 0.85;
@@ -2843,10 +2828,10 @@ button.deal-badge[aria-expanded="true"] {
 @keyframes signalPulse3 {
   0%, 100% {
     opacity: 0.1;
-    transform: scale(0.95);
+    transform: scale(0.96);
   }
   50% {
-    opacity: 0.7;
+    opacity: 0.75;
     transform: scale(1.08);
   }
 }
@@ -2854,11 +2839,11 @@ button.deal-badge[aria-expanded="true"] {
 @keyframes ledBlink {
   0%, 100% {
     fill: #10B981;
-    filter: drop-shadow(0 0 2px rgba(16, 185, 129, 0.4));
+    filter: drop-shadow(0 0 2px rgba(16, 185, 129, 0.3));
   }
   50% {
     fill: #34D399;
-    filter: drop-shadow(0 0 6px rgba(52, 211, 153, 0.9));
+    filter: drop-shadow(0 0 5px rgba(52, 211, 153, 0.85));
   }
 }
 
@@ -2867,23 +2852,22 @@ button.deal-badge[aria-expanded="true"] {
 }
 
 .signal-wave--1 {
-  animation: signalPulse1 2.8s ease-in-out infinite;
+  animation: signalPulse1 2.5s ease-in-out infinite;
 }
 
 .signal-wave--2 {
-  animation: signalPulse2 2.8s ease-in-out infinite 0.4s;
+  animation: signalPulse2 2.5s ease-in-out infinite 0.35s;
 }
 
 .signal-wave--3 {
-  animation: signalPulse3 2.8s ease-in-out infinite 0.8s;
+  animation: signalPulse3 2.5s ease-in-out infinite 0.7s;
 }
 
 .antenna-led {
-  animation: ledBlink 2s ease-in-out infinite;
+  animation: ledBlink 1.8s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .deals-hero-antenna-wrap,
   .signal-wave--1,
   .signal-wave--2,
   .signal-wave--3,
