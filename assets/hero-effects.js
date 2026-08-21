@@ -63,4 +63,42 @@
       observer.observe(heroArt);
     }
   }
+
+  // 3. Big Brand Dynamic Horizontal Scroll Masks (Apple / Airbnb / Google style)
+  function initScrollMasks() {
+    var scrollContainers = document.querySelectorAll('.deals-filter-group, .deals-tier-tabs, .deals-upload-tabs, .deals-filter-row--toggles');
+    scrollContainers.forEach(function (el) {
+      function updateMask() {
+        if (el.scrollWidth <= el.clientWidth + 2) {
+          el.style.maskImage = 'none';
+          el.style.webkitMaskImage = 'none';
+          return;
+        }
+        var atStart = el.scrollLeft <= 4;
+        var atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
+        if (atStart) {
+          el.style.maskImage = 'linear-gradient(to right, black calc(100% - 36px), transparent 100%)';
+          el.style.webkitMaskImage = 'linear-gradient(to right, black calc(100% - 36px), transparent 100%)';
+        } else if (atEnd) {
+          el.style.maskImage = 'linear-gradient(to left, black calc(100% - 36px), transparent 100%)';
+          el.style.webkitMaskImage = 'linear-gradient(to left, black calc(100% - 36px), transparent 100%)';
+        } else {
+          el.style.maskImage = 'linear-gradient(to right, transparent 0, black 32px, black calc(100% - 32px), transparent 100%)';
+          el.style.webkitMaskImage = 'linear-gradient(to right, transparent 0, black 32px, black calc(100% - 32px), transparent 100%)';
+        }
+      }
+      el.addEventListener('scroll', updateMask, { passive: true });
+      window.addEventListener('resize', updateMask, { passive: true });
+      // Run initial check and after tabs change
+      updateMask();
+      setTimeout(updateMask, 300);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initScrollMasks);
+  } else {
+    initScrollMasks();
+  }
+
 })();

@@ -1914,8 +1914,10 @@ button.deal-badge[aria-expanded="true"] {
     white-space: nowrap;
     width: 100%;
     max-width: 100%;
-    padding: 3px 1px;
+    padding: 4px 32px 4px 1px;
     box-sizing: border-box;
+    mask-image: linear-gradient(to right, black calc(100% - 32px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 32px), transparent 100%);
   }
 
   .deals-tier-tabs::-webkit-scrollbar {
@@ -1940,7 +1942,9 @@ button.deal-badge[aria-expanded="true"] {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
-    padding: 2px 0;
+    padding: 2px 32px 2px 0;
+    mask-image: linear-gradient(to right, black calc(100% - 32px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 32px), transparent 100%);
   }
 
   .deals-upload-tabs::-webkit-scrollbar {
@@ -1955,8 +1959,10 @@ button.deal-badge[aria-expanded="true"] {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
-    padding: 10px 0 2px;
+    padding: 10px 32px 2px 0;
     margin-top: 0;
+    mask-image: linear-gradient(to right, black calc(100% - 32px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 32px), transparent 100%);
   }
 
   .deals-filter-row--toggles::-webkit-scrollbar {
