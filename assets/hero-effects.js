@@ -4,7 +4,7 @@
 
   var fineHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-  // Phone 3D Tilt on Product Pages
+  // 1. Phone 3D Tilt on Product Pages
   document.querySelectorAll('[data-tilt]').forEach(function (phone) {
     if (!fineHover) {
       phone.classList.add('phone-frame--auto');
@@ -29,4 +29,38 @@
       phone.classList.remove('tilting');
     });
   });
+
+  // 2. Interactive Deals Hero Wi-Fi Broadcast (Desktop Hover & Mobile Touch/Scroll Ping)
+  var heroArt = document.querySelector('[data-interactive-hero]');
+  var signal = document.querySelector('[data-hero-signal]');
+
+  if (heroArt && signal) {
+    var pingTimeout = null;
+
+    function triggerBroadcastPing(durationMs) {
+      signal.classList.add('is-broadcasting');
+      if (pingTimeout) clearTimeout(pingTimeout);
+      pingTimeout = setTimeout(function () {
+        signal.classList.remove('is-broadcasting');
+      }, durationMs || 3500);
+    }
+
+    // Mobile / Touch: Tap anywhere on hero to trigger energetic broadcast burst
+    heroArt.addEventListener('pointerdown', function () {
+      triggerBroadcastPing(4000);
+    });
+
+    // Mobile / Touch: Play a single welcome ping when scrolled into view
+    if ('IntersectionObserver' in window) {
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            triggerBroadcastPing(3000);
+            observer.disconnect();
+          }
+        });
+      }, { threshold: 0.4 });
+      observer.observe(heroArt);
+    }
+  }
 })();
