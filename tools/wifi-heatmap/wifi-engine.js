@@ -1615,6 +1615,7 @@
 
   if (modeSimBtn && modeLiveBtn && simWorkspace && livePanel) {
     modeSimBtn.addEventListener('click', () => {
+      stopLiveWalk(false);
       modeSimBtn.classList.add('is-active');
       modeLiveBtn.classList.remove('is-active');
       modeSimBtn.setAttribute('aria-pressed', 'true');
@@ -1643,33 +1644,63 @@
   }
 
   // ==========================================================================
-  // Live Mobile Scanner Engine
+  // Live connection walk engine
   // ==========================================================================
-  const startScanBtn = document.getElementById('startRoomScanBtn');
+  const startLiveWalkBtn = document.getElementById('startLiveWalkBtn');
+  const startLiveWalkBtnText = startLiveWalkBtn?.querySelector('span');
+  const stopLiveWalkBtn = document.getElementById('stopLiveWalkBtn');
+  const liveWalkControls = document.getElementById('liveWalkControls');
+  const markWeakSpotBtn = document.getElementById('markWeakSpotBtn');
+  const liveRadarCard = document.getElementById('liveRadarCard');
+  const liveSessionStatus = document.getElementById('liveSessionStatus');
+  const liveSampleCount = document.getElementById('liveSampleCount');
   const liveQualityVal = document.getElementById('liveQualityVal');
   const liveLatencyNum = document.getElementById('liveLatencyNum');
   const liveJitterNum = document.getElementById('liveJitterNum');
   const liveSpeedEstNum = document.getElementById('liveSpeedEstNum');
+  const liveResultMeaning = document.getElementById('liveResultMeaning');
+  const scanProgress = document.getElementById('scanProgress');
   const auditHistoryList = document.getElementById('auditHistoryList');
   const auditSummary = document.getElementById('auditSummary');
   const clearAuditBtn = document.getElementById('clearAuditBtn');
-  const scanProgress = document.getElementById('scanProgress');
-  const liveResultCard = document.getElementById('liveResultCard');
-  const liveResultEmpty = document.getElementById('liveResultEmpty');
-  const liveResultEmptyTitle = document.getElementById('liveResultTitle');
-  const liveResultEmptyCopy = document.getElementById('liveResultEmptyCopy');
-  const liveResultContent = document.getElementById('liveResultContent');
-  const liveResultRoom = document.getElementById('liveResultRoom');
-  const liveResultMeaning = document.getElementById('liveResultMeaning');
-  const liveResultAdvice = document.getElementById('liveResultAdvice');
-  const customRoomName = document.getElementById('customRoomName');
-  const useCustomRoomBtn = document.getElementById('useCustomRoomBtn');
-  const scanRoomButtons = [...document.querySelectorAll('[data-scan-room]')];
+  const vibrateOnPoor = document.getElementById('vibrateOnPoor');
+  const vibrationControl = document.getElementById('vibrationControl');
+  const localPreviewNote = document.getElementById('localPreviewNote');
   const liveStepEls = [...document.querySelectorAll('[data-live-step]')];
-  const startScanBtnText = startScanBtn?.querySelector('span');
-  let selectedRoomName = 'Living Room';
-  const scannedAuditLog = {};
   const connectionTestAsset = '/assets/img/hero-house.webp';
+  const markedSpotsStorageKey = 'jrs-wifi-marked-spots-v1';
+  const liveSampleIntervalMs = 3200;
+  const isLocalPreview = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+  let liveWalkActive = false;
+  let liveSampleTimer = null;
+  let liveAbortController = null;
+  let liveWakeLock = null;
+  let liveSampleInFlight = false;
+  let liveReadingCount = 0;
+  let liveSamples = [];
+  let latestLiveReading = null;
+  let lastLiveRating = '';
+  let editingMarkId = null;
+
+  const loadMarkedSpots = () => {
+    try {
+      const stored = JSON.parse(localStorage.getItem(markedSpotsStorageKey) || '[]');
+      return Array.isArray(stored) ? stored.filter(spot => spot && spot.id && spot.name).slice(-50) : [];
+    } catch (error) {
+      return [];
+    }
+  };
+
+  let markedSpots = loadMarkedSpots();
+
+  const saveMarkedSpots = () => {
+    try {
+      localStorage.setItem(markedSpotsStorageKey, JSON.stringify(markedSpots));
+    } catch (error) {
+      showToast('Marks could not be saved on this device.');
+    }
+  };
 
   const setLiveStep = activeStep => {
     liveStepEls.forEach(stepEl => {
@@ -1679,275 +1710,368 @@
     });
   };
 
-  const setScanButtonLabel = label => {
-    if (startScanBtnText) startScanBtnText.textContent = label;
-    else if (startScanBtn) startScanBtn.textContent = label;
+  const median = values => {
+    if (!values.length) return 0;
+    const sorted = [...values].sort((a, b) => a - b);
+    const middle = Math.floor(sorted.length / 2);
+    return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
   };
 
-  const setRoomControlsDisabled = disabled => {
-    scanRoomButtons.forEach(button => { button.disabled = disabled; });
-    if (customRoomName) customRoomName.disabled = disabled;
-    if (useCustomRoomBtn) useCustomRoomBtn.disabled = disabled;
-  };
-
-  const getConnectionRating = (avgLatency, jitter, measuredMbps) => {
-    if (avgLatency <= 40 && jitter <= 20 && measuredMbps >= 100) {
+  const getLiveRating = (responseMs, variationMs, measuredMbps) => {
+    if (responseMs <= 40 && variationMs <= 20 && measuredMbps >= 100) {
       return {
         statusLabel: 'Excellent',
         badgeClass: 'wifi-room-tag--strong',
-        meaning: 'Great for 4K streaming, video calls and online gaming.',
-        advice: 'No Wi-Fi changes are needed in this room.'
+        meaning: 'Strong enough for 4K streaming, video calls and online gaming.'
       };
     }
-    if (avgLatency <= 80 && jitter <= 40 && measuredMbps >= 25) {
+    if (responseMs <= 80 && variationMs <= 40 && measuredMbps >= 25) {
       return {
         statusLabel: 'Good',
         badgeClass: 'wifi-room-tag--strong',
-        meaning: 'Good for streaming, video calls and everyday work.',
-        advice: 'This room should be reliable. Check it once more if it is important for work or study.'
+        meaning: 'Good for streaming, video calls and everyday work.'
       };
     }
-    if (avgLatency <= 150 && jitter <= 80 && measuredMbps >= 10) {
+    if (responseMs <= 150 && variationMs <= 80 && measuredMbps >= 10) {
       return {
         statusLabel: 'Fair',
         badgeClass: 'wifi-room-tag--good',
-        meaning: 'Fine for browsing, but calls or streaming may occasionally wobble.',
-        advice: 'Retest once. If it stays Fair, move the router into a clearer position or try 2.4 GHz.'
+        meaning: 'Usable, but calls or streaming may occasionally wobble.'
       };
     }
     return {
       statusLabel: 'Poor',
       badgeClass: 'wifi-room-tag--dead',
-      meaning: 'This room may struggle with video calls, streaming or gaming.',
-      advice: 'Try moving the router, or place a mesh node halfway between the modem and this room.'
+      meaning: 'Weak here. This is a good place to mark and investigate.'
     };
   };
 
-  const showEmptyResult = roomName => {
-    if (liveResultCard) liveResultCard.dataset.rating = 'empty';
-    if (liveResultEmpty) liveResultEmpty.hidden = false;
-    if (liveResultContent) liveResultContent.hidden = true;
-    if (liveResultEmptyTitle) liveResultEmptyTitle.textContent = `Ready to check ${roomName}`;
-    if (liveResultEmptyCopy) liveResultEmptyCopy.textContent = 'Keep this device in one spot, then tap the orange check button.';
+  const formatMbps = value => value >= 100 ? Math.round(value) : Math.round(value * 10) / 10;
+
+  const updateLiveReading = reading => {
+    if (!reading) return;
+    if (liveRadarCard) liveRadarCard.dataset.rating = reading.statusLabel.toLowerCase();
+    if (liveQualityVal) liveQualityVal.textContent = reading.statusLabel;
+    if (liveSpeedEstNum) liveSpeedEstNum.textContent = String(reading.measuredMbps) + ' Mbps';
+    if (liveLatencyNum) liveLatencyNum.textContent = String(reading.responseMs) + ' ms';
+    if (liveJitterNum) liveJitterNum.textContent = String(reading.variationMs) + ' ms';
+    if (liveResultMeaning) liveResultMeaning.textContent = reading.meaning;
+    if (liveSampleCount) liveSampleCount.textContent = String(liveReadingCount) + (liveReadingCount === 1 ? ' reading' : ' readings');
+    if (markWeakSpotBtn) markWeakSpotBtn.disabled = false;
   };
 
-  const showRoomResult = (roomName, result) => {
-    if (liveResultCard) liveResultCard.dataset.rating = result.statusLabel.toLowerCase();
-    if (liveResultEmpty) liveResultEmpty.hidden = true;
-    if (liveResultContent) liveResultContent.hidden = false;
-    if (liveResultRoom) liveResultRoom.textContent = roomName;
-    if (liveQualityVal) liveQualityVal.textContent = result.statusLabel;
-    if (liveSpeedEstNum) liveSpeedEstNum.textContent = typeof result.measuredMbps === 'number' ? `${result.measuredMbps} Mbps` : result.measuredMbps;
-    if (liveLatencyNum) liveLatencyNum.textContent = typeof result.avgLatency === 'number' ? `${result.avgLatency} ms` : result.avgLatency;
-    if (liveJitterNum) liveJitterNum.textContent = typeof result.jitter === 'number' ? `${result.jitter} ms` : result.jitter;
-    if (liveResultMeaning) liveResultMeaning.textContent = result.meaning;
-    if (liveResultAdvice) liveResultAdvice.textContent = result.advice;
+  const resetLiveReading = () => {
+    latestLiveReading = null;
+    liveSamples = [];
+    liveReadingCount = 0;
+    lastLiveRating = '';
+    if (liveRadarCard) liveRadarCard.dataset.rating = 'waiting';
+    if (liveQualityVal) liveQualityVal.textContent = 'Checking';
+    if (liveSpeedEstNum) liveSpeedEstNum.textContent = '—';
+    if (liveLatencyNum) liveLatencyNum.textContent = '—';
+    if (liveJitterNum) liveJitterNum.textContent = '—';
+    if (liveResultMeaning) liveResultMeaning.textContent = 'Hold the phone normally while the first reading completes.';
+    if (liveSampleCount) liveSampleCount.textContent = 'Waiting for first reading';
+    if (markWeakSpotBtn) markWeakSpotBtn.disabled = true;
   };
 
-  const renderAuditHistory = () => {
+  const renderMarkedSpots = () => {
     if (!auditHistoryList) return;
-    const entries = Object.entries(scannedAuditLog);
     auditHistoryList.replaceChildren();
 
-    if (!entries.length) {
+    if (!markedSpots.length) {
       const empty = document.createElement('div');
       empty.className = 'wifi-audit-empty';
       const title = document.createElement('strong');
-      title.textContent = 'Start near the modem';
+      title.textContent = 'Walk until the pulse weakens';
       const detail = document.createElement('span');
-      detail.textContent = 'Then check the furthest bedroom or home office to make the difference obvious.';
+      detail.textContent = 'Tap “Mark this spot” and keep moving. You can rename every mark after the walk.';
       empty.append(title, detail);
       auditHistoryList.append(empty);
-      if (auditSummary) auditSummary.textContent = 'No rooms checked yet.';
+      if (auditSummary) auditSummary.textContent = 'No spots marked yet.';
       if (clearAuditBtn) clearAuditBtn.disabled = true;
       return;
     }
 
-    entries.forEach(([roomName, result]) => {
-      const row = document.createElement('div');
+    markedSpots.forEach((spot, index) => {
+      const row = document.createElement('article');
       row.className = 'wifi-audit-row';
       row.setAttribute('role', 'listitem');
 
-      const room = document.createElement('div');
-      room.className = 'wifi-audit-room';
-      const roomTitle = document.createElement('strong');
-      roomTitle.textContent = roomName;
-      const checkCount = document.createElement('span');
-      checkCount.textContent = `${result.runCount} ${result.runCount === 1 ? 'check' : 'checks'}`;
-      room.append(roomTitle, checkCount);
+      const main = document.createElement('div');
+      main.className = 'wifi-mark-main';
+      const number = document.createElement('span');
+      number.className = 'wifi-mark-number';
+      number.textContent = String(index + 1);
+      const nameWrap = document.createElement('div');
+      nameWrap.className = 'wifi-mark-name';
 
-      const metrics = document.createElement('div');
-      metrics.className = 'wifi-audit-result';
+      if (editingMarkId === spot.id) {
+        const form = document.createElement('form');
+        form.className = 'wifi-mark-edit-form';
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.maxLength = 30;
+        input.value = spot.name;
+        input.setAttribute('aria-label', 'Rename marked spot');
+        const saveButton = document.createElement('button');
+        saveButton.className = 'wifi-mark-action-btn';
+        saveButton.type = 'submit';
+        saveButton.textContent = 'Save';
+        form.append(input, saveButton);
+        form.addEventListener('submit', event => {
+          event.preventDefault();
+          const nextName = input.value.trim().slice(0, 30);
+          if (!nextName) {
+            input.focus();
+            return;
+          }
+          spot.name = nextName;
+          editingMarkId = null;
+          saveMarkedSpots();
+          renderMarkedSpots();
+          showToast('Marked spot renamed.');
+        });
+        nameWrap.append(form);
+        window.setTimeout(() => {
+          input.focus();
+          input.select();
+        }, 0);
+      } else {
+        const name = document.createElement('strong');
+        name.textContent = spot.name;
+        const time = document.createElement('small');
+        time.textContent = new Date(spot.createdAt).toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' });
+        nameWrap.append(name, time);
+      }
+      main.append(number, nameWrap);
+
+      const reading = document.createElement('div');
+      reading.className = 'wifi-mark-reading';
       const speed = document.createElement('strong');
-      speed.textContent = `${result.measuredMbps} Mbps`;
+      speed.textContent = String(spot.measuredMbps) + ' Mbps';
       const detail = document.createElement('small');
-      detail.textContent = ` · ${result.avgLatency} ms response · ${result.jitter} ms stability`;
-      metrics.append(speed, detail);
+      detail.textContent = ' · ' + spot.responseMs + ' ms response · ' + spot.variationMs + ' ms variation';
+      const rating = document.createElement('span');
+      rating.className = 'wifi-room-tag ' + spot.badgeClass;
+      rating.textContent = spot.statusLabel;
+      reading.append(speed, detail, rating);
 
-      const tag = document.createElement('span');
-      tag.className = `wifi-room-tag ${result.badgeClass}`;
-      tag.textContent = result.statusLabel;
-      row.append(room, metrics, tag);
+      const actions = document.createElement('div');
+      actions.className = 'wifi-mark-actions';
+      const renameButton = document.createElement('button');
+      renameButton.className = 'wifi-mark-action-btn';
+      renameButton.type = 'button';
+      renameButton.textContent = editingMarkId === spot.id ? 'Cancel' : 'Rename';
+      renameButton.addEventListener('click', () => {
+        editingMarkId = editingMarkId === spot.id ? null : spot.id;
+        renderMarkedSpots();
+      });
+      const removeButton = document.createElement('button');
+      removeButton.className = 'wifi-mark-action-btn';
+      removeButton.type = 'button';
+      removeButton.textContent = 'Remove';
+      removeButton.setAttribute('aria-label', 'Remove ' + spot.name);
+      removeButton.addEventListener('click', () => {
+        markedSpots = markedSpots.filter(mark => mark.id !== spot.id);
+        if (editingMarkId === spot.id) editingMarkId = null;
+        saveMarkedSpots();
+        renderMarkedSpots();
+        showToast('Marked spot removed.');
+      });
+      actions.append(renameButton, removeButton);
+
+      row.append(main, reading, actions);
       auditHistoryList.append(row);
     });
 
-    const rank = { Poor: 0, Fair: 1, Good: 2, Excellent: 3 };
-    const rankedEntries = [...entries].sort((a, b) => {
-      const ratingDifference = rank[b[1].statusLabel] - rank[a[1].statusLabel];
-      return ratingDifference || b[1].measuredMbps - a[1].measuredMbps;
-    });
-    const bestRoom = rankedEntries[0][0];
-    const weakest = rankedEntries[rankedEntries.length - 1];
-
+    const weakCount = markedSpots.filter(spot => ['Poor', 'Fair'].includes(spot.statusLabel)).length;
     if (auditSummary) {
-      if (entries.length === 1) {
-        auditSummary.textContent = `${bestRoom} saved. Check a room further from the modem next.`;
-      } else {
-        const needsHelp = ['Poor', 'Fair'].includes(weakest[1].statusLabel) ? ` · Needs attention: ${weakest[0]}` : '';
-        auditSummary.textContent = `${entries.length} rooms checked · Best: ${bestRoom}${needsHelp}`;
-      }
+      auditSummary.textContent = String(markedSpots.length) + (markedSpots.length === 1 ? ' spot marked' : ' spots marked') +
+        (weakCount ? ' · ' + weakCount + ' weak' : '');
     }
     if (clearAuditBtn) clearAuditBtn.disabled = false;
   };
 
-  const selectScanRoom = (roomName, selectedButton = null) => {
-    const cleanName = roomName.trim().slice(0, 30);
-    if (!cleanName) return;
-    scanRoomButtons.forEach(button => {
-      const isSelected = button === selectedButton;
-      button.classList.toggle('is-selected', isSelected);
-      button.setAttribute('aria-pressed', String(isSelected));
-    });
-    selectedRoomName = cleanName;
-    const previousResult = scannedAuditLog[selectedRoomName];
-    setScanButtonLabel(previousResult ? `Check ${selectedRoomName} again` : `Check ${selectedRoomName}`);
-    if (scanProgress) scanProgress.textContent = `Ready to check ${selectedRoomName}.`;
-    if (previousResult) showRoomResult(selectedRoomName, previousResult);
-    else showEmptyResult(selectedRoomName);
+  const requestScreenWakeLock = async () => {
+    if (!('wakeLock' in navigator) || document.hidden || liveWakeLock) return;
+    try {
+      liveWakeLock = await navigator.wakeLock.request('screen');
+      liveWakeLock.addEventListener('release', () => { liveWakeLock = null; });
+    } catch (error) {
+      liveWakeLock = null;
+    }
+  };
+
+  const releaseScreenWakeLock = async () => {
+    if (!liveWakeLock) return;
+    try {
+      await liveWakeLock.release();
+    } catch (error) {
+      // The lock may already have been released by the browser.
+    }
+    liveWakeLock = null;
+  };
+
+  const takeConnectionSample = async () => {
+    liveAbortController = new AbortController();
+    const timeoutId = window.setTimeout(() => liveAbortController?.abort(), 8000);
+    const startedAt = performance.now();
+
+    try {
+      const response = await fetch(connectionTestAsset + '?live_walk=' + Date.now(), {
+        method: 'GET',
+        cache: 'no-store',
+        signal: liveAbortController.signal
+      });
+      const headersAt = performance.now();
+      if (!response.ok) throw new Error('Connection pulse returned ' + response.status);
+      const payload = await response.arrayBuffer();
+      const completedAt = performance.now();
+      const durationSeconds = Math.max((completedAt - startedAt) / 1000, 0.001);
+      return {
+        responseMs: headersAt - startedAt,
+        measuredMbps: Math.max(0.1, (payload.byteLength * 8) / durationSeconds / 1000000)
+      };
+    } finally {
+      window.clearTimeout(timeoutId);
+      liveAbortController = null;
+    }
+  };
+
+  const scheduleNextLiveSample = () => {
+    window.clearTimeout(liveSampleTimer);
+    liveSampleTimer = null;
+    if (!liveWalkActive || document.hidden) return;
+    liveSampleTimer = window.setTimeout(runLiveSample, liveSampleIntervalMs);
+  };
+
+  const runLiveSample = async () => {
+    if (!liveWalkActive || document.hidden || liveSampleInFlight) return;
+    liveSampleInFlight = true;
+    if (scanProgress) scanProgress.textContent = 'Taking a fresh connection reading…';
+
+    try {
+      const sample = await takeConnectionSample();
+      if (!liveWalkActive) return;
+      liveSamples.push(sample);
+      if (liveSamples.length > 5) liveSamples.shift();
+      liveReadingCount += 1;
+
+      const responseMs = Math.round(median(liveSamples.map(reading => reading.responseMs)));
+      const variationMs = Math.round(Math.max(...liveSamples.map(reading => reading.responseMs)) - Math.min(...liveSamples.map(reading => reading.responseMs)));
+      const measuredMbpsRaw = median(liveSamples.map(reading => reading.measuredMbps));
+      const measuredMbps = formatMbps(measuredMbpsRaw);
+      const rating = getLiveRating(responseMs, variationMs, measuredMbpsRaw);
+      latestLiveReading = {
+        responseMs,
+        variationMs,
+        measuredMbps,
+        ...rating
+      };
+
+      updateLiveReading(latestLiveReading);
+      if (scanProgress) scanProgress.textContent = 'Live · walk slowly and mark any weak spot.';
+
+      if (rating.statusLabel === 'Poor' && lastLiveRating !== 'Poor' && vibrateOnPoor?.checked && 'vibrate' in navigator) {
+        navigator.vibrate([140, 80, 140]);
+      }
+      lastLiveRating = rating.statusLabel;
+    } catch (error) {
+      if (error.name !== 'AbortError' && liveWalkActive) {
+        if (liveRadarCard) liveRadarCard.dataset.rating = 'unavailable';
+        if (liveQualityVal) liveQualityVal.textContent = 'Unavailable';
+        if (liveResultMeaning) liveResultMeaning.textContent = 'The live pulse could not reach the test server.';
+        if (scanProgress) scanProgress.textContent = 'Check your internet connection. Retrying automatically…';
+      }
+    } finally {
+      liveSampleInFlight = false;
+      scheduleNextLiveSample();
+    }
+  };
+
+  const startLiveWalk = () => {
+    if (liveWalkActive) return;
+    liveWalkActive = true;
+    if (!latestLiveReading) resetLiveReading();
+    if (liveRadarCard) liveRadarCard.dataset.running = 'true';
+    if (liveSessionStatus) liveSessionStatus.textContent = 'Live';
+    if (startLiveWalkBtn) startLiveWalkBtn.hidden = true;
+    if (liveWalkControls) liveWalkControls.hidden = false;
+    if (scanProgress) scanProgress.textContent = 'Starting the first reading…';
     setLiveStep(2);
+    requestScreenWakeLock();
+    runLiveSample();
   };
 
-  scanRoomButtons.forEach(btn => {
-    btn.addEventListener('click', () => selectScanRoom(btn.dataset.scanRoom, btn));
-  });
-
-  const useCustomRoom = () => {
-    const customName = customRoomName?.value.trim() || '';
-    if (!customName) {
-      customRoomName?.focus();
-      showToast('Enter a room name first.');
-      return;
-    }
-    selectScanRoom(customName);
+  const stopLiveWalk = (announce = true) => {
+    if (!liveWalkActive) return;
+    liveWalkActive = false;
+    window.clearTimeout(liveSampleTimer);
+    liveSampleTimer = null;
+    liveAbortController?.abort();
+    liveAbortController = null;
+    if (liveRadarCard) liveRadarCard.dataset.running = 'false';
+    if (liveSessionStatus) liveSessionStatus.textContent = 'Stopped';
+    if (startLiveWalkBtn) startLiveWalkBtn.hidden = false;
+    if (startLiveWalkBtnText) startLiveWalkBtnText.textContent = 'Resume live walk';
+    if (liveWalkControls) liveWalkControls.hidden = true;
+    if (scanProgress) scanProgress.textContent = latestLiveReading ? 'Walk stopped. Your latest reading and marks are still here.' : 'Walk stopped before a reading completed.';
+    setLiveStep(markedSpots.length ? 3 : 1);
+    releaseScreenWakeLock();
+    if (announce) showToast('Live walk stopped.');
   };
 
-  useCustomRoomBtn?.addEventListener('click', useCustomRoom);
-  customRoomName?.addEventListener('keydown', event => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      useCustomRoom();
-    }
+  startLiveWalkBtn?.addEventListener('click', startLiveWalk);
+  stopLiveWalkBtn?.addEventListener('click', () => stopLiveWalk());
+  markWeakSpotBtn?.addEventListener('click', () => {
+    if (!latestLiveReading) return;
+    const nextNumber = markedSpots.reduce((highest, spot) => Math.max(highest, Number(spot.autoNumber) || 0), 0) + 1;
+    const spot = {
+      id: String(Date.now()) + '-' + String(nextNumber),
+      autoNumber: nextNumber,
+      name: 'Spot ' + nextNumber,
+      createdAt: Date.now(),
+      ...latestLiveReading
+    };
+    markedSpots.push(spot);
+    saveMarkedSpots();
+    renderMarkedSpots();
+    setLiveStep(3);
+    if ('vibrate' in navigator) navigator.vibrate(60);
+    showToast(spot.name + ' marked. Rename it now or after the walk.');
   });
 
   clearAuditBtn?.addEventListener('click', () => {
-    Object.keys(scannedAuditLog).forEach(roomName => delete scannedAuditLog[roomName]);
-    renderAuditHistory();
-    showEmptyResult(selectedRoomName);
-    setScanButtonLabel(`Check ${selectedRoomName}`);
-    if (scanProgress) scanProgress.textContent = `Ready to check ${selectedRoomName}.`;
-    setLiveStep(2);
-    showToast('Room results cleared.');
+    if (!markedSpots.length || !window.confirm('Clear every marked spot from this device?')) return;
+    markedSpots = [];
+    editingMarkId = null;
+    saveMarkedSpots();
+    renderMarkedSpots();
+    setLiveStep(liveWalkActive ? 2 : 1);
+    showToast('All marked spots cleared.');
   });
 
-  if (startScanBtn) {
-    startScanBtn.addEventListener('click', async () => {
-      const roomBeingChecked = selectedRoomName;
-      startScanBtn.disabled = true;
-      startScanBtn.dataset.loading = 'true';
-      setRoomControlsDisabled(true);
-      setScanButtonLabel(`Checking ${roomBeingChecked}...`);
-      setLiveStep(2);
+  document.addEventListener('visibilitychange', () => {
+    if (!liveWalkActive) return;
+    if (document.hidden) {
+      window.clearTimeout(liveSampleTimer);
+      liveSampleTimer = null;
+      liveAbortController?.abort();
+      if (liveSessionStatus) liveSessionStatus.textContent = 'Paused';
+      if (scanProgress) scanProgress.textContent = 'Paused while this page is in the background.';
+      releaseScreenWakeLock();
+    } else {
+      if (liveSessionStatus) liveSessionStatus.textContent = 'Live';
+      if (scanProgress) scanProgress.textContent = 'Resuming live readings…';
+      requestScreenWakeLock();
+      if (!liveSampleInFlight) runLiveSample();
+    }
+  });
 
-      try {
-        const latencies = [];
-        let totalBytes = 0;
-        let totalDuration = 0;
-
-        for (let i = 0; i < 4; i++) {
-          if (scanProgress) {
-            const progressMessages = ['Connecting to the test server…', 'Checking response time…', 'Checking stability…', 'Measuring download…'];
-            scanProgress.textContent = progressMessages[i];
-          }
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 8000);
-          const startedAt = performance.now();
-
-          try {
-            const response = await fetch(`${connectionTestAsset}?connection_test=${Date.now()}_${i}`, {
-              method: 'GET',
-              cache: 'no-store',
-              signal: controller.signal
-            });
-            const headersAt = performance.now();
-            if (!response.ok) throw new Error(`Connection test returned ${response.status}`);
-            const payload = await response.arrayBuffer();
-            const completedAt = performance.now();
-            latencies.push(headersAt - startedAt);
-            totalBytes += payload.byteLength;
-            totalDuration += completedAt - startedAt;
-          } finally {
-            clearTimeout(timeoutId);
-          }
-        }
-
-        if (!latencies.length || !totalBytes || !totalDuration) {
-          throw new Error('No connection samples completed');
-        }
-
-        const avgLatency = Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length);
-        const jitter = Math.round(Math.max(...latencies) - Math.min(...latencies));
-        const measuredMbps = Math.max(0.1, (totalBytes * 8) / (totalDuration / 1000) / 1000000);
-        const previousRuns = scannedAuditLog[roomBeingChecked]?.runs || [];
-        const runs = [...previousRuns, { avgLatency, jitter, measuredMbps }];
-        const averagedLatency = Math.round(runs.reduce((sum, run) => sum + run.avgLatency, 0) / runs.length);
-        const averagedJitter = Math.round(runs.reduce((sum, run) => sum + run.jitter, 0) / runs.length);
-        const averagedMbpsRaw = runs.reduce((sum, run) => sum + run.measuredMbps, 0) / runs.length;
-        const averagedMbps = averagedMbpsRaw >= 100 ? Math.round(averagedMbpsRaw) : Math.round(averagedMbpsRaw * 10) / 10;
-        const rating = getConnectionRating(averagedLatency, averagedJitter, averagedMbpsRaw);
-        const roomResult = {
-          runs,
-          runCount: runs.length,
-          avgLatency: averagedLatency,
-          jitter: averagedJitter,
-          measuredMbps: averagedMbps,
-          ...rating
-        };
-
-        scannedAuditLog[roomBeingChecked] = roomResult;
-        showRoomResult(roomBeingChecked, roomResult);
-        renderAuditHistory();
-        setLiveStep(3);
-        if (scanProgress) scanProgress.textContent = `${roomBeingChecked} saved. Move to another room or check it again.`;
-        showToast(`${roomBeingChecked}: ${rating.statusLabel}, ${averagedMbps} Mbps measured download`);
-      } catch (error) {
-        showRoomResult(roomBeingChecked, {
-          statusLabel: 'Unavailable',
-          measuredMbps: '—',
-          avgLatency: '—',
-          jitter: '—',
-          meaning: 'The check could not reach the test server.',
-          advice: 'Confirm this device is online, then try again. No result was saved.'
-        });
-        if (scanProgress) scanProgress.textContent = 'Check failed. Confirm you are online and try again.';
-        showToast('Connection check failed. Confirm you are online and try again.');
-      } finally {
-        startScanBtn.disabled = false;
-        startScanBtn.dataset.loading = 'false';
-        setRoomControlsDisabled(false);
-        setScanButtonLabel(scannedAuditLog[roomBeingChecked] ? `Check ${roomBeingChecked} again` : `Retry ${roomBeingChecked}`);
-      }
-    });
-  }
+  if (localPreviewNote && isLocalPreview) localPreviewNote.hidden = false;
+  if (vibrationControl && !('vibrate' in navigator)) vibrationControl.hidden = true;
+  renderMarkedSpots();
 
   // --- Initial Launch ---
   refreshCanvasRect();

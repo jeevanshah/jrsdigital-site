@@ -98,7 +98,7 @@
           </button>
           <button class="wifi-mode-btn" id="modeLiveBtn" type="button" aria-pressed="false">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
-            Room-by-room connection check
+            Live dead-zone walk
           </button>
         </div>
 
@@ -302,111 +302,111 @@
 
         </div>
 
-        <!-- Mode 2: guided room-by-room connection walk test (hidden by default) -->
+        <!-- Mode 2: live connection walk with user-marked weak spots (hidden by default) -->
         <section class="wifi-live-scanner-panel" id="liveScannerPanel" aria-labelledby="liveScannerTitle">
           <header class="wifi-live-header">
-            <span class="wifi-live-kicker">Walk test · no app required</span>
-            <h2 id="liveScannerTitle">Check your connection room by room</h2>
-            <p>Take this device into each room, choose where you are and run a short check. Start near your modem, then test the room furthest away.</p>
+            <span class="wifi-live-kicker">Live walk · no app required</span>
+            <h2 id="liveScannerTitle">Walk your home and mark weak spots</h2>
+            <p>Start the live pulse, carry this phone through your home and tap <strong>Mark this spot</strong> whenever the connection drops. Name each spot now or after the walk.</p>
           </header>
 
-          <ol class="wifi-live-steps" aria-label="Room check progress">
-            <li class="is-active" data-live-step="1"><span>1</span><strong>Choose room</strong></li>
-            <li data-live-step="2"><span>2</span><strong>Run check</strong></li>
-            <li data-live-step="3"><span>3</span><strong>Compare</strong></li>
+          <div class="wifi-local-preview-note" id="localPreviewNote" role="note" hidden>
+            <strong>Local preview:</strong> these readings come from this computer. Use the published page on your phone for a meaningful walk test.
+          </div>
+
+          <ol class="wifi-live-steps" aria-label="Live dead-zone walk steps">
+            <li class="is-active" data-live-step="1"><span>1</span><strong>Start</strong></li>
+            <li data-live-step="2"><span>2</span><strong>Walk</strong></li>
+            <li data-live-step="3"><span>3</span><strong>Mark spots</strong></li>
           </ol>
 
           <div class="wifi-live-walk-grid">
-            <section class="wifi-live-control-card" aria-labelledby="roomPickerTitle">
-              <span class="wifi-live-section-label">Where are you now?</span>
-              <h3 id="roomPickerTitle">Choose this room</h3>
-              <p class="wifi-live-control-copy">Keep the device in the same spot until the check finishes.</p>
+            <section class="wifi-live-radar-card" id="liveRadarCard" data-rating="waiting" aria-label="Live connection pulse">
+              <header class="wifi-live-session-bar">
+                <span class="wifi-live-status"><i aria-hidden="true"></i><strong id="liveSessionStatus">Ready</strong></span>
+                <span id="liveSampleCount">No readings yet</span>
+              </header>
 
-              <div class="wifi-room-select-grid" aria-label="Choose the room you are standing in">
-                <button class="wifi-room-pick-btn is-selected" data-scan-room="Living Room" type="button" aria-pressed="true">Living room</button>
-                <button class="wifi-room-pick-btn" data-scan-room="Kitchen" type="button" aria-pressed="false">Kitchen</button>
-                <button class="wifi-room-pick-btn" data-scan-room="Central Hallway" type="button" aria-pressed="false">Hallway</button>
-                <button class="wifi-room-pick-btn" data-scan-room="Main Bedroom" type="button" aria-pressed="false">Main bedroom</button>
-                <button class="wifi-room-pick-btn" data-scan-room="Bedroom 2" type="button" aria-pressed="false">Bedroom 2</button>
-                <button class="wifi-room-pick-btn" data-scan-room="Home Office" type="button" aria-pressed="false">Home office</button>
-                <button class="wifi-room-pick-btn" data-scan-room="Garage" type="button" aria-pressed="false">Garage</button>
-                <button class="wifi-room-pick-btn" data-scan-room="Alfresco / Patio" type="button" aria-pressed="false">Alfresco / patio</button>
+              <button class="wifi-scan-btn" id="startLiveWalkBtn" type="button">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+                <span>Start live walk</span>
+              </button>
+
+              <div class="wifi-live-active-controls" id="liveWalkControls" hidden>
+                <button class="wifi-mark-spot-btn" id="markWeakSpotBtn" type="button" disabled>
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                  Mark this spot
+                </button>
+                <button class="wifi-stop-walk-btn" id="stopLiveWalkBtn" type="button">Stop</button>
               </div>
 
-              <details class="wifi-custom-room">
-                <summary>Room not listed?</summary>
-                <div class="wifi-custom-room-entry">
-                  <label for="customRoomName">Room name</label>
-                  <div>
-                    <input id="customRoomName" type="text" maxlength="30" autocomplete="off" placeholder="e.g. Granny flat">
-                    <button id="useCustomRoomBtn" type="button">Use room</button>
-                  </div>
-                </div>
-              </details>
+              <div class="wifi-radar" aria-hidden="true">
+                <span class="wifi-radar-ring wifi-radar-ring--one"></span>
+                <span class="wifi-radar-ring wifi-radar-ring--two"></span>
+                <span class="wifi-radar-ring wifi-radar-ring--three"></span>
+                <span class="wifi-radar-sweep"></span>
+                <span class="wifi-radar-core">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect width="12" height="19" x="6" y="2.5" rx="2"/><path d="M10 5.5h4M11.7 18.5h.6"/></svg>
+                </span>
+              </div>
 
-              <button class="wifi-scan-btn" id="startRoomScanBtn" type="button">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
-                <span>Check Living Room</span>
-              </button>
-              <p class="wifi-scan-progress" id="scanProgress" role="status" aria-live="polite">Ready to check Living Room.</p>
+              <div class="wifi-live-current-reading">
+                <strong class="wifi-live-meter-val" id="liveQualityVal" aria-live="polite">Ready</strong>
+                <p id="liveResultMeaning">Start the live walk to begin checking.</p>
+              </div>
+
+              <dl class="wifi-live-stats-row">
+                <div class="wifi-stat-box">
+                  <dt>Download</dt>
+                  <dd id="liveSpeedEstNum">—</dd>
+                </div>
+                <div class="wifi-stat-box">
+                  <dt>Response</dt>
+                  <dd id="liveLatencyNum">—</dd>
+                </div>
+                <div class="wifi-stat-box">
+                  <dt>Variation</dt>
+                  <dd id="liveJitterNum">—</dd>
+                </div>
+              </dl>
+
+              <p class="wifi-scan-progress" id="scanProgress" role="status" aria-live="polite">Ready when you are.</p>
             </section>
 
-            <section class="wifi-live-result-card" id="liveResultCard" data-rating="empty" aria-label="Latest room result">
-              <div class="wifi-live-result-empty" id="liveResultEmpty">
-                <span class="wifi-empty-signal" aria-hidden="true">
-                  <i></i><i></i><i></i>
-                </span>
-                <h3 id="liveResultTitle">Your result will appear here</h3>
-                <p id="liveResultEmptyCopy">One check takes a few seconds. Run it twice in important rooms for a steadier comparison.</p>
-              </div>
+            <section class="wifi-live-control-card" aria-labelledby="liveWalkControlsTitle">
+              <span class="wifi-live-section-label">How it works</span>
+              <h3 id="liveWalkControlsTitle">Let the phone watch while you walk</h3>
+              <ol class="wifi-live-instructions">
+                <li><span>1</span><p><strong>Start beside your modem.</strong> This gives you a useful strong-room baseline.</p></li>
+                <li><span>2</span><p><strong>Walk normally.</strong> The pulse refreshes every few seconds.</p></li>
+                <li><span>3</span><p><strong>Mark weak spots.</strong> They are saved as Spot 1, Spot 2 and can be renamed later.</p></li>
+              </ol>
 
-              <div class="wifi-live-result-content" id="liveResultContent" hidden>
-                <div class="wifi-live-result-heading">
-                  <div>
-                    <span class="wifi-live-section-label">Latest result</span>
-                    <h3 id="liveResultRoom">Living Room</h3>
-                  </div>
-                  <strong class="wifi-live-meter-val" id="liveQualityVal" aria-live="polite">Good</strong>
-                </div>
-                <p class="wifi-live-result-meaning" id="liveResultMeaning">Good for streaming and video calls.</p>
-
-                <dl class="wifi-live-stats-row">
-                  <div class="wifi-stat-box">
-                    <dt>Download</dt>
-                    <dd id="liveSpeedEstNum">-- Mbps</dd>
-                  </div>
-                  <div class="wifi-stat-box">
-                    <dt>Response</dt>
-                    <dd id="liveLatencyNum">-- ms</dd>
-                  </div>
-                  <div class="wifi-stat-box">
-                    <dt>Stability</dt>
-                    <dd id="liveJitterNum">-- ms</dd>
-                  </div>
-                </dl>
-
-                <div class="wifi-live-result-advice" id="liveResultAdvice">No changes needed in this room.</div>
-              </div>
+              <label class="wifi-vibration-control" id="vibrationControl">
+                <input id="vibrateOnPoor" type="checkbox" checked>
+                <span><strong>Vibrate when it turns Poor</strong><small>Works on supported Android phones.</small></span>
+              </label>
+              <p class="wifi-live-data-note">Uses roughly 2–3 MB of data per minute. The screen stays awake where supported.</p>
             </section>
           </div>
 
           <div class="wifi-test-note" role="note">
-            <strong>What this checks:</strong> the connection from this device to JRS Digital, including your Wi-Fi, NBN service and internet route. It cannot read router signal strength or Wi-Fi RSSI.
+            <strong>This is a connection pulse, not RF radar.</strong> Browsers cannot read Wi-Fi RSSI or indoor position. It compares the connection from this phone to JRS Digital so you can mark weak locations yourself.
           </div>
 
-          <section class="wifi-audit-history" aria-labelledby="auditHistoryTitle">
+          <section class="wifi-audit-history" aria-labelledby="savedSpotsTitle">
             <header class="wifi-audit-header">
               <div>
-                <span class="wifi-live-section-label">Your walk test</span>
-                <h3 id="auditHistoryTitle">Room comparison</h3>
-                <p id="auditSummary">No rooms checked yet.</p>
+                <span class="wifi-live-section-label">Saved on this device</span>
+                <h3 id="savedSpotsTitle">Marked spots</h3>
+                <p id="auditSummary">No spots marked yet.</p>
               </div>
-              <button class="wifi-clear-results-btn" id="clearAuditBtn" type="button" disabled>Clear results</button>
+              <button class="wifi-clear-results-btn" id="clearAuditBtn" type="button" disabled>Clear marks</button>
             </header>
             <div class="wifi-audit-table" id="auditHistoryList" role="list">
               <div class="wifi-audit-empty">
-                <strong>Start near the modem</strong>
-                <span>Then check the furthest bedroom or home office to make the difference obvious.</span>
+                <strong>Walk until the pulse weakens</strong>
+                <span>Tap “Mark this spot” and keep moving. You can rename every mark after the walk.</span>
               </div>
             </div>
           </section>
