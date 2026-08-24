@@ -64,7 +64,7 @@
             Interactive Diagnostic Engine
           </div>
           <h1>Australian Home <span>Wi-Fi Heatmap</span></h1>
-          <p>Model your exact home layout with synchronized room & wall editing, 1-click House Wizard, or Auto-Generate from your real estate floorplan image.</p>
+          <p>Model your exact home layout with automatic wall merging, doorway physics, hallways, bathrooms, and 1-click House Wizard.</p>
         </section>
 
         <!-- Mode Switcher (Simulator vs Live Phone Scanner) -->
@@ -111,21 +111,24 @@
               Clear All
             </button>
 
-            <button class="wifi-hub-btn" id="resetDefaultBtn" title="Reset to standard 3-bed suburban home">
+            <button class="wifi-hub-btn" id="resetDefaultBtn" title="Reset to standard 3-bed suburban home with hallway">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
               Reset
             </button>
           </div>
         </div>
 
-        <!-- 🧩 Modular Room Block Tray with Full CRUD -->
+        <!-- 🧩 Modular Room Block Tray with Full Australian Catalog -->
         <div class="wifi-room-tray" id="roomTray">
           <div class="wifi-tray-buttons">
             <span class="wifi-tray-label">+ Add Room:</span>
             <button class="wifi-add-room-btn" data-add-room="Living Room">+ Living Room</button>
+            <button class="wifi-add-room-btn" data-add-room="Kitchen">+ Kitchen</button>
+            <button class="wifi-add-room-btn" data-add-room="Central Hallway">+ Hallway</button>
             <button class="wifi-add-room-btn" data-add-room="Master Bedroom">+ Master Bed</button>
             <button class="wifi-add-room-btn" data-add-room="Bedroom">+ Bedroom</button>
-            <button class="wifi-add-room-btn" data-add-room="Kitchen">+ Kitchen</button>
+            <button class="wifi-add-room-btn" data-add-room="Bathroom">+ Bathroom</button>
+            <button class="wifi-add-room-btn" data-add-room="Laundry">+ Laundry</button>
             <button class="wifi-add-room-btn" data-add-room="Home Office">+ Office</button>
             <button class="wifi-add-room-btn" data-add-room="Garage">+ Garage</button>
             <button class="wifi-add-room-btn" data-add-room="Outdoor Patio">+ Patio</button>
@@ -167,10 +170,13 @@
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                   + Add Booster
                 </button>
+                <button class="wifi-tool-btn wifi-tool-btn--door" id="addDoorBtn" title="Click on any wall to place a doorway">
+                  🚪 Add Door
+                </button>
                 <button class="wifi-tool-btn" id="drawBrickBtn" title="Click and drag on canvas to draw wall">
                   🧱 Add Wall
                 </button>
-                <button class="wifi-tool-btn wifi-tool-btn--erase" id="eraseWallBtn" title="Click any wall segment on canvas to remove it">
+                <button class="wifi-tool-btn wifi-tool-btn--erase" id="eraseWallBtn" title="Click any wall or door on canvas to remove it">
                   🧹 Erase Wall
                 </button>
                 <button class="wifi-tool-btn" id="shareFloorplanBtn" title="Download PNG snapshot of your heatmap">
@@ -253,7 +259,7 @@
                 Diagnostic Recommendation
               </h4>
               <p id="adviceText">
-                Double brick walls in Australian homes cut 5GHz signals by up to -14dB. Repositioning the router centrally or adding a mesh node eliminates dead zones in bedrooms.
+                Double brick walls in Australian homes cut 5GHz signals by up to -14dB. Doorways and central hallways allow RF signals to propagate naturally across bedrooms.
               </p>
               <a href="/deals/" class="wifi-cta-btn">
                 Compare Faster NBN Plans
@@ -299,10 +305,10 @@
             <div class="wifi-room-select-grid">
               <button class="wifi-room-pick-btn is-selected" data-scan-room="Living Room">Living Room</button>
               <button class="wifi-room-pick-btn" data-scan-room="Kitchen">Kitchen</button>
+              <button class="wifi-room-pick-btn" data-scan-room="Central Hallway">Hallway</button>
               <button class="wifi-room-pick-btn" data-scan-room="Master Bedroom">Master Bed</button>
-              <button class="wifi-room-pick-btn" data-scan-room="Bedroom 2">Bedroom 2</button>
+              <button class="wifi-room-pick-btn" data-scan-room="Main Bathroom">Bathroom</button>
               <button class="wifi-room-pick-btn" data-scan-room="Home Office">Home Office</button>
-              <button class="wifi-room-pick-btn" data-scan-room="Outdoor Patio">Patio / Garden</button>
             </div>
 
             <button class="wifi-scan-btn" id="startRoomScanBtn">
@@ -340,9 +346,9 @@
             <div class="wifi-guide-card">
               <h3>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
-                Wi-Fi vs NBN Bottlenecks
+                Doorways & Hallways
               </h3>
-              <p>Upgrading to NBN 1000 won't fix a weak bedroom signal. If your Wi-Fi heatmap is red, you need a mesh node. If it's green but buffering, your NBN tier is the bottleneck.</p>
+              <p>Door openings create line-of-sight RF channels down central hallways. Placing your router with direct hallway visibility maximizes signal across bedrooms.</p>
             </div>
 
             <div class="wifi-guide-card">
@@ -382,7 +388,7 @@
           <div class="wifi-field-group">
             <label>2. Home Layout Shape:</label>
             <div class="wifi-pill-options" data-wizard-group="shape">
-              <button class="wifi-pill-opt is-selected" data-val="standard">Standard Rectangular</button>
+              <button class="wifi-pill-opt is-selected" data-val="standard">Standard Rectangular (with Hallway)</button>
               <button class="wifi-pill-opt" data-val="l_shape">L-Shaped Wing</button>
             </div>
           </div>

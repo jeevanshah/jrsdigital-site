@@ -1,11 +1,11 @@
 /**
- * JRS Digital — Home Wi-Fi & Mesh Heatmap Engine (V6 Dynamic Wall-Room Binding)
+ * JRS Digital — Home Wi-Fi & Mesh Heatmap Engine (V7 Doors, Hallways & Overlap Resolver)
  * Features:
- * 1. Walls are dynamically bound to rooms: Moving/Resizing/Deleting a room moves/resizes/deletes its walls in real-time!
- * 2. Shared walls between rooms are automatically styled as Drywall (-6dB); exterior walls as Double Brick (-16dB).
- * 3. Dedicated Wall Eraser Tool & Floating Wall Inspector for custom openings.
- * 4. Custom walls drawing (Add Wall) + Floorplan image upload auto-generation.
- * 5. Full CRUD & Auto-Optimizer.
+ * 1. Automatic Overlap Deduplication: Merges collinear overlapping room edges into single internal partitions (no double walls!).
+ * 2. 🚪 Doorway Insertion & Physics: Doors allow RF signal through with only -1.5dB loss, rendered with blueprint swing arcs.
+ * 3. Complete Room Catalog: + Hallway, + Bathroom, + Laundry, + Living, + Master Bed, + Kitchen, + Office, + Garage, + Patio.
+ * 4. Procedural Dynamic Room-to-Wall Binding & Real-Time Drag Sync.
+ * 5. Full CRUD & Live Mobile Scanner.
  */
 
 (function () {
@@ -56,8 +56,9 @@
   const clearCanvasBtn = document.getElementById('clearCanvasBtn');
   const resetDefaultBtn = document.getElementById('resetDefaultBtn');
 
-  // Wall Tools
+  // Tools
   const drawBrickBtn = document.getElementById('drawBrickBtn');
+  const addDoorBtn = document.getElementById('addDoorBtn');
   const eraseWallBtn = document.getElementById('eraseWallBtn');
 
   // Wizard Modal
@@ -83,34 +84,44 @@
   let activeBand = '5ghz';
   let activeHardware = 'standard';
   let drawWallType = null;
+  let isDoorMode = false;
   let isEraserMode = false;
   let wallStartPoint = null;
   let customWalls = [];
+  let doors = [
+    { id: 'd1', x: 360, y: 150, isHorizontal: false, width: 36 },
+    { id: 'd2', x: 200, y: 280, isHorizontal: true, width: 36 },
+    { id: 'd3', x: 410, y: 310, isHorizontal: false, width: 36 }
+  ];
   let erasedWalls = new Set();
   let draggingNode = null;
   let draggingRoom = null;
   let resizingRoom = null;
   let selectedRoom = null;
   let selectedWall = null;
+  let selectedDoor = null;
   let hoveredNode = null;
   let hoveredRoom = null;
   let hoveredWall = null;
+  let hoveredDoor = null;
   let animTarget = null;
   let isRoomEditMode = false;
 
-  // Default Template Rooms
+  // Default Template with Australian Central Hallway, Bath & Laundry
   const DEFAULT_ROOMS = [
-    { id: 'r1', name: 'Living Room', x: 80, y: 70, w: 280, h: 210 },
-    { id: 'r2', name: 'Kitchen & Dining', x: 360, y: 70, w: 260, h: 170 },
-    { id: 'r3', name: 'Home Office', x: 620, y: 70, w: 120, h: 170 },
-    { id: 'r4', name: 'Master Bed', x: 80, y: 280, w: 220, h: 170 },
-    { id: 'r5', name: 'Ensuite', x: 300, y: 280, w: 110, h: 170 },
-    { id: 'r6', name: 'Bedroom 2', x: 410, y: 240, w: 210, h: 210 },
-    { id: 'r7', name: 'Alfresco Patio', x: 620, y: 240, w: 120, h: 210 }
+    { id: 'r1', name: 'Living Room', x: 70, y: 70, w: 260, h: 190 },
+    { id: 'r2', name: 'Kitchen & Dining', x: 330, y: 70, w: 250, h: 160 },
+    { id: 'r3', name: 'Home Office', x: 580, y: 70, w: 150, h: 160 },
+    { id: 'r4', name: 'Central Hallway', x: 70, y: 260, w: 510, h: 50 },
+    { id: 'r5', name: 'Master Bedroom', x: 70, y: 310, w: 200, h: 140 },
+    { id: 'r6', name: 'Ensuite', x: 270, y: 310, w: 100, h: 140 },
+    { id: 'r7', name: 'Main Bathroom', x: 370, y: 310, w: 110, h: 140 },
+    { id: 'r8', name: 'Laundry', x: 480, y: 310, w: 100, h: 140 },
+    { id: 'r9', name: 'Alfresco Patio', x: 580, y: 230, w: 150, h: 220 }
   ];
 
   let activeFloorplan = {
-    name: 'Suburban 3-Bed Brick Home',
+    name: 'Suburban Family Home with Hallway',
     rooms: JSON.parse(JSON.stringify(DEFAULT_ROOMS))
   };
 
@@ -123,7 +134,7 @@
 
   // --- Transmitters ---
   const nodes = [
-    { id: 'primary', type: 'router', name: 'Primary Router', x: 220, y: 175, isDragging: false }
+    { id: 'primary', type: 'router', name: 'Primary Router', x: 200, y: 160, isDragging: false }
   ];
 
   // --- Helper: Line Intersection ---
@@ -145,47 +156,83 @@
   }
 
   // ==========================================================================
-  // 🧱 Procedural Dynamic Wall Derivation (Bound to Active Rooms)
+  // 🧱 Smart Overlap Resolver & Dynamic Wall Generator
   // ==========================================================================
   function getAllActiveWalls() {
-    const walls = [];
+    const rawSegments = [];
 
     activeFloorplan.rooms.forEach(r => {
-      const edges = [
-        { id: `${r.id}_top`, x1: r.x, y1: r.y, x2: r.x + r.w, y2: r.y, roomId: r.id, edge: 'top' },
-        { id: `${r.id}_right`, x1: r.x + r.w, y1: r.y, x2: r.x + r.w, y2: r.y + r.h, roomId: r.id, edge: 'right' },
-        { id: `${r.id}_bottom`, x1: r.x + r.w, y1: r.y + r.h, x2: r.x, y2: r.y + r.h, roomId: r.id, edge: 'bottom' },
-        { id: `${r.id}_left`, x1: r.x, y1: r.y + r.h, x2: r.x, y2: r.y, roomId: r.id, edge: 'left' }
-      ];
-
-      edges.forEach(edge => {
-        if (erasedWalls.has(edge.id)) return;
-
-        // Check if edge is internal shared partition with another room
-        const midX = (edge.x1 + edge.x2) / 2;
-        const midY = (edge.y1 + edge.y2) / 2;
-
-        const isInternal = activeFloorplan.rooms.some(other => {
-          if (other.id === r.id) return false;
-          const nearX = Math.abs(other.x - midX) < 6 || Math.abs(other.x + other.w - midX) < 6;
-          const nearY = Math.abs(other.y - midY) < 6 || Math.abs(other.y + other.h - midY) < 6;
-          const inX = midX >= other.x - 6 && midX <= other.x + other.w + 6;
-          const inY = midY >= other.y - 6 && midY <= other.y + other.h + 6;
-          return (nearX && inY) || (nearY && inX);
-        });
-
-        walls.push({
-          ...edge,
-          type: isInternal ? 'drywall' : 'brick',
-          loss: isInternal ? 6 : 16
-        });
-      });
+      rawSegments.push(
+        { id: `${r.id}_top`, x1: r.x, y1: r.y, x2: r.x + r.w, y2: r.y, isH: true, pos: r.y, min: r.x, max: r.x + r.w, roomId: r.id },
+        { id: `${r.id}_bottom`, x1: r.x, y1: r.y + r.h, x2: r.x + r.w, y2: r.y + r.h, isH: true, pos: r.y + r.h, min: r.x, max: r.x + r.w, roomId: r.id },
+        { id: `${r.id}_left`, x1: r.x, y1: r.y, x2: r.x, y2: r.y + r.h, isH: false, pos: r.x, min: r.y, max: r.y + r.h, roomId: r.id },
+        { id: `${r.id}_right`, x1: r.x + r.w, y1: r.y, x2: r.x + r.w, y2: r.y + r.h, isH: false, pos: r.x + r.w, min: r.y, max: r.y + r.h, roomId: r.id }
+      );
     });
 
-    return [...walls, ...customWalls];
+    const finalWalls = [];
+    const processedPairs = new Set();
+
+    for (let i = 0; i < rawSegments.length; i++) {
+      const s1 = rawSegments[i];
+      if (erasedWalls.has(s1.id)) continue;
+
+      let isOverlapped = false;
+
+      for (let j = 0; j < rawSegments.length; j++) {
+        if (i === j) continue;
+        const s2 = rawSegments[j];
+        if (erasedWalls.has(s2.id)) continue;
+
+        // Check if two walls are collinear and touching within 4px
+        if (s1.isH === s2.isH && Math.abs(s1.pos - s2.pos) <= 4) {
+          const overlapMin = Math.max(s1.min, s2.min);
+          const overlapMax = Math.min(s1.max, s2.max);
+
+          if (overlapMax - overlapMin > 10) {
+            isOverlapped = true;
+            const pairKey = [s1.id, s2.id].sort().join('::');
+
+            if (!processedPairs.has(pairKey)) {
+              processedPairs.add(pairKey);
+              // Single merged internal drywall partition
+              if (s1.isH) {
+                finalWalls.push({
+                  id: `merged_${pairKey}`,
+                  x1: overlapMin, y1: s1.pos,
+                  x2: overlapMax, y2: s1.pos,
+                  type: 'drywall',
+                  loss: 6
+                });
+              } else {
+                finalWalls.push({
+                  id: `merged_${pairKey}`,
+                  x1: s1.pos, y1: overlapMin,
+                  x2: s1.pos, y2: overlapMax,
+                  type: 'drywall',
+                  loss: 6
+                });
+              }
+            }
+          }
+        }
+      }
+
+      if (!isOverlapped) {
+        finalWalls.push({
+          id: s1.id,
+          x1: s1.x1, y1: s1.y1,
+          x2: s1.x2, y2: s1.y2,
+          type: 'brick',
+          loss: 16
+        });
+      }
+    }
+
+    return [...finalWalls, ...customWalls];
   }
 
-  // --- Calculate Signal Strength (dBm) at Point (px, py) ---
+  // --- Calculate Signal Strength (dBm) at Point (px, py) with Doorway Physics ---
   function getSignalStrengthAt(px, py, customNodes = null) {
     const allWalls = getAllActiveWalls();
     const hw = HARDWARE_PROFILES[activeHardware];
@@ -204,7 +251,16 @@
 
       allWalls.forEach(wall => {
         if (linesIntersect(node.x, node.y, px, py, wall.x1, wall.y1, wall.x2, wall.y2)) {
-          signal -= (wall.loss * wallMultiplier);
+          // Check if ray passes through an open door on this wall
+          const midX = (wall.x1 + wall.x2) / 2;
+          const midY = (wall.y1 + wall.y2) / 2;
+          const hasDoor = doors.some(d => Math.hypot(d.x - midX, d.y - midY) <= 30);
+
+          if (hasDoor) {
+            signal -= 1.5; // Doorway attenuation is only 1.5dB!
+          } else {
+            signal -= (wall.loss * wallMultiplier);
+          }
         }
       });
 
@@ -340,7 +396,7 @@
         ctx.strokeRect(room.x + room.w - 12, room.y + room.h - 12, 12, 12);
       }
 
-      ctx.font = '700 11.5px "Plus Jakarta Sans", sans-serif';
+      ctx.font = '700 11px "Plus Jakarta Sans", sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       const textW = ctx.measureText(room.name).width + 12;
@@ -352,7 +408,7 @@
       ctx.fillText(room.name, room.x + room.w / 2, room.y + room.h / 2);
     });
 
-    // 4. Draw Dynamic & Custom Walls
+    // 4. Draw Deduplicated & Merged Walls
     const allWalls = getAllActiveWalls();
     allWalls.forEach(wall => {
       const isWallSel = wall === selectedWall;
@@ -375,22 +431,64 @@
         ctx.setLineDash([]);
       } else if (wall.type === 'brick') {
         ctx.strokeStyle = '#E05638';
-        ctx.lineWidth = 6.5;
+        ctx.lineWidth = 6;
         ctx.lineCap = 'round';
         ctx.stroke();
 
         ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 1.8;
         ctx.stroke();
       } else {
-        ctx.strokeStyle = '#CBD5E1';
-        ctx.lineWidth = 4;
+        // Internal Drywall
+        ctx.strokeStyle = '#94A3B8';
+        ctx.lineWidth = 3.5;
         ctx.lineCap = 'round';
         ctx.stroke();
       }
     });
 
-    // 5. Draw Active Wall Drawing Preview
+    // 5. Draw Architectural Doors (Swing Arcs)
+    doors.forEach(door => {
+      const isDoorSel = door === selectedDoor;
+      const isDoorHov = door === hoveredDoor;
+
+      ctx.save();
+      ctx.translate(door.x, door.y);
+
+      // Door opening gap
+      ctx.fillStyle = '#0F172A';
+      if (door.isHorizontal) {
+        ctx.fillRect(-18, -4, 36, 8);
+      } else {
+        ctx.fillRect(-4, -18, 8, 36);
+      }
+
+      // Door Swing Leaf & Arc
+      ctx.strokeStyle = isDoorSel ? '#FF4B16' : (isDoorHov ? '#F59E0B' : '#38BDF8');
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+      if (door.isHorizontal) {
+        ctx.moveTo(-16, 0);
+        ctx.lineTo(-16, -20);
+        ctx.arc(-16, 0, 20, -Math.PI / 2, 0);
+      } else {
+        ctx.moveTo(0, -16);
+        ctx.lineTo(-20, -16);
+        ctx.arc(0, -16, 20, Math.PI, Math.PI / 2, true);
+      }
+      ctx.stroke();
+
+      // Door Pivot Node
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath();
+      ctx.arc(door.isHorizontal ? -16 : 0, door.isHorizontal ? 0 : -16, 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    });
+
+    // 6. Draw Active Wall Drawing Preview
     if (drawWallType && wallStartPoint && wallStartPoint.currentX !== undefined) {
       ctx.beginPath();
       ctx.moveTo(wallStartPoint.x, wallStartPoint.y);
@@ -402,7 +500,7 @@
       ctx.setLineDash([]);
     }
 
-    // 6. Draw Transmitters
+    // 7. Draw Transmitters
     nodes.forEach((node, idx) => {
       const isHovered = hoveredNode === node;
       const isDrag = draggingNode === node;
@@ -506,7 +604,7 @@
       if (activeFloorplan.rooms.length === 0) {
         adviceTextEl.innerHTML = `<strong>💡 Canvas Cleared:</strong> Use the <em>"+ Add Room"</em> tray or <em>"📸 Upload Floorplan"</em> to design your house layout.`;
       } else if (coverageScore >= 88) {
-        adviceTextEl.innerHTML = `<strong>✨ Optimal Coverage (${coverageScore}%):</strong> Wi-Fi signal is strong across all rooms. If downloads feel slow or 4K streams buffer, your NBN speed tier is the bottleneck.`;
+        adviceTextEl.innerHTML = `<strong>✨ Optimal Coverage (${coverageScore}%):</strong> Wi-Fi signal is strong across all rooms. Doors allow signal to flow naturally down hallways.`;
       } else if (deadCount > 0 && nodes.length === 1) {
         adviceTextEl.innerHTML = `<strong>⚠️ Dead Zones Detected (${deadCount} room${deadCount > 1 ? 's' : ''}):</strong> Double brick walls are blocking 5GHz Wi-Fi. Try clicking <em>"✨ Auto-Optimize"</em> or <em>"+ Add Booster"</em>.`;
       } else {
@@ -588,13 +686,17 @@
     wallInspector.classList.add('is-active');
   }
 
-  // --- Find Wall at Point ---
+  // --- Find Wall or Door at Point ---
   function findWallAt(px, py) {
     const allWalls = getAllActiveWalls();
     return allWalls.find(w => distToSegment(px, py, w.x1, w.y1, w.x2, w.y2) <= 12) || null;
   }
 
-  // --- Delete a Specific Wall ---
+  function findDoorAt(px, py) {
+    return doors.find(d => Math.hypot(d.x - px, d.y - py) <= 18) || null;
+  }
+
+  // --- Delete a Specific Wall or Door ---
   function deleteWall(wall) {
     if (!wall) return;
     if (wall.id) erasedWalls.add(wall.id);
@@ -667,8 +769,36 @@
   function onPointerDown(e) {
     const coords = getCanvasCoords(e);
 
-    // Eraser Mode: 1-click wall removal
+    // Door Insertion Mode
+    if (isDoorMode) {
+      const wall = findWallAt(coords.x, coords.y);
+      if (wall) {
+        const isH = Math.abs(wall.y1 - wall.y2) < Math.abs(wall.x1 - wall.x2);
+        doors.push({
+          id: `door_${Date.now()}`,
+          x: Math.round(isH ? coords.x : wall.x1),
+          y: Math.round(isH ? wall.y1 : coords.y),
+          isHorizontal: isH,
+          width: 36
+        });
+        showToast('🚪 Added doorway! RF signal now flows through naturally.');
+        computeHeatmapGrid();
+        updateAnalytics();
+      }
+      return;
+    }
+
+    // Eraser Mode: Remove wall or door
     if (isEraserMode) {
+      const door = findDoorAt(coords.x, coords.y);
+      if (door) {
+        doors = doors.filter(d => d !== door);
+        showToast('🧹 Door removed');
+        computeHeatmapGrid();
+        updateAnalytics();
+        return;
+      }
+
       const wall = findWallAt(coords.x, coords.y);
       if (wall) {
         deleteWall(wall);
@@ -701,7 +831,7 @@
       return;
     }
 
-    // Room Selection & Dragging (Takes precedence for moving room + attached walls)
+    // Room Selection & Dragging
     const room = findRoomAt(coords.x, coords.y);
     if (room) {
       selectedRoom = room;
@@ -713,7 +843,7 @@
       return;
     }
 
-    // Wall Selection if clicked directly on a wall
+    // Wall Selection
     const clickedWall = findWallAt(coords.x, coords.y);
     if (clickedWall) {
       selectedWall = clickedWall;
@@ -749,14 +879,13 @@
     } else if (resizingRoom) {
       const dw = coords.x - resizingRoom.startX;
       const dh = coords.y - resizingRoom.startY;
-      resizingRoom.room.w = Math.max(80, Math.min(450, resizingRoom.startW + dw));
-      resizingRoom.room.h = Math.max(60, Math.min(350, resizingRoom.startH + dh));
+      resizingRoom.room.w = Math.max(70, Math.min(500, resizingRoom.startW + dw));
+      resizingRoom.room.h = Math.max(40, Math.min(380, resizingRoom.startH + dh));
       updateRoomInspector();
       computeHeatmapGrid();
       updateAnalytics();
       if (e.cancelable) e.preventDefault();
     } else if (draggingRoom) {
-      // 🌟 Moving room simultaneously moves its dynamically derived perimeter walls!
       draggingRoom.room.x = Math.max(20, Math.min(V_WIDTH - draggingRoom.room.w - 20, coords.x - draggingRoom.offsetX));
       draggingRoom.room.y = Math.max(20, Math.min(V_HEIGHT - draggingRoom.room.h - 20, coords.y - draggingRoom.offsetY));
       updateRoomInspector();
@@ -767,20 +896,23 @@
       hoveredNode = findNodeAt(coords.x, coords.y);
       hoveredRoom = findRoomAt(coords.x, coords.y);
       hoveredWall = findWallAt(coords.x, coords.y);
+      hoveredDoor = findDoorAt(coords.x, coords.y);
 
-      if (isEraserMode) {
-        canvas.style.cursor = hoveredWall ? 'pointer' : 'not-allowed';
+      if (isDoorMode) {
+        canvas.style.cursor = hoveredWall ? 'cell' : 'not-allowed';
+      } else if (isEraserMode) {
+        canvas.style.cursor = hoveredWall || hoveredDoor ? 'pointer' : 'not-allowed';
       } else if (selectedRoom && isOverResizeHandle(selectedRoom, coords.x, coords.y)) {
         canvas.style.cursor = 'nwse-resize';
       } else if (hoveredNode || hoveredRoom) {
         canvas.style.cursor = 'grab';
-      } else if (hoveredWall) {
+      } else if (hoveredWall || hoveredDoor) {
         canvas.style.cursor = 'pointer';
       } else {
         canvas.style.cursor = drawWallType ? 'crosshair' : 'default';
       }
 
-      if (tooltip && !isEraserMode) {
+      if (tooltip && !isEraserMode && !isDoorMode) {
         const dBm = getSignalStrengthAt(coords.x, coords.y);
         const speed = signalToSpeed(dBm);
         const room = findRoomAt(coords.x, coords.y);
@@ -888,15 +1020,32 @@
   }
 
   // ==========================================================================
+  // 🚪 Door Tool Actions
+  // ==========================================================================
+  if (addDoorBtn) {
+    addDoorBtn.addEventListener('click', () => {
+      isDoorMode = !isDoorMode;
+      isEraserMode = false;
+      drawWallType = null;
+      if (drawBrickBtn) drawBrickBtn.classList.remove('is-active');
+      if (eraseWallBtn) eraseWallBtn.classList.remove('is-active');
+      addDoorBtn.classList.toggle('is-active', isDoorMode);
+      showToast(isDoorMode ? '🚪 Door Mode: Click on any wall to place a doorway' : 'Door Mode disabled');
+    });
+  }
+
+  // ==========================================================================
   // 🧹 Wall Eraser & Inspector Actions
   // ==========================================================================
   if (eraseWallBtn) {
     eraseWallBtn.addEventListener('click', () => {
       isEraserMode = !isEraserMode;
+      isDoorMode = false;
       drawWallType = null;
       if (drawBrickBtn) drawBrickBtn.classList.remove('is-active');
+      if (addDoorBtn) addDoorBtn.classList.remove('is-active');
       eraseWallBtn.classList.toggle('is-active', isEraserMode);
-      showToast(isEraserMode ? '🧹 Eraser active: Click any wall on canvas to remove it' : 'Eraser disabled');
+      showToast(isEraserMode ? '🧹 Eraser active: Click any wall or door on canvas to remove it' : 'Eraser disabled');
     });
   }
 
@@ -914,6 +1063,7 @@
       if (confirm('Clear all rooms and walls to start from scratch?')) {
         activeFloorplan.rooms = [];
         customWalls = [];
+        doors = [];
         erasedWalls.clear();
         selectedRoom = null;
         selectedWall = null;
@@ -934,18 +1084,23 @@
     resetDefaultBtn.addEventListener('click', () => {
       activeFloorplan.rooms = JSON.parse(JSON.stringify(DEFAULT_ROOMS));
       customWalls = [];
+      doors = [
+        { id: 'd1', x: 360, y: 150, isHorizontal: false, width: 36 },
+        { id: 'd2', x: 200, y: 280, isHorizontal: true, width: 36 },
+        { id: 'd3', x: 410, y: 310, isHorizontal: false, width: 36 }
+      ];
       erasedWalls.clear();
       selectedRoom = null;
       selectedWall = null;
       uploadedFloorplanImg = null;
       if (opacityControl) opacityControl.classList.remove('is-visible');
-      nodes[0].x = 220; nodes[0].y = 175;
+      nodes[0].x = 200; nodes[0].y = 160;
       updateRoomInspector();
       updateWallInspector();
       updateQuickJumpBar();
       computeHeatmapGrid();
       updateAnalytics();
-      showToast('🔄 Reset layout to default Suburban Home');
+      showToast('🔄 Reset layout to standard Home with Hallway');
     });
   }
 
@@ -967,21 +1122,27 @@
           if (opacityControl) opacityControl.classList.add('is-visible');
 
           activeFloorplan.rooms = [
-            { id: 'auto_r1', name: 'Living & Entry', x: 90, y: 80, w: 320, h: 220 },
-            { id: 'auto_r2', name: 'Kitchen / Dining', x: 420, y: 80, w: 290, h: 160 },
-            { id: 'auto_r3', name: 'Master Bed', x: 90, y: 310, w: 220, h: 140 },
-            { id: 'auto_r4', name: 'Bath & Laundry', x: 320, y: 310, w: 120, h: 140 },
-            { id: 'auto_r5', name: 'Bed 2 / Office', x: 450, y: 250, w: 260, h: 200 }
+            { id: 'auto_r1', name: 'Living Room', x: 80, y: 80, w: 260, h: 180 },
+            { id: 'auto_r2', name: 'Kitchen & Dining', x: 340, y: 80, w: 240, h: 150 },
+            { id: 'auto_r3', name: 'Hallway', x: 80, y: 260, w: 500, h: 50 },
+            { id: 'auto_r4', name: 'Master Bedroom', x: 80, y: 310, w: 190, h: 140 },
+            { id: 'auto_r5', name: 'Bathroom & Laundry', x: 270, y: 310, w: 150, h: 140 },
+            { id: 'auto_r6', name: 'Bedroom 2 / Office', x: 420, y: 310, w: 160, h: 140 }
+          ];
+
+          doors = [
+            { id: 'auto_d1', x: 210, y: 260, isHorizontal: true, width: 36 },
+            { id: 'auto_d2', x: 440, y: 260, isHorizontal: true, width: 36 }
           ];
 
           customWalls = [];
           erasedWalls.clear();
-          nodes[0].x = 250; nodes[0].y = 190;
+          nodes[0].x = 210; nodes[0].y = 170;
           uploadBtn.innerHTML = `
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             Change Image
           `;
-          showToast('✨ Auto-generated 5 rooms with matching walls from your floorplan image!');
+          showToast('✨ Auto-generated rooms, hallway & doors from floorplan image!');
           updateQuickJumpBar();
           computeHeatmapGrid();
           updateAnalytics();
@@ -999,14 +1160,14 @@
   }
 
   // ==========================================================================
-  // 🧩 Option 3: Modular Room Block CRUD Builder
+  // 🧩 Option 3: Modular Room Block CRUD Builder (Full Australian Catalog)
   // ==========================================================================
   if (toggleRoomTrayBtn && roomTray) {
     toggleRoomTrayBtn.addEventListener('click', () => {
       isRoomEditMode = !isRoomEditMode;
       toggleRoomTrayBtn.classList.toggle('is-active', isRoomEditMode);
       roomTray.classList.toggle('is-active', isRoomEditMode);
-      showToast(isRoomEditMode ? '🧩 Room Builder active: Click + buttons or select & resize rooms' : 'Exited Room Builder');
+      showToast(isRoomEditMode ? '🧩 Room Builder active: Click + buttons or drag/resize rooms' : 'Exited Room Builder');
     });
   }
 
@@ -1015,9 +1176,12 @@
       const roomType = btn.dataset.addRoom;
       const roomConfig = {
         'Living Room': { w: 240, h: 180 },
+        'Kitchen': { w: 200, h: 140 },
+        'Central Hallway': { w: 280, h: 60 },
         'Master Bedroom': { w: 200, h: 160 },
         'Bedroom': { w: 180, h: 150 },
-        'Kitchen': { w: 200, h: 140 },
+        'Bathroom': { w: 130, h: 120 },
+        'Laundry': { w: 120, h: 110 },
         'Home Office': { w: 160, h: 140 },
         'Garage': { w: 220, h: 180 },
         'Outdoor Patio': { w: 160, h: 160 }
@@ -1038,7 +1202,7 @@
       updateQuickJumpBar();
       computeHeatmapGrid();
       updateAnalytics();
-      showToast(`Added ${roomType}! Drag to move (walls move with room).`);
+      showToast(`Added ${roomType}! Drag next to other rooms (walls auto-merge).`);
     });
   });
 
@@ -1067,45 +1231,53 @@
           activeFloorplan = {
             name: `${beds}-Bed Apartment`,
             rooms: [
-              { id: 'r1', name: 'Open Living & Kitchen', x: 100, y: 90, w: 340, h: 280 },
-              { id: 'r2', name: 'Master Bedroom', x: 440, y: 90, w: 260, h: 140 },
-              { id: 'r3', name: 'Bathroom / Study', x: 440, y: 230, w: 260, h: 140 }
+              { id: 'r1', name: 'Open Living & Kitchen', x: 100, y: 90, w: 320, h: 260 },
+              { id: 'r2', name: 'Hallway', x: 420, y: 90, w: 60, h: 260 },
+              { id: 'r3', name: 'Master Bed', x: 480, y: 90, w: 220, h: 130 },
+              { id: 'r4', name: 'Bathroom & Laundry', x: 480, y: 220, w: 220, h: 130 }
             ]
           };
+          doors = [
+            { id: 'd1', x: 420, y: 160, isHorizontal: false, width: 36 },
+            { id: 'd2', x: 480, y: 150, isHorizontal: false, width: 36 }
+          ];
         } else if (shape === 'l_shape') {
           activeFloorplan = {
-            name: `${beds}-Bed L-Shaped Home`,
+            name: `${beds}-Bed L-Shaped Home with Hallway`,
             rooms: [
-              { id: 'r1', name: 'Front Living', x: 80, y: 80, w: 280, h: 220 },
-              { id: 'r2', name: 'Kitchen & Dining', x: 360, y: 80, w: 360, h: 160 },
-              { id: 'r3', name: 'Master Bed', x: 80, y: 300, w: 200, h: 150 },
-              { id: 'r4', name: 'Bed 2', x: 280, y: 300, w: 200, h: 150 },
-              { id: 'r5', name: 'Home Office / Patio', x: 480, y: 240, w: 240, h: 210 }
+              { id: 'r1', name: 'Front Living', x: 80, y: 80, w: 260, h: 200 },
+              { id: 'r2', name: 'Kitchen & Dining', x: 340, y: 80, w: 340, h: 150 },
+              { id: 'r3', name: 'Hallway', x: 80, y: 280, w: 420, h: 50 },
+              { id: 'r4', name: 'Master Bed', x: 80, y: 330, w: 180, h: 130 },
+              { id: 'r5', name: 'Bathroom & Laundry', x: 260, y: 330, w: 120, h: 130 },
+              { id: 'r6', name: 'Bed 2 / Office', x: 380, y: 330, w: 120, h: 130 },
+              { id: 'r7', name: 'Alfresco Patio', x: 500, y: 230, w: 180, h: 230 }
             ]
           };
+          doors = [
+            { id: 'd1', x: 210, y: 280, isHorizontal: true, width: 36 },
+            { id: 'd2', x: 170, y: 330, isHorizontal: true, width: 36 }
+          ];
         } else {
           activeFloorplan = {
             name: `${beds}-Bed Australian Family Home`,
-            rooms: [
-              { id: 'r1', name: 'Living Room', x: 80, y: 70, w: 280, h: 210 },
-              { id: 'r2', name: 'Kitchen & Dining', x: 360, y: 70, w: 260, h: 170 },
-              { id: 'r3', name: 'Home Office', x: 620, y: 70, w: 120, h: 170 },
-              { id: 'r4', name: 'Master Bed', x: 80, y: 280, w: 220, h: 170 },
-              { id: 'r5', name: 'Ensuite', x: 300, y: 280, w: 110, h: 170 },
-              { id: 'r6', name: 'Bedroom 2', x: 410, y: 240, w: 210, h: 210 },
-              { id: 'r7', name: 'Alfresco Patio', x: 620, y: 240, w: 120, h: 210 }
-            ]
+            rooms: JSON.parse(JSON.stringify(DEFAULT_ROOMS))
           };
+          doors = [
+            { id: 'd1', x: 330, y: 150, isHorizontal: false, width: 36 },
+            { id: 'd2', x: 200, y: 260, isHorizontal: true, width: 36 },
+            { id: 'd3', x: 170, y: 310, isHorizontal: true, width: 36 }
+          ];
         }
 
         if (nbnLoc === 'garage') {
           nodes[0].x = 650; nodes[0].y = 350;
         } else if (nbnLoc === 'hallway') {
-          nodes[0].x = 360; nodes[0].y = 260;
+          nodes[0].x = 320; nodes[0].y = 285;
         } else if (nbnLoc === 'office') {
           nodes[0].x = 650; nodes[0].y = 150;
         } else {
-          nodes[0].x = 220; nodes[0].y = 175;
+          nodes[0].x = 200; nodes[0].y = 160;
         }
 
         customWalls = [];
@@ -1143,7 +1315,9 @@
   // --- UI: Custom Wall Drawing Buttons ---
   function setDrawMode(type, activeBtn) {
     isEraserMode = false;
+    isDoorMode = false;
     if (eraseWallBtn) eraseWallBtn.classList.remove('is-active');
+    if (addDoorBtn) addDoorBtn.classList.remove('is-active');
 
     if (drawWallType === type) {
       drawWallType = null;
@@ -1190,7 +1364,7 @@
   if (addMeshBtn) {
     addMeshBtn.addEventListener('click', () => {
       if (nodes.length === 1) {
-        nodes.push({ id: 'mesh1', type: 'mesh', name: 'Mesh Booster', x: 540, y: 340, isDragging: false });
+        nodes.push({ id: 'mesh1', type: 'mesh', name: 'Mesh Booster', x: 450, y: 285, isDragging: false });
         addMeshBtn.innerHTML = `
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Remove Booster

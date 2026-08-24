@@ -1,5 +1,5 @@
 /* ==========================================================================
-   JRS Digital — Home Wi-Fi & Mesh Heatmap Simulator Stylesheet (V5 Wall & Room CRUD)
+   JRS Digital — Home Wi-Fi & Mesh Heatmap Simulator Stylesheet (V6 Doors & Hallways)
    ========================================================================== */
 
 /* Main Layout */
@@ -379,6 +379,13 @@
 .wifi-tool-btn.is-active {
   background: #F59E0B;
   border-color: #F59E0B;
+  color: #0F172A;
+  font-weight: 700;
+}
+
+.wifi-tool-btn--door.is-active {
+  background: #38BDF8;
+  border-color: #38BDF8;
   color: #0F172A;
   font-weight: 700;
 }
