@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Home Wi-Fi & Mesh Heatmap Simulator | JRS Digital</title>
+  <meta name="description" content="Simulate in-home Wi-Fi signal propagation across Australian floorplans. Test router placement, double brick wall attenuation, and eliminate dead zones with mesh boosters.">
+  <link rel="canonical" href="https://jrsdigital.net/tools/wifi-heatmap/">
+  <meta property="og:title" content="Home Wi-Fi & Mesh Heatmap Simulator | JRS Digital">
+  <meta property="og:description" content="Simulate in-home Wi-Fi signal propagation across Australian floorplans. Test router placement, double brick wall attenuation, and eliminate dead zones with mesh boosters.">
+  <meta property="og:url" content="https://jrsdigital.net/tools/wifi-heatmap/">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/site-wide.css">
+  <link rel="stylesheet" href="/tools/wifi-heatmap/wifi-heatmap.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Home Wi-Fi & Mesh Heatmap Simulator",
+    "url": "https://jrsdigital.net/tools/wifi-heatmap/",
+    "applicationCategory": "UtilityApplication",
+    "operatingSystem": "All",
+    "browserRequirements": "Requires JavaScript. Requires HTML5 Canvas.",
+    "description": "Simulate in-home Wi-Fi signal propagation across Australian floorplans, calculate wall attenuation, and eliminate dead zones."
+  }
+  </script>
+</head>
+<body class="wide-theme">
+  <div class="w-shell">
+    <header class="w-header">
+      <a class="w-brand" href="/"><span class="jrs">JRS</span> Digital</a>
+      <div class="w-header-right">
+        <nav class="w-nav" aria-label="Primary navigation">
+          <a href="/work.html">Work</a>
+          <a href="/deals/">Deals</a>
+          <a href="/about.html">About</a>
+          <a href="/priceminder/privacy.html">Privacy</a>
+          <a href="/contact.html">Contact</a>
+        </nav>
+        <span class="w-theme-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+        </span>
+        <a class="w-header-cta" href="https://play.google.com/store/apps/details?id=au.com.priceminder.app" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 3.5c0-.9 1-1.5 1.8-1l13 8.5c.7.5.7 1.5 0 2l-13 8.5c-.8.5-1.8-.1-1.8-1V3.5z"/></svg>
+          Get PriceMinder
+        </a>
+        <button class="w-nav-toggle" type="button" aria-label="Open menu" aria-expanded="false">
+          <svg class="w-nav-toggle-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          <svg class="w-nav-toggle-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <div class="wifi-tool-shell">
+        
+        <!-- Hero Header -->
+        <section class="wifi-hero">
+          <div class="wifi-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+            Interactive Diagnostic Engine
+          </div>
+          <h1>Australian Home <span>Wi-Fi Heatmap</span></h1>
+          <p>Drag your router across typical Australian floorplans to simulate double brick wall attenuation, find dead zones, and optimize mesh node placement.</p>
+        </section>
+
+        <!-- Floorplan Selector Tabs -->
+        <div class="wifi-presets-bar" role="tablist" aria-label="Floorplan presets">
+          <button class="wifi-preset-btn is-active" data-preset="suburban" role="tab" aria-selected="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            3-4 Bed Suburban Home (Brick)
+          </button>
+          <button class="wifi-preset-btn" data-preset="townhouse" role="tab" aria-selected="false">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M8 10h.01"/><path d="M16 10h.01"/><path d="M8 14h.01"/><path d="M16 14h.01"/></svg>
+            2-Storey Townhouse
+          </button>
+          <button class="wifi-preset-btn" data-preset="apartment" role="tab" aria-selected="false">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+            2-Bed Apartment
+          </button>
+        </div>
+
+        <!-- Main Interactive Workspace -->
+        <div class="wifi-workspace">
+          
+          <!-- Interactive 2D Canvas Card -->
+          <div class="wifi-canvas-card">
+            
+            <!-- Canvas Toolbar -->
+            <div class="wifi-canvas-toolbar">
+              <div class="wifi-toolbar-left">
+                <span style="font-size: 0.8rem; font-weight: 700; color: #94A3B8;">Band:</span>
+                <div class="wifi-band-toggle">
+                  <button class="wifi-band-btn is-active" data-band="5ghz">5 GHz (Fast)</button>
+                  <button class="wifi-band-btn" data-band="2.4ghz">2.4 GHz (Long Range)</button>
+                </div>
+              </div>
+
+              <div class="wifi-toolbar-right">
+                <button class="wifi-tool-btn" id="addMeshBtn">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  + Add Mesh Booster
+                </button>
+              </div>
+            </div>
+
+            <!-- Canvas Viewport -->
+            <div class="wifi-canvas-wrap">
+              <canvas id="wifiHeatmapCanvas" width="800" height="500"></canvas>
+              
+              <!-- Floating Live Cursor Probe -->
+              <div class="wifi-probe-tooltip" id="wifiProbeTooltip">
+                <div class="wifi-probe-speed" id="probeSpeed">450 Mbps (-52 dBm)</div>
+                <div class="wifi-probe-room" id="probeRoom">Living Room</div>
+              </div>
+            </div>
+
+            <!-- Heatmap Legend Bar -->
+            <div class="wifi-legend-bar">
+              <span>Dead Zone (&lt;20 Mbps)</span>
+              <div class="wifi-legend-gradient" aria-hidden="true"></div>
+              <span>Ultra-Fast (500+ Mbps)</span>
+            </div>
+
+          </div>
+
+          <!-- Right Sidebar: Diagnostics & Recommendations -->
+          <aside class="wifi-sidebar">
+            
+            <!-- Overall Coverage Meter -->
+            <div class="wifi-metric-card">
+              <h3>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                Whole-Home Coverage
+              </h3>
+              
+              <div class="wifi-coverage-dial">
+                <span class="wifi-coverage-percent" id="coveragePercent">88%</span>
+                <span class="wifi-coverage-label">Est. Good Signal Area</span>
+              </div>
+
+              <div class="wifi-progress-track">
+                <div class="wifi-progress-fill" id="progressFill" style="width: 88%;"></div>
+              </div>
+
+              <!-- Room by Room Status -->
+              <div class="wifi-room-list" id="roomListContainer">
+                <!-- Dynamically populated by wifi-engine.js -->
+              </div>
+            </div>
+
+            <!-- Smart Telco Advice & Deal Matcher -->
+            <div class="wifi-advice-card">
+              <h4>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                Diagnostic Recommendation
+              </h4>
+              <p id="adviceText">
+                Double brick walls in Australian homes cut 5GHz signals by up to -14dB. Repositioning the router centrally or adding a mesh node eliminates dead zones in bedrooms.
+              </p>
+              <a href="/deals/" class="wifi-cta-btn">
+                Compare Faster NBN Plans
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </a>
+            </div>
+
+          </aside>
+
+        </div>
+
+        <!-- Educational Guide Section -->
+        <section class="wifi-guide-section">
+          <h2>Why Australian Homes Have Wi-Fi Dead Zones</h2>
+          
+          <div class="wifi-guide-grid">
+            <div class="wifi-guide-card">
+              <h3>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+                Double Brick Attenuation
+              </h3>
+              <p>Standard Australian double brick and concrete block walls absorb RF frequencies heavily, reducing 5GHz speeds by up to 75% across just two walls.</p>
+            </div>
+
+            <div class="wifi-guide-card">
+              <h3>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+                Wi-Fi vs NBN Bottlenecks
+              </h3>
+              <p>Upgrading to NBN 1000 won't fix a weak bedroom signal. If your Wi-Fi heatmap is red, you need a mesh node. If it's green but buffering, your NBN tier is the bottleneck.</p>
+            </div>
+
+            <div class="wifi-guide-card">
+              <h3>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Mesh Node Halfway Rule
+              </h3>
+              <p>Never place a mesh booster in the dead zone itself. Place it halfway between your main router and the weak room so it can receive and re-broadcast a strong signal.</p>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <footer class="w-footer">
+      <div class="w-footer-inner">
+        <p>&copy; 2026 JRS Digital. Independent Australian software studio and broadband comparison engine.</p>
+        <div class="w-footer-links">
+          <a href="/deals/">NBN & Mobile Deals</a>
+          <a href="/work.html">Work</a>
+          <a href="/about.html">About</a>
+          <a href="/priceminder/privacy.html">Privacy</a>
+          <a href="/contact.html">Contact</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="/assets/site-nav.js" defer></script>
+  <script src="/tools/wifi-heatmap/wifi-engine.js" defer></script>
+</body>
+</html>
