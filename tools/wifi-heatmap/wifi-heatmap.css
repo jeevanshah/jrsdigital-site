@@ -1,5 +1,5 @@
 /* ==========================================================================
-   JRS Digital — Home Wi-Fi & Mesh Heatmap Simulator Stylesheet (V4 Full CRUD)
+   JRS Digital — Home Wi-Fi & Mesh Heatmap Simulator Stylesheet (V5 Wall & Room CRUD)
    ========================================================================== */
 
 /* Main Layout */
@@ -256,31 +256,6 @@
   color: #FFFFFF;
 }
 
-.wifi-tray-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.wifi-tray-action-btn {
-  padding: 5px 10px;
-  background: #FFFFFF;
-  border: 1px solid rgba(17, 24, 39, 0.15);
-  border-radius: 6px;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.76rem;
-  font-weight: 600;
-  color: #64748B;
-  cursor: pointer;
-  transition: all 0.12s ease;
-}
-
-.wifi-tray-action-btn:hover {
-  background: #FEF2F2;
-  color: #DC2626;
-  border-color: #DC2626;
-}
-
 /* Quick Room Jumper Bar */
 .wifi-quick-jump-bar {
   display: flex;
@@ -408,6 +383,12 @@
   font-weight: 700;
 }
 
+.wifi-tool-btn--erase.is-active {
+  background: #EF4444;
+  border-color: #EF4444;
+  color: #FFFFFF;
+}
+
 .wifi-tool-btn--magic {
   background: linear-gradient(135deg, #10B981, #06B6D4);
   border-color: transparent;
@@ -470,7 +451,7 @@
   display: block;
 }
 
-/* Floating Selected Room CRUD Inspector */
+/* Floating Selected Room Inspector */
 .wifi-room-inspector {
   position: absolute;
   display: none;
@@ -523,6 +504,26 @@
 .wifi-inspector-btn--delete:hover {
   background: #EF4444;
   color: #FFFFFF;
+}
+
+/* Floating Selected Wall Inspector */
+.wifi-wall-inspector {
+  position: absolute;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  background: #0F172A;
+  border: 1.5px solid #EF4444;
+  border-radius: 8px;
+  padding: 5px 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  transform: translate(-50%, -100%);
+  margin-top: -10px;
+  z-index: 20;
+}
+
+.wifi-wall-inspector.is-active {
+  display: inline-flex;
 }
 
 /* Floating Live Cursor Probe */

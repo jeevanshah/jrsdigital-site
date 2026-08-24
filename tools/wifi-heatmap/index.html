@@ -64,7 +64,7 @@
             Interactive Diagnostic Engine
           </div>
           <h1>Australian Home <span>Wi-Fi Heatmap</span></h1>
-          <p>Model your exact home layout with full CRUD room editing, 1-click House Wizard, or Auto-Generate from your real estate floorplan image.</p>
+          <p>Model your exact home layout with synchronized room & wall editing, 1-click House Wizard, or Auto-Generate from your real estate floorplan image.</p>
         </section>
 
         <!-- Mode Switcher (Simulator vs Live Phone Scanner) -->
@@ -167,8 +167,11 @@
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                   + Add Booster
                 </button>
-                <button class="wifi-tool-btn" id="drawBrickBtn" title="Click and drag on canvas to draw brick wall">
+                <button class="wifi-tool-btn" id="drawBrickBtn" title="Click and drag on canvas to draw wall">
                   🧱 Add Wall
+                </button>
+                <button class="wifi-tool-btn wifi-tool-btn--erase" id="eraseWallBtn" title="Click any wall segment on canvas to remove it">
+                  🧹 Erase Wall
                 </button>
                 <button class="wifi-tool-btn" id="shareFloorplanBtn" title="Download PNG snapshot of your heatmap">
                   📸 Snapshot
@@ -184,7 +187,13 @@
               <div class="wifi-room-inspector" id="roomInspector">
                 <span class="wifi-inspector-title" id="inspectorRoomName">Room Name</span>
                 <button class="wifi-inspector-btn" id="inspectorRenameBtn">✏️ Rename</button>
-                <button class="wifi-inspector-btn wifi-inspector-btn--delete" id="inspectorDeleteBtn">🗑️ Delete</button>
+                <button class="wifi-inspector-btn wifi-inspector-btn--delete" id="inspectorDeleteBtn">🗑️ Delete Room</button>
+              </div>
+
+              <!-- Floating Selected Wall CRUD Inspector -->
+              <div class="wifi-wall-inspector" id="wallInspector">
+                <span class="wifi-inspector-title">Wall Segment</span>
+                <button class="wifi-inspector-btn wifi-inspector-btn--delete" id="inspectorDeleteWallBtn">🗑️ Delete Wall</button>
               </div>
 
               <!-- Floating Live Cursor Probe -->

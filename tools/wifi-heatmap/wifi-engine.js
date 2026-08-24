@@ -1,10 +1,10 @@
 /**
- * JRS Digital — Home Wi-Fi & Mesh Heatmap Engine (V4 Full CRUD + Auto-Generation)
+ * JRS Digital — Home Wi-Fi & Mesh Heatmap Engine (V5 Smart Wall & Room Synchronization)
  * Features:
- * 1. Full Room CRUD: Create, Select, Move, Resize with Handles, Rename, Delete.
- * 2. Full Wall CRUD: Draw, Select, Delete individual walls, Clear all walls.
- * 3. Smart Auto-Generation from uploaded floorplan images.
- * 4. Clear Canvas & Reset to Default.
+ * 1. Room Deletion also automatically removes its associated walls (no ghost walls!).
+ * 2. Dedicated Wall Eraser Tool + Click-to-Select Wall with [🗑️ Delete Wall] Inspector.
+ * 3. Full CRUD (Rename, Resize Handles, Move, Delete, Clear All, Reset).
+ * 4. Real Estate Floorplan Upload with Auto-Generation.
  * 5. House Customizer Wizard & Live Mobile Scanner.
  */
 
@@ -32,6 +32,10 @@
   const inspectorRenameBtn = document.getElementById('inspectorRenameBtn');
   const inspectorDeleteBtn = document.getElementById('inspectorDeleteBtn');
 
+  // Floating Wall Inspector
+  const wallInspector = document.getElementById('wallInspector');
+  const inspectorDeleteWallBtn = document.getElementById('inspectorDeleteWallBtn');
+
   // Activity Matrix
   const actNetflix = document.getElementById('actNetflix');
   const actGaming = document.getElementById('actGaming');
@@ -51,6 +55,10 @@
   const roomTray = document.getElementById('roomTray');
   const clearCanvasBtn = document.getElementById('clearCanvasBtn');
   const resetDefaultBtn = document.getElementById('resetDefaultBtn');
+
+  // Wall Tools
+  const drawBrickBtn = document.getElementById('drawBrickBtn');
+  const eraseWallBtn = document.getElementById('eraseWallBtn');
 
   // Wizard Modal
   const wizardModal = document.getElementById('wizardModal');
@@ -75,14 +83,17 @@
   let activeBand = '5ghz';
   let activeHardware = 'standard';
   let drawWallType = null;
+  let isEraserMode = false;
   let wallStartPoint = null;
   let customWalls = [];
   let draggingNode = null;
   let draggingRoom = null;
   let resizingRoom = null;
   let selectedRoom = null;
+  let selectedWall = null;
   let hoveredNode = null;
   let hoveredRoom = null;
+  let hoveredWall = null;
   let animTarget = null;
   let isRoomEditMode = false;
 
@@ -133,6 +144,15 @@
     const ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denom;
     const ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denom;
     return ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1;
+  }
+
+  // --- Helper: Distance from Point to Line Segment ---
+  function distToSegment(px, py, x1, y1, x2, y2) {
+    const l2 = (x2 - x1) ** 2 + (y2 - y1) ** 2;
+    if (l2 === 0) return Math.hypot(px - x1, py - y1);
+    let t = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / l2;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(px - (x1 + t * (x2 - x1)), py - (y1 + t * (y2 - y1)));
   }
 
   // --- Calculate Signal Strength (dBm) at Point (px, py) ---
@@ -305,11 +325,25 @@
     // 4. Draw Walls
     const allWalls = [...activeFloorplan.walls, ...customWalls];
     allWalls.forEach(wall => {
+      const isWallSel = wall === selectedWall;
+      const isWallHov = wall === hoveredWall;
+
       ctx.beginPath();
       ctx.moveTo(wall.x1, wall.y1);
       ctx.lineTo(wall.x2, wall.y2);
 
-      if (wall.type === 'brick') {
+      if (isWallSel || (isEraserMode && isWallHov)) {
+        ctx.strokeStyle = '#EF4444';
+        ctx.lineWidth = 8;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([4, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      } else if (wall.type === 'brick') {
         ctx.strokeStyle = '#E05638';
         ctx.lineWidth = 6.5;
         ctx.lineCap = 'round';
@@ -504,6 +538,68 @@
     roomInspector.classList.add('is-active');
   }
 
+  // --- Update Wall Inspector Position ---
+  function updateWallInspector() {
+    if (!wallInspector) return;
+    if (!selectedWall) {
+      wallInspector.classList.remove('is-active');
+      return;
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = rect.width / V_WIDTH;
+    const scaleY = rect.height / V_HEIGHT;
+
+    const midX = (selectedWall.x1 + selectedWall.x2) / 2;
+    const midY = (selectedWall.y1 + selectedWall.y2) / 2;
+
+    wallInspector.style.left = `${midX * scaleX}px`;
+    wallInspector.style.top = `${midY * scaleY}px`;
+    wallInspector.classList.add('is-active');
+  }
+
+  // --- Find Wall at Point ---
+  function findWallAt(px, py) {
+    const allWalls = [...activeFloorplan.walls, ...customWalls];
+    return allWalls.find(w => distToSegment(px, py, w.x1, w.y1, w.x2, w.y2) <= 12) || null;
+  }
+
+  // --- Delete a Specific Wall ---
+  function deleteWall(wall) {
+    if (!wall) return;
+    activeFloorplan.walls = activeFloorplan.walls.filter(w => w !== wall);
+    customWalls = customWalls.filter(w => w !== wall);
+    selectedWall = null;
+    updateWallInspector();
+    computeHeatmapGrid();
+    updateAnalytics();
+    showToast('🧹 Wall removed!');
+  }
+
+  // --- Auto-Prune Walls When Room is Deleted ---
+  function pruneWallsForRoom(room) {
+    const rx1 = room.x, ry1 = room.y;
+    const rx2 = room.x + room.w, ry2 = room.y + room.h;
+
+    // Remove any internal or boundary walls that coincide with this room's borders if no other rooms share them
+    activeFloorplan.walls = activeFloorplan.walls.filter(w => {
+      const isLeft = (w.x1 === rx1 && w.x2 === rx1 && Math.max(w.y1, w.y2) >= ry1 && Math.min(w.y1, w.y2) <= ry2);
+      const isRight = (w.x1 === rx2 && w.x2 === rx2 && Math.max(w.y1, w.y2) >= ry1 && Math.min(w.y1, w.y2) <= ry2);
+      const isTop = (w.y1 === ry1 && w.y2 === ry1 && Math.max(w.x1, w.x2) >= rx1 && Math.min(w.x1, w.x2) <= rx2);
+      const isBottom = (w.y1 === ry2 && w.y2 === ry2 && Math.max(w.x1, w.x2) >= rx1 && Math.min(w.x1, w.x2) <= rx2);
+
+      if (isLeft || isRight || isTop || isBottom) {
+        // Check if another room still touches this wall
+        const stillUsed = activeFloorplan.rooms.some(r => r !== room && (
+          (w.x1 >= r.x && w.x1 <= r.x + r.w && w.y1 >= r.y && w.y1 <= r.y + r.h) ||
+          (w.x2 >= r.x && w.x2 <= r.x + r.w && w.y2 >= r.y && w.y2 <= r.y + r.h)
+        ));
+        return stillUsed;
+      }
+      return true;
+    });
+  }
+
   // --- Auto-Optimizer Algorithm ---
   function autoOptimizeRouterPosition() {
     if (activeFloorplan.rooms.length === 0) return;
@@ -565,11 +661,23 @@
   function onPointerDown(e) {
     const coords = getCanvasCoords(e);
 
+    // Eraser Mode: 1-click wall removal
+    if (isEraserMode) {
+      const wall = findWallAt(coords.x, coords.y);
+      if (wall) {
+        deleteWall(wall);
+        if (e.cancelable) e.preventDefault();
+      }
+      return;
+    }
+
+    // Drawing Wall Mode
     if (drawWallType) {
       wallStartPoint = { x: coords.x, y: coords.y, currentX: coords.x, currentY: coords.y };
       return;
     }
 
+    // Router / Mesh Dragging
     const node = findNodeAt(coords.x, coords.y);
     if (node) {
       animTarget = null;
@@ -580,19 +688,35 @@
       return;
     }
 
-    // Check if clicked resize handle on selected room
+    // Resize Handle on selected room
     if (selectedRoom && isOverResizeHandle(selectedRoom, coords.x, coords.y)) {
       resizingRoom = { room: selectedRoom, startW: selectedRoom.w, startH: selectedRoom.h, startX: coords.x, startY: coords.y };
       if (e.cancelable) e.preventDefault();
       return;
     }
 
-    // Room Selection & Move
+    // Wall Selection
+    const clickedWall = findWallAt(coords.x, coords.y);
+    if (clickedWall) {
+      selectedWall = clickedWall;
+      selectedRoom = null;
+      updateRoomInspector();
+      updateWallInspector();
+      if (e.cancelable) e.preventDefault();
+      return;
+    } else {
+      selectedWall = null;
+      updateWallInspector();
+    }
+
+    // Room Selection & Dragging
     const room = findRoomAt(coords.x, coords.y);
     if (room) {
       selectedRoom = room;
+      selectedWall = null;
       draggingRoom = { room, offsetX: coords.x - room.x, offsetY: coords.y - room.y };
       updateRoomInspector();
+      updateWallInspector();
       if (e.cancelable) e.preventDefault();
     } else {
       selectedRoom = null;
@@ -634,16 +758,21 @@
     } else {
       hoveredNode = findNodeAt(coords.x, coords.y);
       hoveredRoom = findRoomAt(coords.x, coords.y);
+      hoveredWall = findWallAt(coords.x, coords.y);
 
-      if (selectedRoom && isOverResizeHandle(selectedRoom, coords.x, coords.y)) {
+      if (isEraserMode) {
+        canvas.style.cursor = hoveredWall ? 'pointer' : 'not-allowed';
+      } else if (selectedRoom && isOverResizeHandle(selectedRoom, coords.x, coords.y)) {
         canvas.style.cursor = 'nwse-resize';
       } else if (hoveredNode || hoveredRoom) {
         canvas.style.cursor = 'grab';
+      } else if (hoveredWall) {
+        canvas.style.cursor = 'pointer';
       } else {
         canvas.style.cursor = drawWallType ? 'crosshair' : 'default';
       }
 
-      if (tooltip) {
+      if (tooltip && !isEraserMode) {
         const dBm = getSignalStrengthAt(coords.x, coords.y);
         const speed = signalToSpeed(dBm);
         const room = findRoomAt(coords.x, coords.y);
@@ -719,7 +848,7 @@
   window.addEventListener('touchend', onPointerUp);
 
   // ==========================================================================
-  // ✏️ Room Inspector CRUD Actions (Rename, Delete)
+  // ✏️ Room Inspector CRUD Actions (Rename, Delete + Auto-Prune Walls)
   // ==========================================================================
   if (inspectorRenameBtn) {
     inspectorRenameBtn.addEventListener('click', () => {
@@ -739,13 +868,34 @@
     inspectorDeleteBtn.addEventListener('click', () => {
       if (!selectedRoom) return;
       const name = selectedRoom.name;
-      activeFloorplan.rooms = activeFloorplan.rooms.filter(r => r !== selectedRoom);
+      const targetRoom = selectedRoom;
+      activeFloorplan.rooms = activeFloorplan.rooms.filter(r => r !== targetRoom);
+      pruneWallsForRoom(targetRoom);
       selectedRoom = null;
       updateRoomInspector();
       updateQuickJumpBar();
       computeHeatmapGrid();
       updateAnalytics();
-      showToast(`🗑️ Deleted ${name}`);
+      showToast(`🗑️ Deleted ${name} and removed associated walls`);
+    });
+  }
+
+  // ==========================================================================
+  // 🧹 Wall Eraser & Inspector Actions
+  // ==========================================================================
+  if (eraseWallBtn) {
+    eraseWallBtn.addEventListener('click', () => {
+      isEraserMode = !isEraserMode;
+      drawWallType = null;
+      if (drawBrickBtn) drawBrickBtn.classList.remove('is-active');
+      eraseWallBtn.classList.toggle('is-active', isEraserMode);
+      showToast(isEraserMode ? '🧹 Eraser active: Click any wall on canvas to remove it' : 'Eraser disabled');
+    });
+  }
+
+  if (inspectorDeleteWallBtn) {
+    inspectorDeleteWallBtn.addEventListener('click', () => {
+      deleteWall(selectedWall);
     });
   }
 
@@ -759,10 +909,12 @@
         activeFloorplan.walls = [];
         customWalls = [];
         selectedRoom = null;
+        selectedWall = null;
         uploadedFloorplanImg = null;
         if (opacityControl) opacityControl.classList.remove('is-visible');
         nodes[0].x = 400; nodes[0].y = 250;
         updateRoomInspector();
+        updateWallInspector();
         updateQuickJumpBar();
         computeHeatmapGrid();
         updateAnalytics();
@@ -776,10 +928,12 @@
       activeFloorplan = JSON.parse(JSON.stringify(DEFAULT_SUBURBAN));
       customWalls = [];
       selectedRoom = null;
+      selectedWall = null;
       uploadedFloorplanImg = null;
       if (opacityControl) opacityControl.classList.remove('is-visible');
       nodes[0].x = 230; nodes[0].y = 200;
       updateRoomInspector();
+      updateWallInspector();
       updateQuickJumpBar();
       computeHeatmapGrid();
       updateAnalytics();
@@ -804,7 +958,6 @@
           uploadedFloorplanImg = img;
           if (opacityControl) opacityControl.classList.add('is-visible');
 
-          // ✨ Auto-Generate Rooms and Walls fitted to uploaded image geometry
           activeFloorplan.rooms = [
             { id: 'auto_r1', name: 'Living & Entry', x: 90, y: 80, w: 320, h: 220 },
             { id: 'auto_r2', name: 'Kitchen / Dining', x: 420, y: 80, w: 290, h: 160 },
@@ -879,13 +1032,23 @@
         h: roomConfig.h
       };
 
+      // Add corresponding 4 perimeter walls for the new room
+      const rx1 = newRoom.x, ry1 = newRoom.y;
+      const rx2 = newRoom.x + newRoom.w, ry2 = newRoom.y + newRoom.h;
+      activeFloorplan.walls.push(
+        { id: `w_top_${Date.now()}`, x1: rx1, y1: ry1, x2: rx2, y2: ry1, type: 'brick', loss: 14 },
+        { id: `w_right_${Date.now()}`, x1: rx2, y1: ry1, x2: rx2, y2: ry2, type: 'brick', loss: 14 },
+        { id: `w_bottom_${Date.now()}`, x1: rx2, y1: ry2, x2: rx1, y2: ry2, type: 'brick', loss: 14 },
+        { id: `w_left_${Date.now()}`, x1: rx1, y1: ry2, x2: rx1, y2: ry1, type: 'brick', loss: 14 }
+      );
+
       activeFloorplan.rooms.push(newRoom);
       selectedRoom = newRoom;
       updateRoomInspector();
       updateQuickJumpBar();
       computeHeatmapGrid();
       updateAnalytics();
-      showToast(`Added ${roomType}! Drag to move or drag corner to resize.`);
+      showToast(`Added ${roomType} with matching walls! Drag to reposition.`);
     });
   });
 
@@ -988,8 +1151,10 @@
 
         customWalls = [];
         selectedRoom = null;
+        selectedWall = null;
         wizardModal.classList.remove('is-open');
         updateRoomInspector();
+        updateWallInspector();
         updateQuickJumpBar();
         computeHeatmapGrid();
         updateAnalytics();
@@ -1016,9 +1181,10 @@
   }
 
   // --- UI: Custom Wall Drawing Buttons ---
-  const drawBrickBtn = document.getElementById('drawBrickBtn');
-
   function setDrawMode(type, activeBtn) {
+    isEraserMode = false;
+    if (eraseWallBtn) eraseWallBtn.classList.remove('is-active');
+
     if (drawWallType === type) {
       drawWallType = null;
       activeBtn.classList.remove('is-active');
