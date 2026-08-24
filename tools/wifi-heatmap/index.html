@@ -3,18 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Home Wi-Fi & Mesh Heatmap Simulator | JRS Digital</title>
-  <meta name="description" content="Simulate in-home Wi-Fi signal propagation across Australian floorplans. Test router placement, double brick wall attenuation, and eliminate dead zones with mesh boosters.">
+  <title>Wi-Fi Dead Zone Scanner &amp; Heatmap | JRS Digital</title>
+  <meta name="description" content="Check your real Wi-Fi connection room by room, mark weak spots, and optionally plan router or mesh placement for an Australian home.">
   <link rel="canonical" href="https://jrsdigital.net/tools/wifi-heatmap/">
-  <meta property="og:title" content="Home Wi-Fi & Mesh Heatmap Simulator | JRS Digital">
-  <meta property="og:description" content="Simulate in-home Wi-Fi signal propagation across Australian floorplans. Test router placement, double brick wall attenuation, and eliminate dead zones with mesh boosters.">
+  <meta property="og:title" content="Wi-Fi Dead Zone Scanner &amp; Heatmap | JRS Digital">
+  <meta property="og:description" content="Walk through your home, compare each room with the connection beside your modem, and mark the places where Wi-Fi drops.">
   <meta property="og:url" content="https://jrsdigital.net/tools/wifi-heatmap/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="JRS Digital">
   <meta property="og:image" content="https://jrsdigital.net/assets/img/og-default.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Home Wi-Fi & Mesh Heatmap Simulator | JRS Digital">
-  <meta name="twitter:description" content="Plan router and mesh placement, model wall attenuation, and check your real network connection room by room.">
+  <meta name="twitter:title" content="Wi-Fi Dead Zone Scanner &amp; Heatmap | JRS Digital">
+  <meta name="twitter:description" content="Check your real Wi-Fi connection room by room, then plan router and mesh placement if you need it.">
   <meta name="twitter:image" content="https://jrsdigital.net/assets/img/og-default.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,12 +25,12 @@
   {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "Home Wi-Fi & Mesh Heatmap Simulator",
+    "name": "Wi-Fi Dead Zone Scanner and Heatmap",
     "url": "https://jrsdigital.net/tools/wifi-heatmap/",
     "applicationCategory": "UtilitiesApplication",
     "operatingSystem": "All",
     "browserRequirements": "Requires JavaScript. Requires HTML5 Canvas.",
-    "description": "Simulate in-home Wi-Fi signal propagation across Australian floorplans, calculate wall attenuation, and eliminate dead zones.",
+    "description": "Compare a real home Wi-Fi connection room by room, mark weak spots, and simulate router or mesh placement across Australian floorplans.",
     "offers": {
       "@type": "Offer",
       "price": "0",
@@ -72,37 +72,49 @@
         <section class="wifi-hero">
           <div class="wifi-badge">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
-            Wi-Fi planning tool
+            Wi-Fi checker for Australian homes
           </div>
-          <h1>Australian Home <span>Wi-Fi Heatmap</span></h1>
-          <p>Choose the Australian home closest to yours, tell us where the modem sits and get a useful starting heatmap. No floorplan drawing required.</p>
+          <h1>Find your home's <span>Wi-Fi dead spots</span></h1>
+          <p>Use your phone to check each room and see where the connection gets worse. You don't need to draw a floorplan first.</p>
+          <div class="wifi-hero-actions">
+            <button class="wifi-hero-scan-btn" id="heroStartLiveBtn" type="button">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" aria-hidden="true"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+              <span id="heroStartLiveBtnText">I'm beside the modem. Start scanning</span>
+            </button>
+            <button class="wifi-hero-plan-btn" id="heroPlannerBtn" type="button">I'd rather plan the router position</button>
+          </div>
+          <div class="wifi-hero-proof" aria-label="Scanner benefits">
+            <span>No app to install</span>
+            <span>Your marks stay on this device</span>
+          </div>
         </section>
 
-        <section class="wifi-quick-start" aria-labelledby="quickStartTitle">
+        <!-- Mode Switcher (Simulator vs Live Phone Scanner) -->
+        <div class="wifi-mode-switcher" role="group" aria-label="Choose a Wi-Fi tool">
+          <button class="wifi-mode-btn is-active" id="modeLiveBtn" type="button" aria-pressed="true" aria-controls="liveScannerPanel">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+            <span class="wifi-mode-btn-copy"><strong>Scan my home</strong><small>Check each room as I walk</small></span>
+            <span class="wifi-mode-recommended">Start here</span>
+          </button>
+          <button class="wifi-mode-btn" id="modeSimBtn" type="button" aria-pressed="false" aria-controls="simWorkspace">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <span class="wifi-mode-btn-copy"><strong>Try a floorplan</strong><small>Estimate router and mesh spots</small></span>
+          </button>
+        </div>
+
+        <section class="wifi-quick-start" aria-labelledby="quickStartTitle" hidden>
           <div class="wifi-quick-start-copy">
-            <span class="wifi-quick-start-kicker" id="quickStartKicker">Start here · about 20 seconds</span>
-            <h2 id="quickStartTitle">Build a starting floorplan in two choices</h2>
-            <p id="quickStartBody">Pick a familiar Australian home type and the room containing your NBN box or modem. You can adjust the result later if you want to.</p>
+            <span class="wifi-quick-start-kicker" id="quickStartKicker">Floorplan estimate</span>
+            <h2 id="quickStartTitle">See where the router might work better</h2>
+            <p id="quickStartBody">Choose a home layout that's close to yours, then tell us where the modem is. You can fix up the rooms afterwards if you need to.</p>
           </div>
           <button class="wifi-quick-start-btn" id="openWizardBtn" type="button">
-            Choose my home
+            Choose a home layout
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
           </button>
         </section>
 
-        <!-- Mode Switcher (Simulator vs Live Phone Scanner) -->
-        <div class="wifi-mode-switcher">
-          <button class="wifi-mode-btn is-active" id="modeSimBtn" type="button" aria-pressed="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            Interactive Floorplan Simulator
-          </button>
-          <button class="wifi-mode-btn" id="modeLiveBtn" type="button" aria-pressed="false">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
-            Live dead-zone walk
-          </button>
-        </div>
-
-        <details class="wifi-advanced-panel" id="advancedFloorplanPanel">
+        <details class="wifi-advanced-panel" id="advancedFloorplanPanel" hidden>
           <summary>
             <span>Fine-tune the floorplan</span>
             <small>Optional: upload an image, add rooms or edit walls</small>
@@ -161,12 +173,12 @@
         </details>
 
         <!-- Quick Room Jumper Bar -->
-        <div class="wifi-quick-jump-bar" id="quickJumpContainer">
+        <div class="wifi-quick-jump-bar" id="quickJumpContainer" hidden>
           <!-- Dynamically populated by wifi-engine.js -->
         </div>
 
         <!-- Main Interactive Workspace -->
-        <div class="wifi-workspace" id="simWorkspace">
+        <div class="wifi-workspace" id="simWorkspace" hidden>
           
           <!-- Interactive 2D Canvas Card -->
           <div class="wifi-canvas-card">
@@ -216,7 +228,7 @@
             </div>
 
             <!-- Canvas Viewport -->
-            <div class="wifi-canvas-tip"><strong>Try this first:</strong> drag the orange router, then use “Find best router spot” to compare.</div>
+            <div class="wifi-canvas-tip"><strong>Try this first:</strong> drag the orange router, then press Find best router spot to compare.</div>
             <div class="wifi-canvas-wrap">
               <canvas id="wifiHeatmapCanvas" width="800" height="500" role="img" aria-label="Interactive floorplan heatmap. Use the controls above to add rooms, place walls and optimize router position.">Your browser does not support the interactive Wi-Fi heatmap.</canvas>
               
@@ -302,22 +314,26 @@
 
         </div>
 
-        <!-- Mode 2: live connection walk with user-marked weak spots (hidden by default) -->
-        <section class="wifi-live-scanner-panel" id="liveScannerPanel" aria-labelledby="liveScannerTitle">
+        <!-- Primary mode: live connection walk with user-marked weak spots -->
+        <section class="wifi-live-scanner-panel is-active" id="liveScannerPanel" aria-labelledby="liveScannerTitle">
           <header class="wifi-live-header">
-            <span class="wifi-live-kicker">Live walk · no app required</span>
-            <h2 id="liveScannerTitle">Walk your home and mark weak spots</h2>
-            <p>Start beside your modem so the phone can learn a baseline, then walk through your home and tap <strong>Mark this spot</strong> whenever the connection drops.</p>
+            <span class="wifi-live-kicker">Start here</span>
+            <h2 id="liveScannerTitle">First, stand next to your modem</h2>
+            <p>We'll take five readings here so the scan knows what a strong connection looks like. Once that's done, walk to another room and wait for the reading to settle.</p>
+            <div class="wifi-live-benefits" aria-label="Live scanner details">
+              <span>It takes about 15 seconds to set up</span>
+              <span>It works best on your phone</span>
+            </div>
           </header>
 
           <div class="wifi-local-preview-note" id="localPreviewNote" role="note" hidden>
-            <strong>Local preview:</strong> these readings come from this computer. Use the published page on your phone for a meaningful walk test.
+            <strong>You're testing on this computer.</strong> Open the published page on your phone before you walk around the house.
           </div>
 
           <ol class="wifi-live-steps" aria-label="Live dead-zone walk steps">
-            <li class="is-active" data-live-step="1"><span>1</span><strong>Start</strong></li>
+            <li class="is-active" data-live-step="1"><span>1</span><strong>Set up</strong></li>
             <li data-live-step="2"><span>2</span><strong>Walk</strong></li>
-            <li data-live-step="3"><span>3</span><strong>Mark spots</strong></li>
+            <li data-live-step="3"><span>3</span><strong>Save spots</strong></li>
           </ol>
 
           <div class="wifi-live-walk-grid">
@@ -329,7 +345,7 @@
 
               <button class="wifi-scan-btn" id="startLiveWalkBtn" type="button">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
-                <span>Start live walk</span>
+                <span>Start room scan</span>
               </button>
 
               <div class="wifi-live-active-controls" id="liveWalkControls" hidden>
@@ -352,12 +368,12 @@
 
               <div class="wifi-live-current-reading">
                 <strong class="wifi-live-meter-val" id="liveQualityVal" aria-live="polite">Ready</strong>
-                <p id="liveResultMeaning">Start the live walk to begin checking.</p>
+                <p id="liveResultMeaning">Start the scan when you're next to the modem.</p>
               </div>
 
               <dl class="wifi-live-stats-row">
                 <div class="wifi-stat-box">
-                  <dt>Compared with start</dt>
+                  <dt>Compared with modem</dt>
                   <dd id="liveSpeedEstNum">—</dd>
                 </div>
                 <div class="wifi-stat-box">
@@ -375,39 +391,39 @@
 
             <section class="wifi-live-control-card" aria-labelledby="liveWalkControlsTitle">
               <span class="wifi-live-section-label">How it works</span>
-              <h3 id="liveWalkControlsTitle">Let the phone watch while you walk</h3>
+              <h3 id="liveWalkControlsTitle">Take your phone for a walk</h3>
               <ol class="wifi-live-instructions">
-                <li><span>1</span><p><strong>Start beside your modem.</strong> Hold still for five readings while normal variation is learned.</p></li>
-                <li><span>2</span><p><strong>Walk, then pause.</strong> Hold each spot until confidence reaches Medium or High.</p></li>
-                <li><span>3</span><p><strong>Mark weak spots.</strong> They are saved as Spot 1, Spot 2 and can be renamed later.</p></li>
+                <li><span>1</span><p><strong>Stay beside the modem.</strong> Keep the phone still while it takes five readings.</p></li>
+                <li><span>2</span><p><strong>Walk to a room and stop.</strong> Wait until the confidence changes to Medium or High.</p></li>
+                <li><span>3</span><p><strong>Save the bad spots.</strong> Tap Mark this spot. You can name it later.</p></li>
               </ol>
 
               <label class="wifi-vibration-control" id="vibrationControl">
                 <input id="vibrateOnPoor" type="checkbox" checked>
-                <span><strong>Vibrate when it turns Poor</strong><small>Works on supported Android phones.</small></span>
+                <span><strong>Buzz my phone when it finds a dead zone</strong><small>This works on Android phones that support vibration.</small></span>
               </label>
-              <button class="wifi-recalibrate-btn" id="recalibrateBaselineBtn" type="button" disabled>Back at the modem? Recalibrate</button>
-              <p class="wifi-live-data-note">Uses roughly 7 MB of data per minute while running. The screen stays awake where supported.</p>
+              <button class="wifi-recalibrate-btn" id="recalibrateBaselineBtn" type="button" disabled>Back near the modem? Set a new starting point</button>
+              <p class="wifi-live-data-note">The scan uses about 7 MB each minute. Your phone may keep the screen awake while it runs.</p>
             </section>
           </div>
 
           <div class="wifi-test-note" role="note">
-            <strong>This is a calibrated connection comparison, not RF radar.</strong> Browsers cannot read Wi-Fi RSSI or indoor position. Each location is compared with the baseline you record beside the modem.
+            <strong>A browser can't read Wi-Fi signal strength.</strong> This tool compares the speed and response time in each room with the readings taken beside your modem.
           </div>
 
           <section class="wifi-audit-history" aria-labelledby="savedSpotsTitle">
             <header class="wifi-audit-header">
               <div>
-                <span class="wifi-live-section-label">Saved on this device</span>
-                <h3 id="savedSpotsTitle">Marked spots</h3>
-                <p id="auditSummary">No spots marked yet.</p>
+                <span class="wifi-live-section-label">On this device</span>
+                <h3 id="savedSpotsTitle">Places you've marked</h3>
+                <p id="auditSummary">You haven't marked anywhere yet.</p>
               </div>
               <button class="wifi-clear-results-btn" id="clearAuditBtn" type="button" disabled>Clear marks</button>
             </header>
             <div class="wifi-audit-table" id="auditHistoryList" role="list">
               <div class="wifi-audit-empty">
-                <strong>Walk until the pulse weakens</strong>
-                <span>Tap “Mark this spot” and keep moving. You can rename every mark after the walk.</span>
+                <strong>No spots saved yet</strong>
+                <span>Use the Mark this spot button when a room feels weak. You can give it a name later.</span>
               </div>
             </div>
           </section>

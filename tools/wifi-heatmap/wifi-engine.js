@@ -1609,37 +1609,39 @@
   const modeSimBtn = document.getElementById('modeSimBtn');
   const modeLiveBtn = document.getElementById('modeLiveBtn');
   const simWorkspace = document.getElementById('simWorkspace');
-  const layoutHub = document.getElementById('layoutHub');
   const quickJumpBar = document.getElementById('quickJumpContainer');
   const livePanel = document.getElementById('liveScannerPanel');
+  const heroStartLiveBtn = document.getElementById('heroStartLiveBtn');
+  const heroStartLiveBtnText = document.getElementById('heroStartLiveBtnText');
+  const heroPlannerBtn = document.getElementById('heroPlannerBtn');
 
-  if (modeSimBtn && modeLiveBtn && simWorkspace && livePanel) {
-    modeSimBtn.addEventListener('click', () => {
-      stopLiveWalk(false);
-      modeSimBtn.classList.add('is-active');
-      modeLiveBtn.classList.remove('is-active');
-      modeSimBtn.setAttribute('aria-pressed', 'true');
-      modeLiveBtn.setAttribute('aria-pressed', 'false');
-      simWorkspace.style.display = 'grid';
-      if (quickStartPanel) quickStartPanel.style.display = 'grid';
-      if (advancedFloorplanPanel) advancedFloorplanPanel.style.display = 'block';
-      if (layoutHub) layoutHub.style.display = 'flex';
-      if (quickJumpBar) quickJumpBar.style.display = 'flex';
-      livePanel.classList.remove('is-active');
+  const setToolMode = mode => {
+    if (!modeSimBtn || !modeLiveBtn || !simWorkspace || !livePanel) return;
+    const showLiveScanner = mode === 'live';
+    if (!showLiveScanner) stopLiveWalk(false);
+
+    modeLiveBtn.classList.toggle('is-active', showLiveScanner);
+    modeSimBtn.classList.toggle('is-active', !showLiveScanner);
+    modeLiveBtn.setAttribute('aria-pressed', String(showLiveScanner));
+    modeSimBtn.setAttribute('aria-pressed', String(!showLiveScanner));
+    simWorkspace.hidden = showLiveScanner;
+    if (quickStartPanel) quickStartPanel.hidden = showLiveScanner;
+    if (advancedFloorplanPanel) advancedFloorplanPanel.hidden = showLiveScanner;
+    if (quickJumpBar) quickJumpBar.hidden = showLiveScanner;
+    livePanel.classList.toggle('is-active', showLiveScanner);
+
+    if (!showLiveScanner) {
       refreshCanvasRect();
       requestRender();
-    });
+    }
+  };
 
-    modeLiveBtn.addEventListener('click', () => {
-      modeLiveBtn.classList.add('is-active');
-      modeSimBtn.classList.remove('is-active');
-      modeLiveBtn.setAttribute('aria-pressed', 'true');
-      modeSimBtn.setAttribute('aria-pressed', 'false');
-      simWorkspace.style.display = 'none';
-      if (quickStartPanel) quickStartPanel.style.display = 'none';
-      if (advancedFloorplanPanel) advancedFloorplanPanel.style.display = 'none';
-      if (quickJumpBar) quickJumpBar.style.display = 'none';
-      livePanel.classList.add('is-active');
+  if (modeSimBtn && modeLiveBtn && simWorkspace && livePanel) {
+    modeSimBtn.addEventListener('click', () => setToolMode('sim'));
+    modeLiveBtn.addEventListener('click', () => setToolMode('live'));
+    heroPlannerBtn?.addEventListener('click', () => {
+      setToolMode('sim');
+      window.requestAnimationFrame(() => quickStartPanel?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
     });
   }
 
@@ -1737,7 +1739,7 @@
         ratingKey: 'poor',
         statusLabel: 'Dead zone',
         badgeClass: 'wifi-room-tag--dead',
-        meaning: 'The connection has dropped heavily compared with your starting point.'
+        meaning: 'The connection is much worse here than it was beside the modem.'
       };
     }
     if (comparisonPercent < 50 || responseRatio > 3) {
@@ -1745,7 +1747,7 @@
         ratingKey: 'fair',
         statusLabel: 'Weak',
         badgeClass: 'wifi-room-tag--good',
-        meaning: 'Noticeably weaker than beside the modem. Consider marking this spot.'
+        meaning: 'The connection is noticeably weaker here. This spot is worth saving.'
       };
     }
     if (comparisonPercent < 80 || responseRatio > 1.6) {
@@ -1753,14 +1755,14 @@
         ratingKey: 'good',
         statusLabel: 'Good',
         badgeClass: 'wifi-room-tag--strong',
-        meaning: 'Some drop from the starting point, but the connection remains usable.'
+        meaning: 'The connection has dropped a little, but it should still be usable.'
       };
     }
     return {
       ratingKey: 'excellent',
       statusLabel: 'Strong',
       badgeClass: 'wifi-room-tag--strong',
-      meaning: 'Close to the connection quality recorded beside your modem.'
+      meaning: 'This is close to the connection you had beside the modem.'
     };
   };
 
@@ -1799,12 +1801,12 @@
     consecutiveSampleFailures = 0;
     liveWarmupComplete = keepWarmConnection;
     if (liveRadarCard) liveRadarCard.dataset.rating = 'waiting';
-    if (liveQualityVal) liveQualityVal.textContent = 'Calibrating';
+    if (liveQualityVal) liveQualityVal.textContent = 'Setting up';
     if (liveSpeedEstNum) liveSpeedEstNum.textContent = '—';
     if (liveLatencyNum) liveLatencyNum.textContent = '—';
     if (liveJitterNum) liveJitterNum.textContent = '—';
-    if (liveResultMeaning) liveResultMeaning.textContent = 'Stay beside the modem while five readings learn its normal variation.';
-    if (liveSampleCount) liveSampleCount.textContent = '0 of ' + baselineSampleTarget + ' baseline readings';
+    if (liveResultMeaning) liveResultMeaning.textContent = "Keep the phone still beside your modem. We'll use the next five readings as the starting point.";
+    if (liveSampleCount) liveSampleCount.textContent = '0 of ' + baselineSampleTarget + ' starting readings';
     if (markWeakSpotBtn) markWeakSpotBtn.disabled = true;
     if (recalibrateBaselineBtn) recalibrateBaselineBtn.disabled = true;
   };
@@ -1817,12 +1819,12 @@
       const empty = document.createElement('div');
       empty.className = 'wifi-audit-empty';
       const title = document.createElement('strong');
-      title.textContent = 'Walk until the pulse weakens';
+      title.textContent = 'No spots saved yet';
       const detail = document.createElement('span');
-      detail.textContent = 'Tap “Mark this spot” and keep moving. You can rename every mark after the walk.';
+      detail.textContent = 'Use the Mark this spot button when a room feels weak. You can give it a name later.';
       empty.append(title, detail);
       auditHistoryList.append(empty);
-      if (auditSummary) auditSummary.textContent = 'No spots marked yet.';
+      if (auditSummary) auditSummary.textContent = "You haven't marked anywhere yet.";
       if (clearAuditBtn) clearAuditBtn.disabled = true;
       return;
     }
@@ -1864,7 +1866,7 @@
           editingMarkId = null;
           saveMarkedSpots();
           renderMarkedSpots();
-          showToast('Marked spot renamed.');
+          showToast('Name saved.');
         });
         nameWrap.append(form);
         window.setTimeout(() => {
@@ -1884,11 +1886,11 @@
       reading.className = 'wifi-mark-reading';
       const speed = document.createElement('strong');
       speed.textContent = Number.isFinite(spot.comparisonPercent)
-        ? String(spot.comparisonPercent) + '% of start'
+        ? String(spot.comparisonPercent) + '% of modem'
         : String(spot.measuredMbps) + ' Mbps';
       const detail = document.createElement('small');
       detail.textContent = ' · ' + spot.responseMs + ' ms response' +
-        (spot.confidence ? ' · ' + spot.confidence + ' confidence' : ' · earlier measurement');
+        (spot.confidence ? ' · ' + spot.confidence + ' confidence' : ' · earlier reading');
       const rating = document.createElement('span');
       rating.className = 'wifi-room-tag ' + spot.badgeClass;
       rating.textContent = spot.statusLabel;
@@ -1914,7 +1916,7 @@
         if (editingMarkId === spot.id) editingMarkId = null;
         saveMarkedSpots();
         renderMarkedSpots();
-        showToast('Marked spot removed.');
+        showToast('Spot removed.');
       });
       actions.append(renameButton, removeButton);
 
@@ -1998,22 +2000,22 @@
 
     try {
       if (!liveWarmupComplete) {
-        if (scanProgress) scanProgress.textContent = 'Warming up the connection test…';
+        if (scanProgress) scanProgress.textContent = 'Getting the first reading ready.';
         await takeConnectionSample();
         if (!liveWalkActive) return;
         liveWarmupComplete = true;
       }
 
       if (!baselineReading) {
-        if (scanProgress) scanProgress.textContent = 'Calibrating beside the modem… keep the phone still.';
+        if (scanProgress) scanProgress.textContent = "Stay still. We're checking the connection beside your modem.";
         const baselineSample = await takeConnectionSample();
         if (!liveWalkActive) return;
         baselineSamples.push(baselineSample);
         const calibrationCount = baselineSamples.length;
-        if (liveSampleCount) liveSampleCount.textContent = String(calibrationCount) + ' of ' + baselineSampleTarget + ' baseline readings';
+        if (liveSampleCount) liveSampleCount.textContent = String(calibrationCount) + ' of ' + baselineSampleTarget + ' starting readings';
         if (liveSpeedEstNum) liveSpeedEstNum.textContent = String(calibrationCount) + ' / ' + baselineSampleTarget;
         if (liveLatencyNum) liveLatencyNum.textContent = String(Math.round(baselineSample.responseMs)) + ' ms';
-        if (liveJitterNum) liveJitterNum.textContent = 'Building';
+        if (liveJitterNum) liveJitterNum.textContent = 'Waiting';
 
         if (calibrationCount >= baselineSampleTarget) {
           const baselineSpeeds = baselineSamples.map(sample => sample.measuredMbps);
@@ -2039,20 +2041,20 @@
           smoothedComparisonPercent = null;
           consecutiveSampleFailures = 0;
           if (liveRadarCard) liveRadarCard.dataset.rating = 'good';
-          if (liveQualityVal) liveQualityVal.textContent = 'Baseline ready';
+          if (liveQualityVal) liveQualityVal.textContent = 'Ready to walk';
           if (liveSpeedEstNum) liveSpeedEstNum.textContent = '100%';
           if (liveLatencyNum) liveLatencyNum.textContent = String(Math.round(baselineReading.responseMs)) + ' ms';
           if (liveJitterNum) liveJitterNum.textContent = baselineReading.confidence;
-          if (liveResultMeaning) liveResultMeaning.textContent = 'Starting range learned. Walk to a room, then pause while five fresh readings settle.';
-          if (liveSampleCount) liveSampleCount.textContent = 'Baseline ready';
-          if (scanProgress) scanProgress.textContent = 'Calibrated · walk to a room, then hold still.';
+          if (liveResultMeaning) liveResultMeaning.textContent = "We've saved the reading beside your modem. Walk to another room and stop there for five readings.";
+          if (liveSampleCount) liveSampleCount.textContent = 'Starting point saved';
+          if (scanProgress) scanProgress.textContent = 'Done. Walk to another room, then hold still.';
           if (recalibrateBaselineBtn) recalibrateBaselineBtn.disabled = false;
           if ('vibrate' in navigator) navigator.vibrate(60);
         }
         return;
       }
 
-      if (scanProgress) scanProgress.textContent = 'Comparing this spot with your starting point…';
+      if (scanProgress) scanProgress.textContent = 'Checking this room against the modem reading.';
       const sample = await takeConnectionSample();
       if (!liveWalkActive) return;
       liveSamples.push(sample);
@@ -2064,14 +2066,14 @@
         const settlingCount = liveSamples.length;
         latestLiveReading = null;
         if (liveRadarCard) liveRadarCard.dataset.rating = 'waiting';
-        if (liveQualityVal) liveQualityVal.textContent = 'Stabilising';
+        if (liveQualityVal) liveQualityVal.textContent = 'Checking';
         if (liveSpeedEstNum) liveSpeedEstNum.textContent = String(settlingCount) + ' / ' + liveSampleWindowSize;
         if (liveLatencyNum) liveLatencyNum.textContent = String(Math.round(median(liveSamples.map(reading => reading.responseMs)))) + ' ms';
-        if (liveJitterNum) liveJitterNum.textContent = 'Building';
-        if (liveResultMeaning) liveResultMeaning.textContent = 'Hold this spot. A result appears after five readings use the same window as calibration.';
+        if (liveJitterNum) liveJitterNum.textContent = 'Waiting';
+        if (liveResultMeaning) liveResultMeaning.textContent = "Keep still here. We'll show the result after five readings.";
         if (liveSampleCount) liveSampleCount.textContent = String(settlingCount) + ' of ' + liveSampleWindowSize + ' readings here';
         if (markWeakSpotBtn) markWeakSpotBtn.disabled = true;
-        if (scanProgress) scanProgress.textContent = 'Hold still · stabilising this location…';
+        if (scanProgress) scanProgress.textContent = "Hold still. We're checking this room.";
         return;
       }
 
@@ -2108,8 +2110,8 @@
 
       updateLiveReading(latestLiveReading);
       if (scanProgress) scanProgress.textContent = confidence === 'Low'
-        ? 'Hold still · the reading is still settling.'
-        : 'Live · walk to the next spot or mark this one.';
+        ? 'Stay still a little longer. The readings are jumping around.'
+        : 'You can walk to the next room or save this spot.';
 
       if (rating.ratingKey === 'poor' && lastLiveRating !== 'poor' && vibrateOnPoor?.checked && 'vibrate' in navigator) {
         navigator.vibrate([140, 80, 140]);
@@ -2129,14 +2131,14 @@
             ...rating
           };
           updateLiveReading(latestLiveReading);
-          if (scanProgress) scanProgress.textContent = 'Repeated connection failures · mark this spot if the phone is still online.';
+          if (scanProgress) scanProgress.textContent = "The connection has failed twice here. Save this spot if your phone is still on Wi-Fi.";
           if (lastLiveRating !== 'poor' && vibrateOnPoor?.checked && 'vibrate' in navigator) navigator.vibrate([140, 80, 140]);
           lastLiveRating = 'poor';
         } else {
           if (liveRadarCard) liveRadarCard.dataset.rating = 'unavailable';
           if (liveQualityVal) liveQualityVal.textContent = baselineReading ? 'Retrying' : 'Calibration paused';
-          if (liveResultMeaning) liveResultMeaning.textContent = 'The test could not reach the server. Hold this spot while it retries.';
-          if (scanProgress) scanProgress.textContent = 'Connection check failed once. Retrying automatically…';
+          if (liveResultMeaning) liveResultMeaning.textContent = "We couldn't reach the test file. Stay here while we try again.";
+          if (scanProgress) scanProgress.textContent = "That reading failed. We'll try again.";
         }
       }
     } finally {
@@ -2152,9 +2154,11 @@
     if (liveRadarCard) liveRadarCard.dataset.running = 'true';
     if (liveSessionStatus) liveSessionStatus.textContent = 'Live';
     if (startLiveWalkBtn) startLiveWalkBtn.hidden = true;
+    if (heroStartLiveBtn) heroStartLiveBtn.disabled = true;
+    if (heroStartLiveBtnText) heroStartLiveBtnText.textContent = 'Room scan running';
     if (liveWalkControls) liveWalkControls.hidden = false;
     if (recalibrateBaselineBtn) recalibrateBaselineBtn.disabled = !baselineReading;
-    if (scanProgress) scanProgress.textContent = baselineReading ? 'Resuming comparison readings…' : 'Starting beside-modem calibration…';
+    if (scanProgress) scanProgress.textContent = baselineReading ? 'Picking up where you stopped.' : 'Starting the check beside your modem.';
     setLiveStep(2);
     requestScreenWakeLock();
     runLiveSample();
@@ -2170,27 +2174,35 @@
     if (liveRadarCard) liveRadarCard.dataset.running = 'false';
     if (liveSessionStatus) liveSessionStatus.textContent = 'Stopped';
     if (startLiveWalkBtn) startLiveWalkBtn.hidden = false;
-    if (startLiveWalkBtnText) startLiveWalkBtnText.textContent = 'Resume live walk';
+    if (startLiveWalkBtnText) startLiveWalkBtnText.textContent = 'Resume room scan';
+    if (heroStartLiveBtn) heroStartLiveBtn.disabled = false;
+    if (heroStartLiveBtnText) heroStartLiveBtnText.textContent = 'Resume room scan';
     if (liveWalkControls) liveWalkControls.hidden = true;
     if (recalibrateBaselineBtn) recalibrateBaselineBtn.disabled = true;
     if (scanProgress) scanProgress.textContent = latestLiveReading
-      ? 'Walk stopped. Your latest comparison and marks are still here.'
-      : (baselineReading ? 'Walk stopped after calibration.' : 'Walk stopped before calibration completed.');
+      ? 'The scan is stopped. Your last reading and saved spots are still here.'
+      : (baselineReading ? 'The scan is stopped. Your starting point is still saved.' : 'The scan stopped before it finished setting up.');
     setLiveStep(markedSpots.length ? 3 : 1);
     releaseScreenWakeLock();
-    if (announce) showToast('Live walk stopped.');
+    if (announce) showToast('Scan stopped.');
   };
 
   startLiveWalkBtn?.addEventListener('click', startLiveWalk);
   stopLiveWalkBtn?.addEventListener('click', () => stopLiveWalk());
+  heroStartLiveBtn?.addEventListener('click', () => {
+    setToolMode('live');
+    startLiveWalk();
+    const scrollBehavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    window.requestAnimationFrame(() => liveRadarCard?.scrollIntoView({ behavior: scrollBehavior, block: 'center' }));
+  });
   recalibrateBaselineBtn?.addEventListener('click', () => {
     if (!liveWalkActive) return;
     window.clearTimeout(liveSampleTimer);
     liveSampleTimer = null;
     liveAbortController?.abort();
     resetLiveReading({ keepWarmConnection: true });
-    if (scanProgress) scanProgress.textContent = 'Recalibrating · keep the phone beside the modem and hold still.';
-    showToast('Recalibration started beside the modem.');
+    if (scanProgress) scanProgress.textContent = 'Stay beside the modem while we save a new starting point.';
+    showToast('Setting a new starting point.');
     if (!liveSampleInFlight) runLiveSample();
   });
   markWeakSpotBtn?.addEventListener('click', () => {
@@ -2208,17 +2220,17 @@
     renderMarkedSpots();
     setLiveStep(3);
     if ('vibrate' in navigator) navigator.vibrate(60);
-    showToast(spot.name + ' marked. Rename it now or after the walk.');
+    showToast(spot.name + ' saved. You can rename it now or later.');
   });
 
   clearAuditBtn?.addEventListener('click', () => {
-    if (!markedSpots.length || !window.confirm('Clear every marked spot from this device?')) return;
+    if (!markedSpots.length || !window.confirm('Remove every saved spot from this device?')) return;
     markedSpots = [];
     editingMarkId = null;
     saveMarkedSpots();
     renderMarkedSpots();
     setLiveStep(liveWalkActive ? 2 : 1);
-    showToast('All marked spots cleared.');
+    showToast('Saved spots removed.');
   });
 
   document.addEventListener('visibilitychange', () => {
@@ -2228,11 +2240,11 @@
       liveSampleTimer = null;
       liveAbortController?.abort();
       if (liveSessionStatus) liveSessionStatus.textContent = 'Paused';
-      if (scanProgress) scanProgress.textContent = 'Paused while this page is in the background.';
+      if (scanProgress) scanProgress.textContent = 'The scan pauses when this page is in the background.';
       releaseScreenWakeLock();
     } else {
       if (liveSessionStatus) liveSessionStatus.textContent = 'Live';
-      if (scanProgress) scanProgress.textContent = 'Resuming live readings…';
+      if (scanProgress) scanProgress.textContent = 'Starting the readings again.';
       requestScreenWakeLock();
       if (!liveSampleInFlight) runLiveSample();
     }
