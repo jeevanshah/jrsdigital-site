@@ -10,6 +10,12 @@
   <meta property="og:description" content="Simulate in-home Wi-Fi signal propagation across Australian floorplans. Test router placement, double brick wall attenuation, and eliminate dead zones with mesh boosters.">
   <meta property="og:url" content="https://jrsdigital.net/tools/wifi-heatmap/">
   <meta property="og:type" content="website">
+  <meta property="og:site_name" content="JRS Digital">
+  <meta property="og:image" content="https://jrsdigital.net/assets/img/og-default.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Home Wi-Fi & Mesh Heatmap Simulator | JRS Digital">
+  <meta name="twitter:description" content="Plan router and mesh placement, model wall attenuation, and check your real network connection room by room.">
+  <meta name="twitter:image" content="https://jrsdigital.net/assets/img/og-default.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -21,10 +27,15 @@
     "@type": "WebApplication",
     "name": "Home Wi-Fi & Mesh Heatmap Simulator",
     "url": "https://jrsdigital.net/tools/wifi-heatmap/",
-    "applicationCategory": "UtilityApplication",
+    "applicationCategory": "UtilitiesApplication",
     "operatingSystem": "All",
     "browserRequirements": "Requires JavaScript. Requires HTML5 Canvas.",
-    "description": "Simulate in-home Wi-Fi signal propagation across Australian floorplans, calculate wall attenuation, and eliminate dead zones."
+    "description": "Simulate in-home Wi-Fi signal propagation across Australian floorplans, calculate wall attenuation, and eliminate dead zones.",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "AUD"
+    }
   }
   </script>
 </head>
@@ -61,41 +72,54 @@
         <section class="wifi-hero">
           <div class="wifi-badge">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
-            Interactive Diagnostic Engine
+            Wi-Fi planning tool
           </div>
           <h1>Australian Home <span>Wi-Fi Heatmap</span></h1>
-          <p>Model your exact home layout with automatic wall merging, doorway physics, hallways, bathrooms, and 1-click House Wizard.</p>
+          <p>Choose the Australian home closest to yours, tell us where the modem sits and get a useful starting heatmap. No floorplan drawing required.</p>
+        </section>
+
+        <section class="wifi-quick-start" aria-labelledby="quickStartTitle">
+          <div class="wifi-quick-start-copy">
+            <span class="wifi-quick-start-kicker" id="quickStartKicker">Start here · about 20 seconds</span>
+            <h2 id="quickStartTitle">Build a starting floorplan in two choices</h2>
+            <p id="quickStartBody">Pick a familiar Australian home type and the room containing your NBN box or modem. You can adjust the result later if you want to.</p>
+          </div>
+          <button class="wifi-quick-start-btn" id="openWizardBtn" type="button">
+            Choose my home
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
         </section>
 
         <!-- Mode Switcher (Simulator vs Live Phone Scanner) -->
         <div class="wifi-mode-switcher">
-          <button class="wifi-mode-btn is-active" id="modeSimBtn">
+          <button class="wifi-mode-btn is-active" id="modeSimBtn" type="button" aria-pressed="true">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
             Interactive Floorplan Simulator
           </button>
-          <button class="wifi-mode-btn" id="modeLiveBtn">
+          <button class="wifi-mode-btn" id="modeLiveBtn" type="button" aria-pressed="false">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
-            📱 Walk-Your-House Live Scanner
+            Room-by-room connection check
           </button>
         </div>
 
-        <!-- 🏠 3-in-1 Floorplan Creation & CRUD Hub -->
+        <details class="wifi-advanced-panel" id="advancedFloorplanPanel">
+          <summary>
+            <span>Fine-tune the floorplan</span>
+            <small>Optional: upload an image, add rooms or edit walls</small>
+          </summary>
+
+        <!-- Floorplan editing hub -->
         <div class="wifi-layout-hub" id="layoutHub">
           <div class="wifi-hub-left">
-            <button class="wifi-hub-btn" id="openWizardBtn">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
-              🧙‍♂️ House Wizard
-            </button>
-
-            <button class="wifi-hub-btn" id="uploadPlanBtn" title="Upload an image to auto-detect and generate rooms">
+            <button class="wifi-hub-btn" id="uploadPlanBtn" title="Upload a floorplan image to use as a tracing guide">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-              📸 Upload Floorplan (Auto-Generate)
+              Use Floorplan Image
             </button>
             <input type="file" id="floorplanFileInput" class="wifi-file-input" accept="image/*">
 
-            <button class="wifi-hub-btn" id="toggleRoomTrayBtn">
+            <button class="wifi-hub-btn" id="toggleRoomTrayBtn" type="button" aria-expanded="false" aria-controls="roomTray">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-              🧩 Room Blocks (CRUD)
+              Add or edit rooms
             </button>
           </div>
 
@@ -134,6 +158,7 @@
             <button class="wifi-add-room-btn" data-add-room="Outdoor Patio">+ Patio</button>
           </div>
         </div>
+        </details>
 
         <!-- Quick Room Jumper Bar -->
         <div class="wifi-quick-jump-bar" id="quickJumpContainer">
@@ -148,7 +173,7 @@
             
             <!-- Canvas Toolbar -->
             <div class="wifi-canvas-toolbar">
-              <div class="wifi-toolbar-group">
+              <div class="wifi-toolbar-group wifi-toolbar-group--primary">
                 <span style="font-size: 0.75rem; font-weight: 700; color: #94A3B8;">Hardware:</span>
                 <select class="wifi-hardware-select" id="routerHardwareSelect" aria-label="Router Hardware Profile">
                   <option value="standard">Standard Telco Modem (Telstra/Optus)</option>
@@ -157,37 +182,43 @@
                 </select>
                 
                 <div class="wifi-band-toggle">
-                  <button class="wifi-band-btn is-active" data-band="5ghz">5 GHz</button>
-                  <button class="wifi-band-btn" data-band="2.4ghz">2.4 GHz</button>
+                  <button class="wifi-band-btn is-active" data-band="5ghz" type="button" aria-pressed="true">5 GHz</button>
+                  <button class="wifi-band-btn" data-band="2.4ghz" type="button" aria-pressed="false">2.4 GHz</button>
                 </div>
               </div>
 
               <div class="wifi-toolbar-group">
-                <button class="wifi-tool-btn wifi-tool-btn--magic" id="autoOptimizeBtn" title="Auto-calculate best position with minimal wall drop">
-                  ✨ Auto-Optimize
+                <button class="wifi-tool-btn wifi-tool-btn--magic" id="autoOptimizeBtn" type="button" title="Calculate a strong central router position">
+                  Find best router spot
                 </button>
-                <button class="wifi-tool-btn" id="addMeshBtn">
+                <button class="wifi-tool-btn" id="addMeshBtn" type="button" aria-pressed="false">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                  + Add Booster
+                  Add mesh node
                 </button>
-                <button class="wifi-tool-btn wifi-tool-btn--door" id="addDoorBtn" title="Click on any wall to place a doorway">
-                  🚪 Add Door
+                <details class="wifi-more-tools">
+                  <summary>More tools</summary>
+                  <div class="wifi-more-tools-menu">
+                <button class="wifi-tool-btn wifi-tool-btn--door" id="addDoorBtn" type="button" aria-pressed="false" title="Click on any wall to place a doorway">
+                  Add door
                 </button>
-                <button class="wifi-tool-btn" id="drawBrickBtn" title="Click and drag on canvas to draw wall">
-                  🧱 Add Wall
+                <button class="wifi-tool-btn" id="drawBrickBtn" type="button" aria-pressed="false" title="Click and drag on canvas to draw wall">
+                  Add wall
                 </button>
-                <button class="wifi-tool-btn wifi-tool-btn--erase" id="eraseWallBtn" title="Click any wall or door on canvas to remove it">
-                  🧹 Erase Wall
+                <button class="wifi-tool-btn wifi-tool-btn--erase" id="eraseWallBtn" type="button" aria-pressed="false" title="Click any wall or door on canvas to remove it">
+                  Erase wall
                 </button>
                 <button class="wifi-tool-btn" id="shareFloorplanBtn" title="Download PNG snapshot of your heatmap">
-                  📸 Snapshot
+                  Save snapshot
                 </button>
+                  </div>
+                </details>
               </div>
             </div>
 
             <!-- Canvas Viewport -->
+            <div class="wifi-canvas-tip"><strong>Try this first:</strong> drag the orange router, then use “Find best router spot” to compare.</div>
             <div class="wifi-canvas-wrap">
-              <canvas id="wifiHeatmapCanvas" width="800" height="500"></canvas>
+              <canvas id="wifiHeatmapCanvas" width="800" height="500" role="img" aria-label="Interactive floorplan heatmap. Use the controls above to add rooms, place walls and optimize router position.">Your browser does not support the interactive Wi-Fi heatmap.</canvas>
               
               <!-- Floating Selected Room CRUD Inspector -->
               <div class="wifi-room-inspector" id="roomInspector">
@@ -271,63 +302,114 @@
 
         </div>
 
-        <!-- 📱 Mode 2: Live Mobile Room Scanner (Hidden by default) -->
-        <section class="wifi-live-scanner-panel" id="liveScannerPanel">
-          <div class="wifi-live-header">
-            <h2>Live In-Home Signal Scanner</h2>
-            <p>Walk into each room with your phone to test real-world Wi-Fi latency, jitter, and build your whole-home signal audit.</p>
+        <!-- Mode 2: guided room-by-room connection walk test (hidden by default) -->
+        <section class="wifi-live-scanner-panel" id="liveScannerPanel" aria-labelledby="liveScannerTitle">
+          <header class="wifi-live-header">
+            <span class="wifi-live-kicker">Walk test · no app required</span>
+            <h2 id="liveScannerTitle">Check your connection room by room</h2>
+            <p>Take this device into each room, choose where you are and run a short check. Start near your modem, then test the room furthest away.</p>
+          </header>
+
+          <ol class="wifi-live-steps" aria-label="Room check progress">
+            <li class="is-active" data-live-step="1"><span>1</span><strong>Choose room</strong></li>
+            <li data-live-step="2"><span>2</span><strong>Run check</strong></li>
+            <li data-live-step="3"><span>3</span><strong>Compare</strong></li>
+          </ol>
+
+          <div class="wifi-live-walk-grid">
+            <section class="wifi-live-control-card" aria-labelledby="roomPickerTitle">
+              <span class="wifi-live-section-label">Where are you now?</span>
+              <h3 id="roomPickerTitle">Choose this room</h3>
+              <p class="wifi-live-control-copy">Keep the device in the same spot until the check finishes.</p>
+
+              <div class="wifi-room-select-grid" aria-label="Choose the room you are standing in">
+                <button class="wifi-room-pick-btn is-selected" data-scan-room="Living Room" type="button" aria-pressed="true">Living room</button>
+                <button class="wifi-room-pick-btn" data-scan-room="Kitchen" type="button" aria-pressed="false">Kitchen</button>
+                <button class="wifi-room-pick-btn" data-scan-room="Central Hallway" type="button" aria-pressed="false">Hallway</button>
+                <button class="wifi-room-pick-btn" data-scan-room="Main Bedroom" type="button" aria-pressed="false">Main bedroom</button>
+                <button class="wifi-room-pick-btn" data-scan-room="Bedroom 2" type="button" aria-pressed="false">Bedroom 2</button>
+                <button class="wifi-room-pick-btn" data-scan-room="Home Office" type="button" aria-pressed="false">Home office</button>
+                <button class="wifi-room-pick-btn" data-scan-room="Garage" type="button" aria-pressed="false">Garage</button>
+                <button class="wifi-room-pick-btn" data-scan-room="Alfresco / Patio" type="button" aria-pressed="false">Alfresco / patio</button>
+              </div>
+
+              <details class="wifi-custom-room">
+                <summary>Room not listed?</summary>
+                <div class="wifi-custom-room-entry">
+                  <label for="customRoomName">Room name</label>
+                  <div>
+                    <input id="customRoomName" type="text" maxlength="30" autocomplete="off" placeholder="e.g. Granny flat">
+                    <button id="useCustomRoomBtn" type="button">Use room</button>
+                  </div>
+                </div>
+              </details>
+
+              <button class="wifi-scan-btn" id="startRoomScanBtn" type="button">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+                <span>Check Living Room</span>
+              </button>
+              <p class="wifi-scan-progress" id="scanProgress" role="status" aria-live="polite">Ready to check Living Room.</p>
+            </section>
+
+            <section class="wifi-live-result-card" id="liveResultCard" data-rating="empty" aria-label="Latest room result">
+              <div class="wifi-live-result-empty" id="liveResultEmpty">
+                <span class="wifi-empty-signal" aria-hidden="true">
+                  <i></i><i></i><i></i>
+                </span>
+                <h3 id="liveResultTitle">Your result will appear here</h3>
+                <p id="liveResultEmptyCopy">One check takes a few seconds. Run it twice in important rooms for a steadier comparison.</p>
+              </div>
+
+              <div class="wifi-live-result-content" id="liveResultContent" hidden>
+                <div class="wifi-live-result-heading">
+                  <div>
+                    <span class="wifi-live-section-label">Latest result</span>
+                    <h3 id="liveResultRoom">Living Room</h3>
+                  </div>
+                  <strong class="wifi-live-meter-val" id="liveQualityVal" aria-live="polite">Good</strong>
+                </div>
+                <p class="wifi-live-result-meaning" id="liveResultMeaning">Good for streaming and video calls.</p>
+
+                <dl class="wifi-live-stats-row">
+                  <div class="wifi-stat-box">
+                    <dt>Download</dt>
+                    <dd id="liveSpeedEstNum">-- Mbps</dd>
+                  </div>
+                  <div class="wifi-stat-box">
+                    <dt>Response</dt>
+                    <dd id="liveLatencyNum">-- ms</dd>
+                  </div>
+                  <div class="wifi-stat-box">
+                    <dt>Stability</dt>
+                    <dd id="liveJitterNum">-- ms</dd>
+                  </div>
+                </dl>
+
+                <div class="wifi-live-result-advice" id="liveResultAdvice">No changes needed in this room.</div>
+              </div>
+            </section>
           </div>
 
-          <div class="wifi-live-meter-card">
-            <div class="wifi-live-meter-val" id="liveQualityVal">--</div>
-            <div class="wifi-live-meter-label">Real-Time Signal Quality</div>
-            
-            <div class="wifi-live-stats-row">
-              <div class="wifi-stat-box">
-                <span class="wifi-stat-num" id="liveLatencyNum">-- ms</span>
-                <span class="wifi-stat-lbl">Edge Latency</span>
+          <div class="wifi-test-note" role="note">
+            <strong>What this checks:</strong> the connection from this device to JRS Digital, including your Wi-Fi, NBN service and internet route. It cannot read router signal strength or Wi-Fi RSSI.
+          </div>
+
+          <section class="wifi-audit-history" aria-labelledby="auditHistoryTitle">
+            <header class="wifi-audit-header">
+              <div>
+                <span class="wifi-live-section-label">Your walk test</span>
+                <h3 id="auditHistoryTitle">Room comparison</h3>
+                <p id="auditSummary">No rooms checked yet.</p>
               </div>
-              <div class="wifi-stat-box">
-                <span class="wifi-stat-num" id="liveJitterNum">-- ms</span>
-                <span class="wifi-stat-lbl">Jitter</span>
-              </div>
-              <div class="wifi-stat-box">
-                <span class="wifi-stat-num" id="liveSpeedEstNum">-- Mbps</span>
-                <span class="wifi-stat-lbl">Est. Speed</span>
+              <button class="wifi-clear-results-btn" id="clearAuditBtn" type="button" disabled>Clear results</button>
+            </header>
+            <div class="wifi-audit-table" id="auditHistoryList" role="list">
+              <div class="wifi-audit-empty">
+                <strong>Start near the modem</strong>
+                <span>Then check the furthest bedroom or home office to make the difference obvious.</span>
               </div>
             </div>
-          </div>
-
-          <div class="wifi-scan-actions">
-            <label style="display:block; font-size:0.85rem; font-weight:700; color:var(--w-ink); margin-bottom:8px; text-align:center;">
-              Select the room you are currently standing in:
-            </label>
-            <div class="wifi-room-select-grid">
-              <button class="wifi-room-pick-btn is-selected" data-scan-room="Living Room">Living Room</button>
-              <button class="wifi-room-pick-btn" data-scan-room="Kitchen">Kitchen</button>
-              <button class="wifi-room-pick-btn" data-scan-room="Central Hallway">Hallway</button>
-              <button class="wifi-room-pick-btn" data-scan-room="Master Bedroom">Master Bed</button>
-              <button class="wifi-room-pick-btn" data-scan-room="Main Bathroom">Bathroom</button>
-              <button class="wifi-room-pick-btn" data-scan-room="Home Office">Home Office</button>
-            </div>
-
-            <button class="wifi-scan-btn" id="startRoomScanBtn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
-              Scan Current Room Signal
-            </button>
-          </div>
-
-          <div class="wifi-audit-history">
-            <h4>
-              <span>📋 Scanned Rooms Audit</span>
-              <span style="font-size:0.75rem; color:#64748B; font-weight:500;">Live Device Telemetry</span>
-            </h4>
-            <div class="wifi-audit-table" id="auditHistoryList">
-              <div style="text-align:center; padding:12px; color:#94A3B8; font-size:0.8rem;">
-                No rooms scanned yet. Tap "Scan Current Room Signal" above!
-              </div>
-            </div>
-          </div>
+          </section>
         </section>
 
         <!-- Educational Guide Section -->
@@ -365,10 +447,10 @@
     </main>
 
     <!-- 🏠 House Customizer Wizard Modal -->
-    <div class="wifi-modal-backdrop" id="wizardModal">
-      <div class="wifi-wizard-card">
+    <div class="wifi-modal-backdrop" id="wizardModal" role="dialog" aria-modal="true" aria-labelledby="wizardTitle" aria-hidden="true">
+      <div class="wifi-wizard-card" tabindex="-1">
         <div class="wifi-wizard-header">
-          <h3>🧙‍♂️ Australian House Customizer</h3>
+          <h3 id="wizardTitle">Australian house customizer</h3>
           <button class="wifi-modal-close" id="closeWizardBtn" aria-label="Close modal">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
@@ -376,51 +458,37 @@
 
         <div class="wifi-wizard-form">
           <div class="wifi-field-group">
-            <label>1. Number of Bedrooms:</label>
-            <div class="wifi-pill-options" data-wizard-group="beds">
-              <button class="wifi-pill-opt" data-val="1">1-2 Bed</button>
-              <button class="wifi-pill-opt is-selected" data-val="3">3 Bed</button>
-              <button class="wifi-pill-opt" data-val="4">4 Bed</button>
-              <button class="wifi-pill-opt" data-val="5">5+ Bed Large</button>
+            <label>1. Which Australian home is closest to yours?</label>
+            <div class="wifi-pill-options wifi-home-options" data-wizard-group="home">
+              <button class="wifi-pill-opt wifi-home-option" data-val="unit"><strong>Unit or apartment</strong><span>Concrete and shared walls</span></button>
+              <button class="wifi-pill-opt wifi-home-option" data-val="terrace"><strong>Terrace or narrow home</strong><span>Long rooms and solid party walls</span></button>
+              <button class="wifi-pill-opt wifi-home-option is-selected" data-val="brick_3"><strong>3-bed brick veneer</strong><span>Common suburban layout</span></button>
+              <button class="wifi-pill-opt wifi-home-option" data-val="project_4"><strong>4-bed project home</strong><span>Longer hallway and extra bedroom</span></button>
+              <button class="wifi-pill-opt wifi-home-option" data-val="double_brick"><strong>Double-brick home</strong><span>Higher wall signal loss</span></button>
+              <button class="wifi-pill-opt wifi-home-option" data-val="weatherboard"><strong>Weatherboard or Queenslander</strong><span>Lighter walls and open rooms</span></button>
             </div>
           </div>
 
           <div class="wifi-field-group">
-            <label>2. Home Layout Shape:</label>
-            <div class="wifi-pill-options" data-wizard-group="shape">
-              <button class="wifi-pill-opt is-selected" data-val="standard">Standard Rectangular (with Hallway)</button>
-              <button class="wifi-pill-opt" data-val="l_shape">L-Shaped Wing</button>
-            </div>
-          </div>
-
-          <div class="wifi-field-group">
-            <label>3. Wall Construction (Australian Standard):</label>
-            <div class="wifi-pill-options" data-wizard-group="wall">
-              <button class="wifi-pill-opt is-selected" data-val="double_brick">Double Brick (-16dB)</button>
-              <button class="wifi-pill-opt" data-val="brick_veneer">Brick Veneer / Timber (-8dB)</button>
-              <button class="wifi-pill-opt" data-val="concrete">Solid Concrete Block (-18dB)</button>
-            </div>
-          </div>
-
-          <div class="wifi-field-group">
-            <label>4. Where does your NBN connect?</label>
+            <label>2. Where is your NBN box or modem?</label>
             <div class="wifi-pill-options" data-wizard-group="nbn">
               <button class="wifi-pill-opt is-selected" data-val="living">Living Room</button>
-              <button class="wifi-pill-opt" data-val="garage">Garage / Front</button>
-              <button class="wifi-pill-opt" data-val="hallway">Central Hallway</button>
+              <button class="wifi-pill-opt" data-val="garage">Garage or front room</button>
+              <button class="wifi-pill-opt" data-val="hallway">Hallway</button>
               <button class="wifi-pill-opt" data-val="office">Home Office</button>
             </div>
           </div>
 
           <button class="wifi-wizard-submit" id="submitWizardBtn">
-            Generate My Custom Floorplan →
+            Show my heatmap
           </button>
+          <p class="wifi-wizard-footnote">This is a practical estimate, not a radio survey. You can drag the router and adjust rooms after setup.</p>
         </div>
       </div>
     </div>
 
     <!-- Floating Toast Notification -->
-    <div class="wifi-toast" id="wifiToast">Toast notification</div>
+    <div class="wifi-toast" id="wifiToast" role="status" aria-live="polite" aria-atomic="true">Toast notification</div>
 
     <footer class="w-footer">
       <div class="w-footer-inner">

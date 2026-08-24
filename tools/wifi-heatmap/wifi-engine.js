@@ -54,6 +54,11 @@
   // Layout Hub Buttons
   const toggleRoomTrayBtn = document.getElementById('toggleRoomTrayBtn');
   const roomTray = document.getElementById('roomTray');
+  const advancedFloorplanPanel = document.getElementById('advancedFloorplanPanel');
+  const quickStartPanel = document.querySelector('.wifi-quick-start');
+  const quickStartKicker = document.getElementById('quickStartKicker');
+  const quickStartTitle = document.getElementById('quickStartTitle');
+  const quickStartBody = document.getElementById('quickStartBody');
   const clearCanvasBtn = document.getElementById('clearCanvasBtn');
   const resetDefaultBtn = document.getElementById('resetDefaultBtn');
 
@@ -64,9 +69,11 @@
 
   // Wizard Modal
   const wizardModal = document.getElementById('wizardModal');
+  const wizardCard = wizardModal ? wizardModal.querySelector('.wifi-wizard-card') : null;
   const openWizardBtn = document.getElementById('openWizardBtn');
   const closeWizardBtn = document.getElementById('closeWizardBtn');
   const submitWizardBtn = document.getElementById('submitWizardBtn');
+  let wizardReturnFocus = null;
 
   // Virtual Coordinate Space
   const V_WIDTH = 800;
@@ -164,6 +171,8 @@
   // Engine State
   let activeBand = '5ghz';
   let activeHardware = 'standard';
+  let exteriorWallLoss = 8;
+  let internalWallLoss = 6;
   let drawWallType = null;
   let isDoorMode = false;
   let isEraserMode = false;
@@ -206,7 +215,7 @@
   ];
 
   let activeFloorplan = {
-    name: 'Suburban Family Home with Hallway',
+    name: '3-bed brick-veneer home',
     rooms: JSON.parse(JSON.stringify(DEFAULT_ROOMS))
   };
 
@@ -288,9 +297,9 @@
             if (!processedPairs.has(pairKey)) {
               processedPairs.add(pairKey);
               if (s1.isH) {
-                renderWalls.push({ id: `m_${pairKey}`, x1: overlapMin, y1: s1.pos, x2: overlapMax, y2: s1.pos, type: 'drywall', loss: 6 });
+                renderWalls.push({ id: `m_${pairKey}`, x1: overlapMin, y1: s1.pos, x2: overlapMax, y2: s1.pos, type: 'drywall', loss: internalWallLoss });
               } else {
-                renderWalls.push({ id: `m_${pairKey}`, x1: s1.pos, y1: overlapMin, x2: s1.pos, y2: overlapMax, type: 'drywall', loss: 6 });
+                renderWalls.push({ id: `m_${pairKey}`, x1: s1.pos, y1: overlapMin, x2: s1.pos, y2: overlapMax, type: 'drywall', loss: internalWallLoss });
               }
             }
           }
@@ -298,7 +307,7 @@
       }
 
       if (!isOverlapped) {
-        renderWalls.push({ id: s1.id, x1: s1.x1, y1: s1.y1, x2: s1.x2, y2: s1.y2, type: 'brick', loss: 16 });
+        renderWalls.push({ id: s1.id, x1: s1.x1, y1: s1.y1, x2: s1.x2, y2: s1.y2, type: 'brick', loss: exteriorWallLoss });
       }
     }
 
@@ -406,6 +415,43 @@
     const clampGx = gx < 0 ? 0 : (gx >= GRID_W ? GRID_W - 1 : gx);
     const clampGy = gy < 0 ? 0 : (gy >= GRID_H ? GRID_H - 1 : gy);
     return gridDbmBuffer[clampGy * GRID_W + clampGx] || -90;
+  }
+
+  function calculateSignalAt(px, py, primaryX = nodes[0].x, primaryY = nodes[0].y) {
+    if (isWallsDirty) rebuildSoABuffers();
+
+    const hw = HARDWARE_PROFILES[activeHardware];
+    const wallMultiplier = (activeBand === '5ghz' ? 1.25 : 0.75) * hw.wallMult;
+    const distanceDrop = activeBand === '5ghz' ? 24 : 19;
+    let maxSignal = -100;
+
+    for (let n = 0; n < nodes.length; n++) {
+      const node = nodes[n];
+      const nodeX = n === 0 ? primaryX : node.x;
+      const nodeY = n === 0 ? primaryY : node.y;
+      const dx = px - nodeX;
+      const dy = py - nodeY;
+      const dist = Math.max(10, Math.hypot(dx, dy));
+      const power = node.type === 'router' ? hw.basePower : hw.basePower - 2;
+      let signal = power - (distanceDrop * Math.log10(dist * 0.28));
+
+      for (let w = 0; w < wallCount; w++) {
+        if (!fastRayWallIntersect(nodeX, nodeY, px, py, w)) continue;
+
+        let hasDoor = false;
+        for (let d = 0; d < doors.length; d++) {
+          if (Math.hypot(doors[d].x - wMidX[w], doors[d].y - wMidY[w]) <= 30) {
+            hasDoor = true;
+            break;
+          }
+        }
+        signal -= hasDoor ? 1.5 : (wLoss[w] * wallMultiplier);
+      }
+
+      if (signal > maxSignal) maxSignal = signal;
+    }
+
+    return Math.max(-95, Math.min(-25, maxSignal));
   }
 
   function signalToSpeed(dBm) {
@@ -635,6 +681,8 @@
 
   // --- Diagnostic Analytics Calculation ---
   function updateAnalytics() {
+    if (isGridDirty) computeHeatmapGridKernel();
+
     let strongCount = 0;
     let goodCount = 0;
     let deadCount = 0;
@@ -702,7 +750,7 @@
       } else if (coverageScore >= 88) {
         adviceTextEl.innerHTML = `<strong>✨ Optimal Coverage (${coverageScore}%):</strong> Wi-Fi signal is strong across all rooms. Doors allow signal to flow naturally down hallways.`;
       } else if (deadCount > 0 && nodes.length === 1) {
-        adviceTextEl.innerHTML = `<strong>⚠️ Dead Zones Detected (${deadCount} room${deadCount > 1 ? 's' : ''}):</strong> Double brick walls are blocking 5GHz Wi-Fi. Try clicking <em>"✨ Auto-Optimize"</em> or <em>"+ Add Booster"</em>.`;
+        adviceTextEl.innerHTML = `<strong>Weak rooms detected (${deadCount}):</strong> Walls and distance are reducing 5 GHz coverage. Try <em>"Find best router spot"</em> or add a mesh node.`;
       } else {
         adviceTextEl.innerHTML = `<strong>📶 Mesh Node Active:</strong> Adding a second node eliminates dead zones. Make sure your booster is placed halfway between the main router and weak areas.`;
       }
@@ -802,7 +850,7 @@
 
   function autoOptimizeRouterPosition() {
     if (activeFloorplan.rooms.length === 0) return;
-    let bestScore = -1;
+    let bestScore = -Infinity;
     let bestPos = { x: 380, y: 250 };
 
     for (let x = 120; x <= 680; x += 40) {
@@ -811,7 +859,7 @@
         activeFloorplan.rooms.forEach(room => {
           const midX = room.x + room.w * 0.5;
           const midY = room.y + room.h * 0.5;
-          const sig = getSampledSignalAt(midX, midY);
+          const sig = calculateSignalAt(midX, midY, x, y);
           if (sig >= -65) score += 3;
           else if (sig >= -78) score += 1;
           else score -= 2;
@@ -1032,7 +1080,7 @@
           x2: Math.round(coords.x),
           y2: Math.round(coords.y),
           type: drawWallType,
-          loss: drawWallType === 'brick' ? 16 : 6
+          loss: drawWallType === 'brick' ? exteriorWallLoss : internalWallLoss
         });
         showToast(`Added custom ${drawWallType} wall!`);
         markDirty();
@@ -1118,6 +1166,9 @@
       if (drawBrickBtn) drawBrickBtn.classList.remove('is-active');
       if (eraseWallBtn) eraseWallBtn.classList.remove('is-active');
       addDoorBtn.classList.toggle('is-active', isDoorMode);
+      addDoorBtn.setAttribute('aria-pressed', String(isDoorMode));
+      if (drawBrickBtn) drawBrickBtn.setAttribute('aria-pressed', 'false');
+      if (eraseWallBtn) eraseWallBtn.setAttribute('aria-pressed', 'false');
       showToast(isDoorMode ? '🚪 Door Mode: Click on any wall to place a doorway' : 'Door Mode disabled');
       requestRender();
     });
@@ -1131,6 +1182,9 @@
       if (drawBrickBtn) drawBrickBtn.classList.remove('is-active');
       if (addDoorBtn) addDoorBtn.classList.remove('is-active');
       eraseWallBtn.classList.toggle('is-active', isEraserMode);
+      eraseWallBtn.setAttribute('aria-pressed', String(isEraserMode));
+      if (drawBrickBtn) drawBrickBtn.setAttribute('aria-pressed', 'false');
+      if (addDoorBtn) addDoorBtn.setAttribute('aria-pressed', 'false');
       showToast(isEraserMode ? '🧹 Eraser active: Click any wall or door on canvas to remove it' : 'Eraser disabled');
       requestRender();
     });
@@ -1167,6 +1221,9 @@
   if (resetDefaultBtn) {
     resetDefaultBtn.addEventListener('click', () => {
       activeFloorplan.rooms = JSON.parse(JSON.stringify(DEFAULT_ROOMS));
+      activeFloorplan.name = '3-bed brick-veneer home';
+      exteriorWallLoss = 8;
+      internalWallLoss = 6;
       customWalls = [];
       doors = [
         { id: 'd1', x: 330, y: 150, isHorizontal: false, width: 36 },
@@ -1202,29 +1259,23 @@
         img.onload = () => {
           uploadedFloorplanImg = img;
           if (opacityControl) opacityControl.classList.add('is-visible');
-
-          activeFloorplan.rooms = [
-            { id: 'auto_r1', name: 'Living Room', x: 80, y: 80, w: 260, h: 180 },
-            { id: 'auto_r2', name: 'Kitchen & Dining', x: 340, y: 80, w: 240, h: 150 },
-            { id: 'auto_r3', name: 'Hallway', x: 80, y: 260, w: 500, h: 50 },
-            { id: 'auto_r4', name: 'Master Bedroom', x: 80, y: 310, w: 190, h: 140 },
-            { id: 'auto_r5', name: 'Bathroom & Laundry', x: 270, y: 310, w: 150, h: 140 },
-            { id: 'auto_r6', name: 'Bedroom 2 / Office', x: 420, y: 310, w: 160, h: 140 }
-          ];
-
-          doors = [
-            { id: 'auto_d1', x: 210, y: 260, isHorizontal: true, width: 36 },
-            { id: 'auto_d2', x: 440, y: 260, isHorizontal: true, width: 36 }
-          ];
-
+          activeFloorplan = { name: 'Uploaded floorplan tracing guide', rooms: [] };
+          doors = [];
           customWalls = [];
           erasedWalls.clear();
-          nodes[0].x = 210; nodes[0].y = 170;
+          selectedRoom = null;
+          selectedWall = null;
+          isRoomEditMode = true;
+          if (toggleRoomTrayBtn) toggleRoomTrayBtn.classList.add('is-active');
+          if (toggleRoomTrayBtn) toggleRoomTrayBtn.setAttribute('aria-expanded', 'true');
+          if (roomTray) roomTray.classList.add('is-active');
           uploadBtn.innerHTML = `
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             Change Image
           `;
-          showToast('✨ Auto-generated rooms, hallway & doors from floorplan image!');
+          showToast('Floorplan added as a guide. Add and resize room blocks to trace it.');
+          updateRoomInspector();
+          updateWallInspector();
           updateQuickJumpBar();
           markDirty();
           updateAnalytics();
@@ -1248,6 +1299,7 @@
       isRoomEditMode = !isRoomEditMode;
       toggleRoomTrayBtn.classList.toggle('is-active', isRoomEditMode);
       roomTray.classList.toggle('is-active', isRoomEditMode);
+      toggleRoomTrayBtn.setAttribute('aria-expanded', String(isRoomEditMode));
       showToast(isRoomEditMode ? '🧩 Room Builder active: Click + buttons or drag/resize rooms' : 'Exited Room Builder');
     });
   }
@@ -1289,59 +1341,129 @@
 
   // House Wizard Modal
   if (openWizardBtn && wizardModal && closeWizardBtn) {
-    openWizardBtn.addEventListener('click', () => wizardModal.classList.add('is-open'));
-    closeWizardBtn.addEventListener('click', () => wizardModal.classList.remove('is-open'));
+    const openWizard = () => {
+      wizardReturnFocus = document.activeElement;
+      wizardModal.classList.add('is-open');
+      wizardModal.setAttribute('aria-hidden', 'false');
+      if (wizardCard) wizardCard.focus();
+    };
+    const closeWizard = () => {
+      wizardModal.classList.remove('is-open');
+      wizardModal.setAttribute('aria-hidden', 'true');
+      if (wizardReturnFocus && typeof wizardReturnFocus.focus === 'function') wizardReturnFocus.focus();
+    };
+
+    openWizardBtn.addEventListener('click', openWizard);
+    closeWizardBtn.addEventListener('click', closeWizard);
+    wizardModal.addEventListener('click', e => {
+      if (e.target === wizardModal) closeWizard();
+    });
+    document.addEventListener('keydown', e => {
+      if (!wizardModal.classList.contains('is-open')) return;
+      if (e.key === 'Escape') {
+        closeWizard();
+        return;
+      }
+      if (e.key === 'Tab') {
+        const focusable = Array.from(wizardModal.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'));
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    });
 
     document.querySelectorAll('.wifi-pill-opt').forEach(pill => {
+      pill.setAttribute('aria-pressed', String(pill.classList.contains('is-selected')));
       pill.addEventListener('click', () => {
         const group = pill.closest('.wifi-pill-options');
-        group.querySelectorAll('.wifi-pill-opt').forEach(p => p.classList.remove('is-selected'));
+        group.querySelectorAll('.wifi-pill-opt').forEach(p => {
+          p.classList.remove('is-selected');
+          p.setAttribute('aria-pressed', 'false');
+        });
         pill.classList.add('is-selected');
+        pill.setAttribute('aria-pressed', 'true');
       });
     });
 
     if (submitWizardBtn) {
       submitWizardBtn.addEventListener('click', () => {
-        const beds = document.querySelector('[data-wizard-group="beds"] .is-selected')?.dataset.val || '3';
-        const shape = document.querySelector('[data-wizard-group="shape"] .is-selected')?.dataset.val || 'standard';
+        const homeType = document.querySelector('[data-wizard-group="home"] .is-selected')?.dataset.val || 'brick_3';
         const nbnLoc = document.querySelector('[data-wizard-group="nbn"] .is-selected')?.dataset.val || 'living';
 
-        if (beds === '1' || beds === '2') {
+        if (homeType === 'unit') {
           activeFloorplan = {
-            name: `${beds}-Bed Apartment`,
+            name: 'Australian unit or apartment',
             rooms: [
-              { id: 'r1', name: 'Open Living & Kitchen', x: 100, y: 90, w: 320, h: 260 },
-              { id: 'r2', name: 'Hallway', x: 420, y: 90, w: 60, h: 260 },
-              { id: 'r3', name: 'Master Bed', x: 480, y: 90, w: 220, h: 130 },
-              { id: 'r4', name: 'Bathroom & Laundry', x: 480, y: 220, w: 220, h: 130 }
+              { id: 'r1', name: 'Open Living & Kitchen', x: 80, y: 90, w: 350, h: 250 },
+              { id: 'r2', name: 'Hallway', x: 430, y: 90, w: 60, h: 250 },
+              { id: 'r3', name: 'Master Bedroom', x: 490, y: 90, w: 230, h: 125 },
+              { id: 'r4', name: 'Bedroom / Office', x: 490, y: 215, w: 130, h: 125 },
+              { id: 'r5', name: 'Bathroom & Laundry', x: 620, y: 215, w: 100, h: 125 }
             ]
           };
+          exteriorWallLoss = 18;
+          internalWallLoss = 12;
           doors = [
-            { id: 'd1', x: 420, y: 160, isHorizontal: false, width: 36 },
-            { id: 'd2', x: 480, y: 150, isHorizontal: false, width: 36 }
+            { id: 'd1', x: 430, y: 160, isHorizontal: false, width: 36 },
+            { id: 'd2', x: 490, y: 150, isHorizontal: false, width: 36 },
+            { id: 'd3', x: 555, y: 215, isHorizontal: true, width: 36 }
           ];
-        } else if (shape === 'l_shape') {
+        } else if (homeType === 'terrace') {
           activeFloorplan = {
-            name: `${beds}-Bed L-Shaped Home with Hallway`,
+            name: 'Australian terrace or narrow home',
             rooms: [
-              { id: 'r1', name: 'Front Living', x: 80, y: 80, w: 260, h: 200 },
-              { id: 'r2', name: 'Kitchen & Dining', x: 340, y: 80, w: 340, h: 150 },
-              { id: 'r3', name: 'Hallway', x: 80, y: 280, w: 420, h: 50 },
-              { id: 'r4', name: 'Master Bed', x: 80, y: 330, w: 180, h: 130 },
-              { id: 'r5', name: 'Bathroom & Laundry', x: 260, y: 330, w: 120, h: 130 },
-              { id: 'r6', name: 'Bed 2 / Office', x: 380, y: 330, w: 120, h: 130 },
-              { id: 'r7', name: 'Alfresco Patio', x: 500, y: 230, w: 180, h: 230 }
+              { id: 'r1', name: 'Front Living', x: 55, y: 100, w: 180, h: 300 },
+              { id: 'r2', name: 'Hallway', x: 235, y: 100, w: 70, h: 300 },
+              { id: 'r3', name: 'Master Bedroom', x: 305, y: 100, w: 180, h: 150 },
+              { id: 'r4', name: 'Bathroom & Laundry', x: 305, y: 250, w: 180, h: 150 },
+              { id: 'r5', name: 'Kitchen & Dining', x: 485, y: 100, w: 250, h: 180 },
+              { id: 'r6', name: 'Rear Bedroom / Office', x: 485, y: 280, w: 250, h: 120 }
             ]
           };
+          exteriorWallLoss = 16;
+          internalWallLoss = 6;
           doors = [
-            { id: 'd1', x: 210, y: 280, isHorizontal: true, width: 36 },
-            { id: 'd2', x: 170, y: 330, isHorizontal: true, width: 36 }
+            { id: 'd1', x: 235, y: 170, isHorizontal: false, width: 36 },
+            { id: 'd2', x: 305, y: 170, isHorizontal: false, width: 36 },
+            { id: 'd3', x: 485, y: 190, isHorizontal: false, width: 36 }
+          ];
+        } else if (homeType === 'project_4') {
+          activeFloorplan = {
+            name: '4-bed Australian project home',
+            rooms: [
+              { id: 'r1', name: 'Living Room', x: 60, y: 60, w: 250, h: 180 },
+              { id: 'r2', name: 'Kitchen & Dining', x: 310, y: 60, w: 260, h: 160 },
+              { id: 'r3', name: 'Garage', x: 570, y: 60, w: 165, h: 160 },
+              { id: 'r4', name: 'Central Hallway', x: 60, y: 240, w: 510, h: 50 },
+              { id: 'r5', name: 'Master Bedroom', x: 60, y: 290, w: 170, h: 150 },
+              { id: 'r6', name: 'Bedroom 2', x: 230, y: 290, w: 120, h: 150 },
+              { id: 'r7', name: 'Bedroom 3', x: 350, y: 290, w: 120, h: 150 },
+              { id: 'r8', name: 'Bathroom & Laundry', x: 470, y: 290, w: 100, h: 150 },
+              { id: 'r9', name: 'Bedroom 4 / Office', x: 570, y: 220, w: 165, h: 220 }
+            ]
+          };
+          exteriorWallLoss = 8;
+          internalWallLoss = 6;
+          doors = [
+            { id: 'd1', x: 190, y: 240, isHorizontal: true, width: 36 },
+            { id: 'd2', x: 310, y: 140, isHorizontal: false, width: 36 },
+            { id: 'd3', x: 145, y: 290, isHorizontal: true, width: 36 },
+            { id: 'd4', x: 570, y: 150, isHorizontal: false, width: 36 }
           ];
         } else {
           activeFloorplan = {
-            name: `${beds}-Bed Australian Family Home`,
+            name: homeType === 'double_brick' ? '3-bed double-brick home' : (homeType === 'weatherboard' ? 'Weatherboard or Queenslander home' : '3-bed brick-veneer home'),
             rooms: JSON.parse(JSON.stringify(DEFAULT_ROOMS))
           };
+          exteriorWallLoss = homeType === 'double_brick' ? 16 : (homeType === 'weatherboard' ? 5 : 8);
+          internalWallLoss = homeType === 'double_brick' ? 12 : (homeType === 'weatherboard' ? 4 : 6);
           doors = [
             { id: 'd1', x: 330, y: 150, isHorizontal: false, width: 36 },
             { id: 'd2', x: 200, y: 260, isHorizontal: true, width: 36 },
@@ -1349,27 +1471,44 @@
           ];
         }
 
-        if (nbnLoc === 'garage') {
-          nodes[0].x = 650; nodes[0].y = 350;
-        } else if (nbnLoc === 'hallway') {
-          nodes[0].x = 320; nodes[0].y = 285;
-        } else if (nbnLoc === 'office') {
-          nodes[0].x = 650; nodes[0].y = 150;
-        } else {
-          nodes[0].x = 200; nodes[0].y = 160;
+        const locationTerms = {
+          living: ['Living'],
+          garage: ['Garage', 'Front'],
+          hallway: ['Hallway'],
+          office: ['Office']
+        };
+        const preferredTerms = locationTerms[nbnLoc] || locationTerms.living;
+        const targetRoom = activeFloorplan.rooms.find(room => preferredTerms.some(term => room.name.includes(term))) || activeFloorplan.rooms[0];
+        nodes[0].x = targetRoom.x + targetRoom.w * 0.5;
+        nodes[0].y = targetRoom.y + targetRoom.h * 0.5;
+        nodes.splice(1);
+        if (addMeshBtn) {
+          addMeshBtn.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add mesh node
+          `;
+          addMeshBtn.classList.remove('wifi-tool-btn--accent');
+          addMeshBtn.setAttribute('aria-pressed', 'false');
         }
 
         customWalls = [];
         erasedWalls.clear();
         selectedRoom = null;
         selectedWall = null;
-        wizardModal.classList.remove('is-open');
+        uploadedFloorplanImg = null;
+        if (opacityControl) opacityControl.classList.remove('is-visible');
+        if (advancedFloorplanPanel) advancedFloorplanPanel.open = false;
+        if (quickStartKicker) quickStartKicker.textContent = 'Setup complete';
+        if (quickStartTitle) quickStartTitle.textContent = activeFloorplan.name;
+        if (quickStartBody) quickStartBody.textContent = 'Your starting layout is ready. Drag the orange router or use the automatic placement button below.';
+        openWizardBtn.innerHTML = `Change home <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>`;
+        closeWizard();
         updateRoomInspector();
         updateWallInspector();
         updateQuickJumpBar();
         markDirty();
         updateAnalytics();
-        showToast(`✨ Generated ${activeFloorplan.name}!`);
+        showToast(`${activeFloorplan.name} is ready. Drag the router to compare positions.`);
       });
     }
   }
@@ -1394,14 +1533,18 @@
     isDoorMode = false;
     if (eraseWallBtn) eraseWallBtn.classList.remove('is-active');
     if (addDoorBtn) addDoorBtn.classList.remove('is-active');
+    if (eraseWallBtn) eraseWallBtn.setAttribute('aria-pressed', 'false');
+    if (addDoorBtn) addDoorBtn.setAttribute('aria-pressed', 'false');
 
     if (drawWallType === type) {
       drawWallType = null;
       activeBtn.classList.remove('is-active');
+      activeBtn.setAttribute('aria-pressed', 'false');
       showToast('Wall drawing disabled');
     } else {
       drawWallType = type;
       activeBtn.classList.add('is-active');
+      activeBtn.setAttribute('aria-pressed', 'true');
       showToast(`Click & drag to draw ${type} wall`);
     }
     requestRender();
@@ -1426,8 +1569,12 @@
 
   document.querySelectorAll('[data-band]').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('[data-band]').forEach(b => b.classList.remove('is-active'));
+      document.querySelectorAll('[data-band]').forEach(b => {
+        b.classList.remove('is-active');
+        b.setAttribute('aria-pressed', 'false');
+      });
       btn.classList.add('is-active');
+      btn.setAttribute('aria-pressed', 'true');
       activeBand = btn.dataset.band;
       markDirty();
       updateAnalytics();
@@ -1441,16 +1588,18 @@
         nodes.push({ id: 'mesh1', type: 'mesh', name: 'Mesh Booster', x: 450, y: 285, isDragging: false });
         addMeshBtn.innerHTML = `
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Remove Booster
+          Remove mesh node
         `;
         addMeshBtn.classList.add('wifi-tool-btn--accent');
+        addMeshBtn.setAttribute('aria-pressed', 'true');
       } else {
         nodes.pop();
         addMeshBtn.innerHTML = `
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          + Add Booster
+          Add mesh node
         `;
         addMeshBtn.classList.remove('wifi-tool-btn--accent');
+        addMeshBtn.setAttribute('aria-pressed', 'false');
       }
       markDirty();
       updateAnalytics();
@@ -1468,7 +1617,11 @@
     modeSimBtn.addEventListener('click', () => {
       modeSimBtn.classList.add('is-active');
       modeLiveBtn.classList.remove('is-active');
+      modeSimBtn.setAttribute('aria-pressed', 'true');
+      modeLiveBtn.setAttribute('aria-pressed', 'false');
       simWorkspace.style.display = 'grid';
+      if (quickStartPanel) quickStartPanel.style.display = 'grid';
+      if (advancedFloorplanPanel) advancedFloorplanPanel.style.display = 'block';
       if (layoutHub) layoutHub.style.display = 'flex';
       if (quickJumpBar) quickJumpBar.style.display = 'flex';
       livePanel.classList.remove('is-active');
@@ -1479,8 +1632,11 @@
     modeLiveBtn.addEventListener('click', () => {
       modeLiveBtn.classList.add('is-active');
       modeSimBtn.classList.remove('is-active');
+      modeLiveBtn.setAttribute('aria-pressed', 'true');
+      modeSimBtn.setAttribute('aria-pressed', 'false');
       simWorkspace.style.display = 'none';
-      if (layoutHub) layoutHub.style.display = 'none';
+      if (quickStartPanel) quickStartPanel.style.display = 'none';
+      if (advancedFloorplanPanel) advancedFloorplanPanel.style.display = 'none';
       if (quickJumpBar) quickJumpBar.style.display = 'none';
       livePanel.classList.add('is-active');
     });
@@ -1495,83 +1651,301 @@
   const liveJitterNum = document.getElementById('liveJitterNum');
   const liveSpeedEstNum = document.getElementById('liveSpeedEstNum');
   const auditHistoryList = document.getElementById('auditHistoryList');
+  const auditSummary = document.getElementById('auditSummary');
+  const clearAuditBtn = document.getElementById('clearAuditBtn');
+  const scanProgress = document.getElementById('scanProgress');
+  const liveResultCard = document.getElementById('liveResultCard');
+  const liveResultEmpty = document.getElementById('liveResultEmpty');
+  const liveResultEmptyTitle = document.getElementById('liveResultTitle');
+  const liveResultEmptyCopy = document.getElementById('liveResultEmptyCopy');
+  const liveResultContent = document.getElementById('liveResultContent');
+  const liveResultRoom = document.getElementById('liveResultRoom');
+  const liveResultMeaning = document.getElementById('liveResultMeaning');
+  const liveResultAdvice = document.getElementById('liveResultAdvice');
+  const customRoomName = document.getElementById('customRoomName');
+  const useCustomRoomBtn = document.getElementById('useCustomRoomBtn');
+  const scanRoomButtons = [...document.querySelectorAll('[data-scan-room]')];
+  const liveStepEls = [...document.querySelectorAll('[data-live-step]')];
+  const startScanBtnText = startScanBtn?.querySelector('span');
   let selectedRoomName = 'Living Room';
   const scannedAuditLog = {};
+  const connectionTestAsset = '/assets/img/hero-house.webp';
 
-  document.querySelectorAll('[data-scan-room]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('[data-scan-room]').forEach(b => b.classList.remove('is-selected'));
-      btn.classList.add('is-selected');
-      selectedRoomName = btn.dataset.scanRoom;
+  const setLiveStep = activeStep => {
+    liveStepEls.forEach(stepEl => {
+      const stepNumber = Number(stepEl.dataset.liveStep);
+      stepEl.classList.toggle('is-active', stepNumber === activeStep);
+      stepEl.classList.toggle('is-complete', stepNumber < activeStep);
     });
+  };
+
+  const setScanButtonLabel = label => {
+    if (startScanBtnText) startScanBtnText.textContent = label;
+    else if (startScanBtn) startScanBtn.textContent = label;
+  };
+
+  const setRoomControlsDisabled = disabled => {
+    scanRoomButtons.forEach(button => { button.disabled = disabled; });
+    if (customRoomName) customRoomName.disabled = disabled;
+    if (useCustomRoomBtn) useCustomRoomBtn.disabled = disabled;
+  };
+
+  const getConnectionRating = (avgLatency, jitter, measuredMbps) => {
+    if (avgLatency <= 40 && jitter <= 20 && measuredMbps >= 100) {
+      return {
+        statusLabel: 'Excellent',
+        badgeClass: 'wifi-room-tag--strong',
+        meaning: 'Great for 4K streaming, video calls and online gaming.',
+        advice: 'No Wi-Fi changes are needed in this room.'
+      };
+    }
+    if (avgLatency <= 80 && jitter <= 40 && measuredMbps >= 25) {
+      return {
+        statusLabel: 'Good',
+        badgeClass: 'wifi-room-tag--strong',
+        meaning: 'Good for streaming, video calls and everyday work.',
+        advice: 'This room should be reliable. Check it once more if it is important for work or study.'
+      };
+    }
+    if (avgLatency <= 150 && jitter <= 80 && measuredMbps >= 10) {
+      return {
+        statusLabel: 'Fair',
+        badgeClass: 'wifi-room-tag--good',
+        meaning: 'Fine for browsing, but calls or streaming may occasionally wobble.',
+        advice: 'Retest once. If it stays Fair, move the router into a clearer position or try 2.4 GHz.'
+      };
+    }
+    return {
+      statusLabel: 'Poor',
+      badgeClass: 'wifi-room-tag--dead',
+      meaning: 'This room may struggle with video calls, streaming or gaming.',
+      advice: 'Try moving the router, or place a mesh node halfway between the modem and this room.'
+    };
+  };
+
+  const showEmptyResult = roomName => {
+    if (liveResultCard) liveResultCard.dataset.rating = 'empty';
+    if (liveResultEmpty) liveResultEmpty.hidden = false;
+    if (liveResultContent) liveResultContent.hidden = true;
+    if (liveResultEmptyTitle) liveResultEmptyTitle.textContent = `Ready to check ${roomName}`;
+    if (liveResultEmptyCopy) liveResultEmptyCopy.textContent = 'Keep this device in one spot, then tap the orange check button.';
+  };
+
+  const showRoomResult = (roomName, result) => {
+    if (liveResultCard) liveResultCard.dataset.rating = result.statusLabel.toLowerCase();
+    if (liveResultEmpty) liveResultEmpty.hidden = true;
+    if (liveResultContent) liveResultContent.hidden = false;
+    if (liveResultRoom) liveResultRoom.textContent = roomName;
+    if (liveQualityVal) liveQualityVal.textContent = result.statusLabel;
+    if (liveSpeedEstNum) liveSpeedEstNum.textContent = typeof result.measuredMbps === 'number' ? `${result.measuredMbps} Mbps` : result.measuredMbps;
+    if (liveLatencyNum) liveLatencyNum.textContent = typeof result.avgLatency === 'number' ? `${result.avgLatency} ms` : result.avgLatency;
+    if (liveJitterNum) liveJitterNum.textContent = typeof result.jitter === 'number' ? `${result.jitter} ms` : result.jitter;
+    if (liveResultMeaning) liveResultMeaning.textContent = result.meaning;
+    if (liveResultAdvice) liveResultAdvice.textContent = result.advice;
+  };
+
+  const renderAuditHistory = () => {
+    if (!auditHistoryList) return;
+    const entries = Object.entries(scannedAuditLog);
+    auditHistoryList.replaceChildren();
+
+    if (!entries.length) {
+      const empty = document.createElement('div');
+      empty.className = 'wifi-audit-empty';
+      const title = document.createElement('strong');
+      title.textContent = 'Start near the modem';
+      const detail = document.createElement('span');
+      detail.textContent = 'Then check the furthest bedroom or home office to make the difference obvious.';
+      empty.append(title, detail);
+      auditHistoryList.append(empty);
+      if (auditSummary) auditSummary.textContent = 'No rooms checked yet.';
+      if (clearAuditBtn) clearAuditBtn.disabled = true;
+      return;
+    }
+
+    entries.forEach(([roomName, result]) => {
+      const row = document.createElement('div');
+      row.className = 'wifi-audit-row';
+      row.setAttribute('role', 'listitem');
+
+      const room = document.createElement('div');
+      room.className = 'wifi-audit-room';
+      const roomTitle = document.createElement('strong');
+      roomTitle.textContent = roomName;
+      const checkCount = document.createElement('span');
+      checkCount.textContent = `${result.runCount} ${result.runCount === 1 ? 'check' : 'checks'}`;
+      room.append(roomTitle, checkCount);
+
+      const metrics = document.createElement('div');
+      metrics.className = 'wifi-audit-result';
+      const speed = document.createElement('strong');
+      speed.textContent = `${result.measuredMbps} Mbps`;
+      const detail = document.createElement('small');
+      detail.textContent = ` · ${result.avgLatency} ms response · ${result.jitter} ms stability`;
+      metrics.append(speed, detail);
+
+      const tag = document.createElement('span');
+      tag.className = `wifi-room-tag ${result.badgeClass}`;
+      tag.textContent = result.statusLabel;
+      row.append(room, metrics, tag);
+      auditHistoryList.append(row);
+    });
+
+    const rank = { Poor: 0, Fair: 1, Good: 2, Excellent: 3 };
+    const rankedEntries = [...entries].sort((a, b) => {
+      const ratingDifference = rank[b[1].statusLabel] - rank[a[1].statusLabel];
+      return ratingDifference || b[1].measuredMbps - a[1].measuredMbps;
+    });
+    const bestRoom = rankedEntries[0][0];
+    const weakest = rankedEntries[rankedEntries.length - 1];
+
+    if (auditSummary) {
+      if (entries.length === 1) {
+        auditSummary.textContent = `${bestRoom} saved. Check a room further from the modem next.`;
+      } else {
+        const needsHelp = ['Poor', 'Fair'].includes(weakest[1].statusLabel) ? ` · Needs attention: ${weakest[0]}` : '';
+        auditSummary.textContent = `${entries.length} rooms checked · Best: ${bestRoom}${needsHelp}`;
+      }
+    }
+    if (clearAuditBtn) clearAuditBtn.disabled = false;
+  };
+
+  const selectScanRoom = (roomName, selectedButton = null) => {
+    const cleanName = roomName.trim().slice(0, 30);
+    if (!cleanName) return;
+    scanRoomButtons.forEach(button => {
+      const isSelected = button === selectedButton;
+      button.classList.toggle('is-selected', isSelected);
+      button.setAttribute('aria-pressed', String(isSelected));
+    });
+    selectedRoomName = cleanName;
+    const previousResult = scannedAuditLog[selectedRoomName];
+    setScanButtonLabel(previousResult ? `Check ${selectedRoomName} again` : `Check ${selectedRoomName}`);
+    if (scanProgress) scanProgress.textContent = `Ready to check ${selectedRoomName}.`;
+    if (previousResult) showRoomResult(selectedRoomName, previousResult);
+    else showEmptyResult(selectedRoomName);
+    setLiveStep(2);
+  };
+
+  scanRoomButtons.forEach(btn => {
+    btn.addEventListener('click', () => selectScanRoom(btn.dataset.scanRoom, btn));
+  });
+
+  const useCustomRoom = () => {
+    const customName = customRoomName?.value.trim() || '';
+    if (!customName) {
+      customRoomName?.focus();
+      showToast('Enter a room name first.');
+      return;
+    }
+    selectScanRoom(customName);
+  };
+
+  useCustomRoomBtn?.addEventListener('click', useCustomRoom);
+  customRoomName?.addEventListener('keydown', event => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      useCustomRoom();
+    }
+  });
+
+  clearAuditBtn?.addEventListener('click', () => {
+    Object.keys(scannedAuditLog).forEach(roomName => delete scannedAuditLog[roomName]);
+    renderAuditHistory();
+    showEmptyResult(selectedRoomName);
+    setScanButtonLabel(`Check ${selectedRoomName}`);
+    if (scanProgress) scanProgress.textContent = `Ready to check ${selectedRoomName}.`;
+    setLiveStep(2);
+    showToast('Room results cleared.');
   });
 
   if (startScanBtn) {
     startScanBtn.addEventListener('click', async () => {
+      const roomBeingChecked = selectedRoomName;
       startScanBtn.disabled = true;
-      startScanBtn.textContent = `Testing signal in ${selectedRoomName}...`;
+      startScanBtn.dataset.loading = 'true';
+      setRoomControlsDisabled(true);
+      setScanButtonLabel(`Checking ${roomBeingChecked}...`);
+      setLiveStep(2);
 
-      const pings = [];
-      for (let i = 0; i < 4; i++) {
-        const t0 = performance.now();
-        try {
-          await fetch(`/assets/img/hero-bg.webp?cache_bust=${Date.now()}_${i}`, { method: 'HEAD', cache: 'no-store' });
-          const rtt = Math.round(performance.now() - t0);
-          pings.push(rtt);
-        } catch (e) {
-          pings.push(45);
+      try {
+        const latencies = [];
+        let totalBytes = 0;
+        let totalDuration = 0;
+
+        for (let i = 0; i < 4; i++) {
+          if (scanProgress) {
+            const progressMessages = ['Connecting to the test server…', 'Checking response time…', 'Checking stability…', 'Measuring download…'];
+            scanProgress.textContent = progressMessages[i];
+          }
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 8000);
+          const startedAt = performance.now();
+
+          try {
+            const response = await fetch(`${connectionTestAsset}?connection_test=${Date.now()}_${i}`, {
+              method: 'GET',
+              cache: 'no-store',
+              signal: controller.signal
+            });
+            const headersAt = performance.now();
+            if (!response.ok) throw new Error(`Connection test returned ${response.status}`);
+            const payload = await response.arrayBuffer();
+            const completedAt = performance.now();
+            latencies.push(headersAt - startedAt);
+            totalBytes += payload.byteLength;
+            totalDuration += completedAt - startedAt;
+          } finally {
+            clearTimeout(timeoutId);
+          }
         }
-      }
 
-      const avgLatency = Math.round(pings.reduce((a, b) => a + b, 0) / pings.length);
-      const jitter = Math.max(...pings) - Math.min(...pings);
+        if (!latencies.length || !totalBytes || !totalDuration) {
+          throw new Error('No connection samples completed');
+        }
 
-      let qualityScore = 95;
-      let estBandwidth = 380;
-      let statusLabel = 'Excellent';
+        const avgLatency = Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length);
+        const jitter = Math.round(Math.max(...latencies) - Math.min(...latencies));
+        const measuredMbps = Math.max(0.1, (totalBytes * 8) / (totalDuration / 1000) / 1000000);
+        const previousRuns = scannedAuditLog[roomBeingChecked]?.runs || [];
+        const runs = [...previousRuns, { avgLatency, jitter, measuredMbps }];
+        const averagedLatency = Math.round(runs.reduce((sum, run) => sum + run.avgLatency, 0) / runs.length);
+        const averagedJitter = Math.round(runs.reduce((sum, run) => sum + run.jitter, 0) / runs.length);
+        const averagedMbpsRaw = runs.reduce((sum, run) => sum + run.measuredMbps, 0) / runs.length;
+        const averagedMbps = averagedMbpsRaw >= 100 ? Math.round(averagedMbpsRaw) : Math.round(averagedMbpsRaw * 10) / 10;
+        const rating = getConnectionRating(averagedLatency, averagedJitter, averagedMbpsRaw);
+        const roomResult = {
+          runs,
+          runCount: runs.length,
+          avgLatency: averagedLatency,
+          jitter: averagedJitter,
+          measuredMbps: averagedMbps,
+          ...rating
+        };
 
-      if (avgLatency > 120) {
-        qualityScore = 38;
-        estBandwidth = 25;
-        statusLabel = 'Poor / Dead Zone';
-      } else if (avgLatency > 70) {
-        qualityScore = 65;
-        estBandwidth = 110;
-        statusLabel = 'Fair';
-      } else if (avgLatency > 40) {
-        qualityScore = 85;
-        estBandwidth = 240;
-        statusLabel = 'Good';
-      }
-
-      if (liveQualityVal) liveQualityVal.textContent = `${qualityScore}%`;
-      if (liveLatencyNum) liveLatencyNum.textContent = `${avgLatency} ms`;
-      if (liveJitterNum) liveJitterNum.textContent = `${jitter} ms`;
-      if (liveSpeedEstNum) liveSpeedEstNum.textContent = `${estBandwidth} Mbps`;
-
-      scannedAuditLog[selectedRoomName] = { qualityScore, avgLatency, estBandwidth, statusLabel };
-
-      if (auditHistoryList) {
-        let rows = '';
-        Object.entries(scannedAuditLog).forEach(([room, data]) => {
-          const badgeClass = data.qualityScore >= 80 ? 'wifi-room-tag--strong' : (data.qualityScore >= 60 ? 'wifi-room-tag--good' : 'wifi-room-tag--dead');
-          rows += `
-            <div class="wifi-audit-row">
-              <span><strong>${room}</strong></span>
-              <span style="color:#64748B; font-size:0.75rem;">${data.avgLatency}ms (${data.estBandwidth} Mbps)</span>
-              <span class="wifi-room-tag ${badgeClass}">${data.qualityScore}% ${data.statusLabel}</span>
-            </div>
-          `;
+        scannedAuditLog[roomBeingChecked] = roomResult;
+        showRoomResult(roomBeingChecked, roomResult);
+        renderAuditHistory();
+        setLiveStep(3);
+        if (scanProgress) scanProgress.textContent = `${roomBeingChecked} saved. Move to another room or check it again.`;
+        showToast(`${roomBeingChecked}: ${rating.statusLabel}, ${averagedMbps} Mbps measured download`);
+      } catch (error) {
+        showRoomResult(roomBeingChecked, {
+          statusLabel: 'Unavailable',
+          measuredMbps: '—',
+          avgLatency: '—',
+          jitter: '—',
+          meaning: 'The check could not reach the test server.',
+          advice: 'Confirm this device is online, then try again. No result was saved.'
         });
-        auditHistoryList.innerHTML = rows;
+        if (scanProgress) scanProgress.textContent = 'Check failed. Confirm you are online and try again.';
+        showToast('Connection check failed. Confirm you are online and try again.');
+      } finally {
+        startScanBtn.disabled = false;
+        startScanBtn.dataset.loading = 'false';
+        setRoomControlsDisabled(false);
+        setScanButtonLabel(scannedAuditLog[roomBeingChecked] ? `Check ${roomBeingChecked} again` : `Retry ${roomBeingChecked}`);
       }
-
-      showToast(`✅ Scanned ${selectedRoomName}: ${qualityScore}% (${statusLabel})`);
-      startScanBtn.disabled = false;
-      startScanBtn.innerHTML = `
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        Scan Another Room
-      `;
     });
   }
 
