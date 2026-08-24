@@ -1,10 +1,11 @@
 /**
- * JRS Digital — Home Wi-Fi & Mesh Heatmap Engine (V8 Ultra-High-Performance)
- * Performance Optimizations:
- * 1. Walls cached ONCE per layout change (eliminates 16,000x nested loop per frame).
- * 2. Dirty-flag RAF throttling: RF physics only recalculates when transmitter or rooms move.
- * 3. Spatial bounding checks for ray-wall intersection.
- * 4. Fast lightweight bilinear interpolation canvas render (0% CPU idle, <5% during drag).
+ * JRS Digital — Home Wi-Fi & Mesh Heatmap Engine (V9 Production Optimized)
+ * Comprehensive Performance & Battery Optimizations:
+ * 1. O(1) Tooltip Lookup: Samples pre-computed grid pixel buffer directly instead of re-raycasting on every mousemove.
+ * 2. Layout Thrashing Elimination: Caches getBoundingClientRect() during drag/interaction.
+ * 3. Throttled DOM Updates: Heavy DOM list re-renders only fire on interaction end (pointerup).
+ * 4. Smart Idle Loop: Automatically pauses RAF loop when idle, consuming 0% CPU/GPU and saving laptop/phone battery.
+ * 5. Pre-Cached Walls & Fast Bounding Rejection: Ultra-lightweight RF calculations.
  */
 
 (function () {
@@ -70,7 +71,7 @@
   const V_WIDTH = 800;
   const V_HEIGHT = 500;
 
-  // Optimized offscreen grid (120x75 = fast 9,000 points instead of 20k+)
+  // Optimized offscreen grid (120x75 = fast 9,000 points)
   const GRID_W = 120;
   const GRID_H = 75;
   const offscreenCanvas = document.createElement('canvas');
@@ -78,6 +79,8 @@
   offscreenCanvas.height = GRID_H;
   const offscreenCtx = offscreenCanvas.getContext('2d');
   const gridImageData = offscreenCtx.createImageData(GRID_W, GRID_H);
+  // Pre-allocated Float32 array to store dBm values for O(1) instant tooltip lookups
+  const gridSignalBuffer = new Float32Array(GRID_W * GRID_H);
 
   // --- State & Caches ---
   let activeBand = '5ghz';
@@ -93,9 +96,11 @@
     { id: 'd3', x: 170, y: 310, isHorizontal: true, width: 36 }
   ];
   let erasedWalls = new Set();
-  let cachedWalls = []; // Cached array of derived walls
+  let cachedWalls = [];
   let isWallsDirty = true;
   let isGridDirty = true;
+  let isCanvasDirty = true;
+  let isAnimationRunning = false;
 
   let draggingNode = null;
   let draggingRoom = null;
@@ -109,6 +114,15 @@
   let hoveredDoor = null;
   let animTarget = null;
   let isRoomEditMode = false;
+
+  // Cached layout rect to prevent layout reflows on mousemove
+  let cachedCanvasRect = null;
+
+  function refreshCanvasRect() {
+    cachedCanvasRect = canvas.getBoundingClientRect();
+  }
+  window.addEventListener('resize', refreshCanvasRect, { passive: true });
+  window.addEventListener('scroll', refreshCanvasRect, { passive: true });
 
   // Default Template with Australian Central Hallway, Bath & Laundry
   const DEFAULT_ROOMS = [
@@ -140,9 +154,8 @@
     { id: 'primary', type: 'router', name: 'Primary Router', x: 200, y: 160, isDragging: false }
   ];
 
-  // --- Fast Line Intersection ---
+  // --- Fast Line Intersection with Bounding Box Pre-Check ---
   function linesIntersect(x1, y1, x2, y2, x3, y3, x4, y4) {
-    // Quick bounding box rejection
     if (Math.max(x1, x2) < Math.min(x3, x4) || Math.min(x1, x2) > Math.max(x3, x4) ||
         Math.max(y1, y2) < Math.min(y3, y4) || Math.min(y1, y2) > Math.max(y3, y4)) {
       return false;
@@ -164,7 +177,7 @@
   }
 
   // ==========================================================================
-  // 🧱 Pre-Computed Cached Wall Derivation (Run ONCE when layout changes)
+  // 🧱 Pre-Computed Cached Wall Derivation
   // ==========================================================================
   function rebuildWallCache() {
     const rawSegments = [];
@@ -306,7 +319,7 @@
     return { r, g, b, a: alpha };
   }
 
-  // --- High-Speed Heatmap Grid Calculation (Throttled & Non-Blocking) ---
+  // --- High-Speed Heatmap Grid Calculation with Pre-Calculated Signal Buffer ---
   function computeHeatmapGrid() {
     const wallsList = getCachedActiveWalls();
     const data = gridImageData.data;
@@ -316,12 +329,14 @@
     for (let gy = 0; gy < GRID_H; gy++) {
       const py = (gy + 0.5) * stepY;
       const rowOffset = gy * GRID_W * 4;
+      const bufferRowOffset = gy * GRID_W;
 
       for (let gx = 0; gx < GRID_W; gx++) {
         const px = (gx + 0.5) * stepX;
         const dBm = getSignalStrengthAt(px, py, wallsList);
-        const col = signalToColor(dBm);
+        gridSignalBuffer[bufferRowOffset + gx] = dBm;
 
+        const col = signalToColor(dBm);
         const idx = rowOffset + (gx * 4);
         data[idx] = col.r;
         data[idx + 1] = col.g;
@@ -332,16 +347,33 @@
 
     offscreenCtx.putImageData(gridImageData, 0, 0);
     isGridDirty = false;
+    isCanvasDirty = true;
+  }
+
+  // Instant O(1) lookup from the pre-computed grid buffer
+  function getSampledSignalAt(px, py) {
+    const gx = Math.max(0, Math.min(GRID_W - 1, Math.floor((px / V_WIDTH) * GRID_W)));
+    const gy = Math.max(0, Math.min(GRID_H - 1, Math.floor((py / V_HEIGHT) * GRID_H)));
+    return gridSignalBuffer[gy * GRID_W + gx] || -90;
   }
 
   function markDirty() {
     isWallsDirty = true;
     isGridDirty = true;
+    isCanvasDirty = true;
+    requestRender();
   }
 
-  // --- Render Loop (60fps Canvas) ---
+  // --- Smart Idle Render Loop: Pauses when nothing is active ---
+  function requestRender() {
+    if (!isAnimationRunning) {
+      isAnimationRunning = true;
+      requestAnimationFrame(draw);
+    }
+  }
+
   function draw() {
-    // 1. Animation easing
+    // 1. Animation target easing
     if (animTarget) {
       const dx = animTarget.x - nodes[0].x;
       const dy = animTarget.y - nodes[0].y;
@@ -358,7 +390,7 @@
       }
     }
 
-    // 2. Only recompute RF grid when dirty
+    // 2. Recompute RF grid if marked dirty
     if (isGridDirty) {
       computeHeatmapGrid();
     }
@@ -405,10 +437,10 @@
       const textW = ctx.measureText(room.name).width + 12;
 
       ctx.fillStyle = isSel ? 'rgba(255, 75, 22, 0.9)' : 'rgba(15, 23, 42, 0.75)';
-      ctx.fillRect(room.x + room.w / 2 - textW / 2, room.y + room.h / 2 - 10, textW, 20);
+      ctx.fillRect(room.x + room.w * 0.5 - textW * 0.5, room.y + room.h * 0.5 - 10, textW, 20);
 
       ctx.fillStyle = '#FFFFFF';
-      ctx.fillText(room.name, room.x + room.w / 2, room.y + room.h / 2);
+      ctx.fillText(room.name, room.x + room.w * 0.5, room.y + room.h * 0.5);
     });
 
     // 6. Draw Walls
@@ -528,12 +560,19 @@
       ctx.font = '700 10.5px "Plus Jakarta Sans", sans-serif';
       const tagText = node.type === 'router' ? '📡 Main Router' : `📶 Mesh Node ${idx}`;
       const tagW = ctx.measureText(tagText).width + 14;
-      ctx.fillRect(node.x - tagW / 2, node.y + 20, tagW, 20);
+      ctx.fillRect(node.x - tagW * 0.5, node.y + 20, tagW, 20);
       ctx.fillStyle = '#FFFFFF';
       ctx.fillText(tagText, node.x, node.y + 30);
     });
 
-    requestAnimationFrame(draw);
+    isCanvasDirty = false;
+
+    // Continue loop only if active animation, dragging, or mouse interaction
+    if (animTarget || draggingNode || draggingRoom || resizingRoom || hoveredNode) {
+      requestAnimationFrame(draw);
+    } else {
+      isAnimationRunning = false;
+    }
   }
 
   // --- Diagnostic Analytics Calculation ---
@@ -641,6 +680,7 @@
       btn.addEventListener('click', () => {
         animTarget = { x: parseFloat(btn.dataset.jumpX), y: parseFloat(btn.dataset.jumpY) };
         showToast(`Moved router to ${btn.textContent}`);
+        requestRender();
       });
     });
   }
@@ -653,9 +693,9 @@
       return;
     }
 
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = rect.width / V_WIDTH;
-    const scaleY = rect.height / V_HEIGHT;
+    if (!cachedCanvasRect) refreshCanvasRect();
+    const scaleX = cachedCanvasRect.width / V_WIDTH;
+    const scaleY = cachedCanvasRect.height / V_HEIGHT;
 
     const screenX = (selectedRoom.x + selectedRoom.w * 0.5) * scaleX;
     const screenY = selectedRoom.y * scaleY;
@@ -674,9 +714,9 @@
       return;
     }
 
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = rect.width / V_WIDTH;
-    const scaleY = rect.height / V_HEIGHT;
+    if (!cachedCanvasRect) refreshCanvasRect();
+    const scaleX = cachedCanvasRect.width / V_WIDTH;
+    const scaleY = cachedCanvasRect.height / V_HEIGHT;
 
     const midX = (selectedWall.x1 + selectedWall.x2) * 0.5;
     const midY = (selectedWall.y1 + selectedWall.y2) * 0.5;
@@ -736,20 +776,21 @@
 
     animTarget = bestPos;
     showToast('✨ Auto-positioned router for optimal whole-home signal!');
+    requestRender();
   }
 
   // --- Coordinate Mapping ---
   function getCanvasCoords(e) {
-    const rect = canvas.getBoundingClientRect();
+    if (!cachedCanvasRect) refreshCanvasRect();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    const scaleX = V_WIDTH / rect.width;
-    const scaleY = V_HEIGHT / rect.height;
+    const scaleX = V_WIDTH / cachedCanvasRect.width;
+    const scaleY = V_HEIGHT / cachedCanvasRect.height;
     return {
-      x: (clientX - rect.left) * scaleX,
-      y: (clientY - rect.top) * scaleY,
-      screenX: clientX - rect.left,
-      screenY: clientY - rect.top
+      x: (clientX - cachedCanvasRect.left) * scaleX,
+      y: (clientY - cachedCanvasRect.top) * scaleY,
+      screenX: clientX - cachedCanvasRect.left,
+      screenY: clientY - cachedCanvasRect.top
     };
   }
 
@@ -768,6 +809,7 @@
 
   // --- Pointer Handlers ---
   function onPointerDown(e) {
+    refreshCanvasRect();
     const coords = getCanvasCoords(e);
 
     // Door Insertion Mode
@@ -811,6 +853,7 @@
     // Drawing Wall Mode
     if (drawWallType) {
       wallStartPoint = { x: coords.x, y: coords.y, currentX: coords.x, currentY: coords.y };
+      requestRender();
       return;
     }
 
@@ -821,6 +864,7 @@
       draggingNode = node;
       node.isDragging = true;
       canvas.style.cursor = 'grabbing';
+      requestRender();
       if (e.cancelable) e.preventDefault();
       return;
     }
@@ -828,6 +872,7 @@
     // Resize Handle on selected room
     if (selectedRoom && isOverResizeHandle(selectedRoom, coords.x, coords.y)) {
       resizingRoom = { room: selectedRoom, startW: selectedRoom.w, startH: selectedRoom.h, startX: coords.x, startY: coords.y };
+      requestRender();
       if (e.cancelable) e.preventDefault();
       return;
     }
@@ -840,6 +885,7 @@
       draggingRoom = { room, offsetX: coords.x - room.x, offsetY: coords.y - room.y };
       updateRoomInspector();
       updateWallInspector();
+      requestRender();
       if (e.cancelable) e.preventDefault();
       return;
     }
@@ -851,6 +897,7 @@
       selectedRoom = null;
       updateRoomInspector();
       updateWallInspector();
+      requestRender();
       if (e.cancelable) e.preventDefault();
       return;
     } else {
@@ -860,6 +907,7 @@
 
     selectedRoom = null;
     updateRoomInspector();
+    requestRender();
   }
 
   function onPointerMove(e) {
@@ -868,6 +916,7 @@
     if (drawWallType && wallStartPoint) {
       wallStartPoint.currentX = coords.x;
       wallStartPoint.currentY = coords.y;
+      requestRender();
       return;
     }
 
@@ -875,6 +924,7 @@
       draggingNode.x = Math.max(60, Math.min(V_WIDTH - 60, coords.x));
       draggingNode.y = Math.max(60, Math.min(V_HEIGHT - 60, coords.y));
       isGridDirty = true;
+      requestRender();
       if (e.cancelable) e.preventDefault();
     } else if (resizingRoom) {
       const dw = coords.x - resizingRoom.startX;
@@ -910,9 +960,9 @@
         canvas.style.cursor = drawWallType ? 'crosshair' : 'default';
       }
 
+      // O(1) Instant Tooltip Value from pre-computed buffer
       if (tooltip && !isEraserMode && !isDoorMode) {
-        const wallsList = getCachedActiveWalls();
-        const dBm = getSignalStrengthAt(coords.x, coords.y, wallsList);
+        const dBm = getSampledSignalAt(coords.x, coords.y);
         const speed = signalToSpeed(dBm);
         const room = findRoomAt(coords.x, coords.y);
 
@@ -956,16 +1006,19 @@
       draggingNode.isDragging = false;
       draggingNode = null;
       updateAnalytics();
+      requestRender();
     }
 
     if (resizingRoom) {
       resizingRoom = null;
       updateAnalytics();
+      requestRender();
     }
 
     if (draggingRoom) {
       draggingRoom = null;
       updateAnalytics();
+      requestRender();
     }
   }
 
@@ -975,7 +1028,7 @@
   }
 
   canvas.addEventListener('mousedown', onPointerDown);
-  window.addEventListener('mousemove', onPointerMove);
+  window.addEventListener('mousemove', onPointerMove, { passive: true });
   window.addEventListener('mouseup', onPointerUp);
   canvas.addEventListener('mouseleave', onPointerLeave);
 
@@ -996,6 +1049,7 @@
         updateQuickJumpBar();
         updateAnalytics();
         showToast(`Renamed room to "${selectedRoom.name}"`);
+        requestRender();
       }
     });
   }
@@ -1027,6 +1081,7 @@
       if (eraseWallBtn) eraseWallBtn.classList.remove('is-active');
       addDoorBtn.classList.toggle('is-active', isDoorMode);
       showToast(isDoorMode ? '🚪 Door Mode: Click on any wall to place a doorway' : 'Door Mode disabled');
+      requestRender();
     });
   }
 
@@ -1042,6 +1097,7 @@
       if (addDoorBtn) addDoorBtn.classList.remove('is-active');
       eraseWallBtn.classList.toggle('is-active', isEraserMode);
       showToast(isEraserMode ? '🧹 Eraser active: Click any wall or door on canvas to remove it' : 'Eraser disabled');
+      requestRender();
     });
   }
 
@@ -1152,11 +1208,12 @@
   if (opacitySlider) {
     opacitySlider.addEventListener('input', () => {
       uploadedImgOpacity = parseFloat(opacitySlider.value);
+      requestRender();
     });
   }
 
   // ==========================================================================
-  // 🧩 Option 3: Modular Room Block CRUD Builder (Full Australian Catalog)
+  // 🧩 Option 3: Modular Room Block CRUD Builder
   // ==========================================================================
   if (toggleRoomTrayBtn && roomTray) {
     toggleRoomTrayBtn.addEventListener('click', () => {
@@ -1324,6 +1381,7 @@
       activeBtn.classList.add('is-active');
       showToast(`Click & drag to draw ${type} wall`);
     }
+    requestRender();
   }
 
   if (drawBrickBtn) drawBrickBtn.addEventListener('click', () => setDrawMode('brick', drawBrickBtn));
@@ -1395,6 +1453,8 @@
       if (layoutHub) layoutHub.style.display = 'flex';
       if (quickJumpBar) quickJumpBar.style.display = 'flex';
       livePanel.classList.remove('is-active');
+      refreshCanvasRect();
+      requestRender();
     });
 
     modeLiveBtn.addEventListener('click', () => {
@@ -1497,9 +1557,10 @@
   }
 
   // --- Initial Launch ---
+  refreshCanvasRect();
   updateQuickJumpBar();
   markDirty();
   updateAnalytics();
-  requestAnimationFrame(draw);
+  requestRender();
 
 })();
