@@ -307,7 +307,7 @@
           <header class="wifi-live-header">
             <span class="wifi-live-kicker">Live walk · no app required</span>
             <h2 id="liveScannerTitle">Walk your home and mark weak spots</h2>
-            <p>Start the live pulse, carry this phone through your home and tap <strong>Mark this spot</strong> whenever the connection drops. Name each spot now or after the walk.</p>
+            <p>Start beside your modem so the phone can learn a baseline, then walk through your home and tap <strong>Mark this spot</strong> whenever the connection drops.</p>
           </header>
 
           <div class="wifi-local-preview-note" id="localPreviewNote" role="note" hidden>
@@ -357,7 +357,7 @@
 
               <dl class="wifi-live-stats-row">
                 <div class="wifi-stat-box">
-                  <dt>Download</dt>
+                  <dt>Compared with start</dt>
                   <dd id="liveSpeedEstNum">—</dd>
                 </div>
                 <div class="wifi-stat-box">
@@ -365,7 +365,7 @@
                   <dd id="liveLatencyNum">—</dd>
                 </div>
                 <div class="wifi-stat-box">
-                  <dt>Variation</dt>
+                  <dt>Confidence</dt>
                   <dd id="liveJitterNum">—</dd>
                 </div>
               </dl>
@@ -377,7 +377,7 @@
               <span class="wifi-live-section-label">How it works</span>
               <h3 id="liveWalkControlsTitle">Let the phone watch while you walk</h3>
               <ol class="wifi-live-instructions">
-                <li><span>1</span><p><strong>Start beside your modem.</strong> This gives you a useful strong-room baseline.</p></li>
+                <li><span>1</span><p><strong>Start beside your modem.</strong> Hold still for three readings while the baseline calibrates.</p></li>
                 <li><span>2</span><p><strong>Walk normally.</strong> The pulse refreshes every few seconds.</p></li>
                 <li><span>3</span><p><strong>Mark weak spots.</strong> They are saved as Spot 1, Spot 2 and can be renamed later.</p></li>
               </ol>
@@ -386,12 +386,12 @@
                 <input id="vibrateOnPoor" type="checkbox" checked>
                 <span><strong>Vibrate when it turns Poor</strong><small>Works on supported Android phones.</small></span>
               </label>
-              <p class="wifi-live-data-note">Uses roughly 2–3 MB of data per minute. The screen stays awake where supported.</p>
+              <p class="wifi-live-data-note">Uses roughly 5–6 MB of data per minute. The screen stays awake where supported.</p>
             </section>
           </div>
 
           <div class="wifi-test-note" role="note">
-            <strong>This is a connection pulse, not RF radar.</strong> Browsers cannot read Wi-Fi RSSI or indoor position. It compares the connection from this phone to JRS Digital so you can mark weak locations yourself.
+            <strong>This is a calibrated connection comparison, not RF radar.</strong> Browsers cannot read Wi-Fi RSSI or indoor position. Each location is compared with the baseline you record beside the modem.
           </div>
 
           <section class="wifi-audit-history" aria-labelledby="savedSpotsTitle">

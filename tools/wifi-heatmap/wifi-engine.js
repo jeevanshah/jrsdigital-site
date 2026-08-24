@@ -1669,7 +1669,9 @@
   const liveStepEls = [...document.querySelectorAll('[data-live-step]')];
   const connectionTestAsset = '/assets/img/hero-house.webp';
   const markedSpotsStorageKey = 'jrs-wifi-marked-spots-v1';
-  const liveSampleIntervalMs = 3200;
+  const liveSampleIntervalMs = 3600;
+  const parallelTransferCount = 2;
+  const baselineSampleTarget = 3;
   const isLocalPreview = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
   let liveWalkActive = false;
@@ -1677,10 +1679,14 @@
   let liveAbortController = null;
   let liveWakeLock = null;
   let liveSampleInFlight = false;
+  let liveWarmupComplete = false;
   let liveReadingCount = 0;
   let liveSamples = [];
+  let baselineSamples = [];
+  let baselineReading = null;
   let latestLiveReading = null;
   let lastLiveRating = '';
+  let consecutiveSampleFailures = 0;
   let editingMarkId = null;
 
   const loadMarkedSpots = () => {
@@ -1717,61 +1723,78 @@
     return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
   };
 
-  const getLiveRating = (responseMs, variationMs, measuredMbps) => {
-    if (responseMs <= 40 && variationMs <= 20 && measuredMbps >= 100) {
+  const getLiveRating = (comparisonPercent, responseRatio, failedSamples) => {
+    if (failedSamples >= 2 || comparisonPercent < 25 || responseRatio > 4) {
       return {
-        statusLabel: 'Excellent',
-        badgeClass: 'wifi-room-tag--strong',
-        meaning: 'Strong enough for 4K streaming, video calls and online gaming.'
+        ratingKey: 'poor',
+        statusLabel: 'Dead zone',
+        badgeClass: 'wifi-room-tag--dead',
+        meaning: 'The connection has dropped heavily compared with your starting point.'
       };
     }
-    if (responseMs <= 80 && variationMs <= 40 && measuredMbps >= 25) {
+    if (comparisonPercent < 50 || responseRatio > 3) {
       return {
+        ratingKey: 'fair',
+        statusLabel: 'Weak',
+        badgeClass: 'wifi-room-tag--good',
+        meaning: 'Noticeably weaker than beside the modem. Consider marking this spot.'
+      };
+    }
+    if (comparisonPercent < 80 || responseRatio > 1.6) {
+      return {
+        ratingKey: 'good',
         statusLabel: 'Good',
         badgeClass: 'wifi-room-tag--strong',
-        meaning: 'Good for streaming, video calls and everyday work.'
-      };
-    }
-    if (responseMs <= 150 && variationMs <= 80 && measuredMbps >= 10) {
-      return {
-        statusLabel: 'Fair',
-        badgeClass: 'wifi-room-tag--good',
-        meaning: 'Usable, but calls or streaming may occasionally wobble.'
+        meaning: 'Some drop from the starting point, but the connection remains usable.'
       };
     }
     return {
-      statusLabel: 'Poor',
-      badgeClass: 'wifi-room-tag--dead',
-      meaning: 'Weak here. This is a good place to mark and investigate.'
+      ratingKey: 'excellent',
+      statusLabel: 'Strong',
+      badgeClass: 'wifi-room-tag--strong',
+      meaning: 'Close to the connection quality recorded beside your modem.'
     };
   };
 
   const formatMbps = value => value >= 100 ? Math.round(value) : Math.round(value * 10) / 10;
 
+  const getReadingConfidence = samples => {
+    if (samples.length < 3) return 'Low';
+    const speeds = samples.map(sample => sample.measuredMbps);
+    const middle = Math.max(median(speeds), 0.1);
+    const relativeSpread = (Math.max(...speeds) - Math.min(...speeds)) / middle;
+    if (samples.length >= 5 && relativeSpread <= 0.35) return 'High';
+    return relativeSpread <= 0.7 ? 'Medium' : 'Low';
+  };
+
   const updateLiveReading = reading => {
     if (!reading) return;
-    if (liveRadarCard) liveRadarCard.dataset.rating = reading.statusLabel.toLowerCase();
+    if (liveRadarCard) liveRadarCard.dataset.rating = reading.ratingKey;
     if (liveQualityVal) liveQualityVal.textContent = reading.statusLabel;
-    if (liveSpeedEstNum) liveSpeedEstNum.textContent = String(reading.measuredMbps) + ' Mbps';
+    if (liveSpeedEstNum) liveSpeedEstNum.textContent = String(reading.comparisonPercent) + '%';
     if (liveLatencyNum) liveLatencyNum.textContent = String(reading.responseMs) + ' ms';
-    if (liveJitterNum) liveJitterNum.textContent = String(reading.variationMs) + ' ms';
+    if (liveJitterNum) liveJitterNum.textContent = reading.confidence;
     if (liveResultMeaning) liveResultMeaning.textContent = reading.meaning;
-    if (liveSampleCount) liveSampleCount.textContent = String(liveReadingCount) + (liveReadingCount === 1 ? ' reading' : ' readings');
+    if (liveSampleCount) liveSampleCount.textContent = String(liveReadingCount) + (liveReadingCount === 1 ? ' live reading' : ' live readings');
     if (markWeakSpotBtn) markWeakSpotBtn.disabled = false;
   };
 
   const resetLiveReading = () => {
     latestLiveReading = null;
     liveSamples = [];
+    baselineSamples = [];
+    baselineReading = null;
     liveReadingCount = 0;
     lastLiveRating = '';
+    consecutiveSampleFailures = 0;
+    liveWarmupComplete = false;
     if (liveRadarCard) liveRadarCard.dataset.rating = 'waiting';
-    if (liveQualityVal) liveQualityVal.textContent = 'Checking';
+    if (liveQualityVal) liveQualityVal.textContent = 'Calibrating';
     if (liveSpeedEstNum) liveSpeedEstNum.textContent = '—';
     if (liveLatencyNum) liveLatencyNum.textContent = '—';
     if (liveJitterNum) liveJitterNum.textContent = '—';
-    if (liveResultMeaning) liveResultMeaning.textContent = 'Hold the phone normally while the first reading completes.';
-    if (liveSampleCount) liveSampleCount.textContent = 'Waiting for first reading';
+    if (liveResultMeaning) liveResultMeaning.textContent = 'Stay beside the modem while three baseline readings complete.';
+    if (liveSampleCount) liveSampleCount.textContent = '0 of 3 baseline readings';
     if (markWeakSpotBtn) markWeakSpotBtn.disabled = true;
   };
 
@@ -1849,9 +1872,12 @@
       const reading = document.createElement('div');
       reading.className = 'wifi-mark-reading';
       const speed = document.createElement('strong');
-      speed.textContent = String(spot.measuredMbps) + ' Mbps';
+      speed.textContent = Number.isFinite(spot.comparisonPercent)
+        ? String(spot.comparisonPercent) + '% of start'
+        : String(spot.measuredMbps) + ' Mbps';
       const detail = document.createElement('small');
-      detail.textContent = ' · ' + spot.responseMs + ' ms response · ' + spot.variationMs + ' ms variation';
+      detail.textContent = ' · ' + spot.responseMs + ' ms response' +
+        (spot.confidence ? ' · ' + spot.confidence + ' confidence' : ' · earlier measurement');
       const rating = document.createElement('span');
       rating.className = 'wifi-room-tag ' + spot.badgeClass;
       rating.textContent = spot.statusLabel;
@@ -1885,7 +1911,7 @@
       auditHistoryList.append(row);
     });
 
-    const weakCount = markedSpots.filter(spot => ['Poor', 'Fair'].includes(spot.statusLabel)).length;
+    const weakCount = markedSpots.filter(spot => ['poor', 'fair'].includes(spot.ratingKey) || ['Poor', 'Fair', 'Weak', 'Dead zone'].includes(spot.statusLabel)).length;
     if (auditSummary) {
       auditSummary.textContent = String(markedSpots.length) + (markedSpots.length === 1 ? ' spot marked' : ' spots marked') +
         (weakCount ? ' · ' + weakCount + ' weak' : '');
@@ -1916,22 +1942,31 @@
   const takeConnectionSample = async () => {
     liveAbortController = new AbortController();
     const timeoutId = window.setTimeout(() => liveAbortController?.abort(), 8000);
-    const startedAt = performance.now();
+    const batchStartedAt = performance.now();
 
     try {
-      const response = await fetch(connectionTestAsset + '?live_walk=' + Date.now(), {
-        method: 'GET',
-        cache: 'no-store',
-        signal: liveAbortController.signal
-      });
-      const headersAt = performance.now();
-      if (!response.ok) throw new Error('Connection pulse returned ' + response.status);
-      const payload = await response.arrayBuffer();
+      const batchToken = Date.now() + '-' + Math.random().toString(36).slice(2);
+      const transfers = await Promise.all(Array.from({ length: parallelTransferCount }, async (_, index) => {
+        const transferStartedAt = performance.now();
+        const response = await fetch(connectionTestAsset + '?live_walk=' + batchToken + '-' + index, {
+          method: 'GET',
+          cache: 'no-store',
+          signal: liveAbortController.signal
+        });
+        const headersAt = performance.now();
+        if (!response.ok) throw new Error('Connection pulse returned ' + response.status);
+        const payload = await response.arrayBuffer();
+        return {
+          responseMs: headersAt - transferStartedAt,
+          byteLength: payload.byteLength
+        };
+      }));
       const completedAt = performance.now();
-      const durationSeconds = Math.max((completedAt - startedAt) / 1000, 0.001);
+      const durationSeconds = Math.max((completedAt - batchStartedAt) / 1000, 0.001);
+      const totalBytes = transfers.reduce((sum, transfer) => sum + transfer.byteLength, 0);
       return {
-        responseMs: headersAt - startedAt,
-        measuredMbps: Math.max(0.1, (payload.byteLength * 8) / durationSeconds / 1000000)
+        responseMs: median(transfers.map(transfer => transfer.responseMs)),
+        measuredMbps: Math.max(0.1, (totalBytes * 8) / durationSeconds / 1000000)
       };
     } finally {
       window.clearTimeout(timeoutId);
@@ -1949,40 +1984,101 @@
   const runLiveSample = async () => {
     if (!liveWalkActive || document.hidden || liveSampleInFlight) return;
     liveSampleInFlight = true;
-    if (scanProgress) scanProgress.textContent = 'Taking a fresh connection reading…';
 
     try {
+      if (!liveWarmupComplete) {
+        if (scanProgress) scanProgress.textContent = 'Warming up the connection test…';
+        await takeConnectionSample();
+        if (!liveWalkActive) return;
+        liveWarmupComplete = true;
+      }
+
+      if (!baselineReading) {
+        if (scanProgress) scanProgress.textContent = 'Calibrating beside the modem… keep the phone still.';
+        const baselineSample = await takeConnectionSample();
+        if (!liveWalkActive) return;
+        baselineSamples.push(baselineSample);
+        const calibrationCount = baselineSamples.length;
+        if (liveSampleCount) liveSampleCount.textContent = String(calibrationCount) + ' of ' + baselineSampleTarget + ' baseline readings';
+        if (liveSpeedEstNum) liveSpeedEstNum.textContent = String(calibrationCount) + ' / ' + baselineSampleTarget;
+        if (liveLatencyNum) liveLatencyNum.textContent = String(Math.round(baselineSample.responseMs)) + ' ms';
+        if (liveJitterNum) liveJitterNum.textContent = 'Building';
+
+        if (calibrationCount >= baselineSampleTarget) {
+          baselineReading = {
+            responseMs: median(baselineSamples.map(sample => sample.responseMs)),
+            measuredMbps: median(baselineSamples.map(sample => sample.measuredMbps))
+          };
+          liveSamples = [];
+          consecutiveSampleFailures = 0;
+          if (liveRadarCard) liveRadarCard.dataset.rating = 'good';
+          if (liveQualityVal) liveQualityVal.textContent = 'Baseline ready';
+          if (liveSpeedEstNum) liveSpeedEstNum.textContent = '100%';
+          if (liveLatencyNum) liveLatencyNum.textContent = String(Math.round(baselineReading.responseMs)) + ' ms';
+          if (liveJitterNum) liveJitterNum.textContent = 'Baseline';
+          if (liveResultMeaning) liveResultMeaning.textContent = 'Starting point locked. Begin walking away from the modem.';
+          if (liveSampleCount) liveSampleCount.textContent = 'Baseline ready';
+          if (scanProgress) scanProgress.textContent = 'Calibrated · start walking slowly.';
+          if ('vibrate' in navigator) navigator.vibrate(60);
+        }
+        return;
+      }
+
+      if (scanProgress) scanProgress.textContent = 'Comparing this spot with your starting point…';
       const sample = await takeConnectionSample();
       if (!liveWalkActive) return;
       liveSamples.push(sample);
       if (liveSamples.length > 5) liveSamples.shift();
       liveReadingCount += 1;
+      consecutiveSampleFailures = 0;
 
       const responseMs = Math.round(median(liveSamples.map(reading => reading.responseMs)));
       const variationMs = Math.round(Math.max(...liveSamples.map(reading => reading.responseMs)) - Math.min(...liveSamples.map(reading => reading.responseMs)));
       const measuredMbpsRaw = median(liveSamples.map(reading => reading.measuredMbps));
       const measuredMbps = formatMbps(measuredMbpsRaw);
-      const rating = getLiveRating(responseMs, variationMs, measuredMbpsRaw);
+      const comparisonPercent = Math.max(0, Math.min(100, Math.round((measuredMbpsRaw / Math.max(baselineReading.measuredMbps, 0.1)) * 100)));
+      const responseRatio = responseMs / Math.max(baselineReading.responseMs, 1);
+      const confidence = getReadingConfidence(liveSamples);
+      const rating = getLiveRating(comparisonPercent, responseRatio, consecutiveSampleFailures);
       latestLiveReading = {
         responseMs,
         variationMs,
         measuredMbps,
+        comparisonPercent,
+        confidence,
         ...rating
       };
 
       updateLiveReading(latestLiveReading);
       if (scanProgress) scanProgress.textContent = 'Live · walk slowly and mark any weak spot.';
 
-      if (rating.statusLabel === 'Poor' && lastLiveRating !== 'Poor' && vibrateOnPoor?.checked && 'vibrate' in navigator) {
+      if (rating.ratingKey === 'poor' && lastLiveRating !== 'poor' && vibrateOnPoor?.checked && 'vibrate' in navigator) {
         navigator.vibrate([140, 80, 140]);
       }
-      lastLiveRating = rating.statusLabel;
+      lastLiveRating = rating.ratingKey;
     } catch (error) {
       if (error.name !== 'AbortError' && liveWalkActive) {
-        if (liveRadarCard) liveRadarCard.dataset.rating = 'unavailable';
-        if (liveQualityVal) liveQualityVal.textContent = 'Unavailable';
-        if (liveResultMeaning) liveResultMeaning.textContent = 'The live pulse could not reach the test server.';
-        if (scanProgress) scanProgress.textContent = 'Check your internet connection. Retrying automatically…';
+        consecutiveSampleFailures += 1;
+        if (baselineReading && consecutiveSampleFailures >= 2) {
+          const rating = getLiveRating(0, 99, consecutiveSampleFailures);
+          latestLiveReading = {
+            responseMs: 8000,
+            variationMs: 0,
+            measuredMbps: 0,
+            comparisonPercent: 0,
+            confidence: 'High',
+            ...rating
+          };
+          updateLiveReading(latestLiveReading);
+          if (scanProgress) scanProgress.textContent = 'Repeated connection failures · mark this spot if the phone is still online.';
+          if (lastLiveRating !== 'poor' && vibrateOnPoor?.checked && 'vibrate' in navigator) navigator.vibrate([140, 80, 140]);
+          lastLiveRating = 'poor';
+        } else {
+          if (liveRadarCard) liveRadarCard.dataset.rating = 'unavailable';
+          if (liveQualityVal) liveQualityVal.textContent = baselineReading ? 'Retrying' : 'Calibration paused';
+          if (liveResultMeaning) liveResultMeaning.textContent = 'The test could not reach the server. Hold this spot while it retries.';
+          if (scanProgress) scanProgress.textContent = 'Connection check failed once. Retrying automatically…';
+        }
       }
     } finally {
       liveSampleInFlight = false;
@@ -1993,12 +2089,12 @@
   const startLiveWalk = () => {
     if (liveWalkActive) return;
     liveWalkActive = true;
-    if (!latestLiveReading) resetLiveReading();
+    if (!baselineReading && !latestLiveReading) resetLiveReading();
     if (liveRadarCard) liveRadarCard.dataset.running = 'true';
     if (liveSessionStatus) liveSessionStatus.textContent = 'Live';
     if (startLiveWalkBtn) startLiveWalkBtn.hidden = true;
     if (liveWalkControls) liveWalkControls.hidden = false;
-    if (scanProgress) scanProgress.textContent = 'Starting the first reading…';
+    if (scanProgress) scanProgress.textContent = baselineReading ? 'Resuming comparison readings…' : 'Starting beside-modem calibration…';
     setLiveStep(2);
     requestScreenWakeLock();
     runLiveSample();
@@ -2016,7 +2112,9 @@
     if (startLiveWalkBtn) startLiveWalkBtn.hidden = false;
     if (startLiveWalkBtnText) startLiveWalkBtnText.textContent = 'Resume live walk';
     if (liveWalkControls) liveWalkControls.hidden = true;
-    if (scanProgress) scanProgress.textContent = latestLiveReading ? 'Walk stopped. Your latest reading and marks are still here.' : 'Walk stopped before a reading completed.';
+    if (scanProgress) scanProgress.textContent = latestLiveReading
+      ? 'Walk stopped. Your latest comparison and marks are still here.'
+      : (baselineReading ? 'Walk stopped after calibration.' : 'Walk stopped before calibration completed.');
     setLiveStep(markedSpots.length ? 3 : 1);
     releaseScreenWakeLock();
     if (announce) showToast('Live walk stopped.');
