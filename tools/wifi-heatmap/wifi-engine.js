@@ -1,7 +1,11 @@
 /**
- * JRS Digital — Home Wi-Fi & Mesh Heatmap Engine (HTML5 Canvas 2D) - V2 Polish
- * Features: Auto-Optimizer Algorithm, Quick Room Jumpers, Activity Suitability Matrix,
- * Multi-Room Live Audit History, Hardware Profiles, Custom Wall Drawing & PNG Export.
+ * JRS Digital — Home Wi-Fi & Mesh Heatmap Engine (V3 Combined Suite)
+ * Features:
+ * 1. 🏠 House Customizer Wizard (1-5 Beds, Shapes, Double Brick vs Timber)
+ * 2. 📸 Real Estate Floorplan Image Upload & Calibration with Opacity Slider
+ * 3. 🧩 Modular Room Block Builder (Add/Drag rooms on canvas)
+ * 4. 📱 Live Mobile Walk-Around Scanner with Audit Table
+ * 5. ✨ Auto-Optimizer & Activity Capability Matrix
  */
 
 (function () {
@@ -22,13 +26,31 @@
   const toastEl = document.getElementById('wifiToast');
   const quickJumpContainer = document.getElementById('quickJumpContainer');
 
-  // Activity Matrix DOM
+  // Activity Matrix
   const actNetflix = document.getElementById('actNetflix');
   const actGaming = document.getElementById('actGaming');
   const actZoom = document.getElementById('actZoom');
   const actDownload = document.getElementById('actDownload');
 
-  // Virtual resolution for layout
+  // Uploaded Image
+  let uploadedFloorplanImg = null;
+  let uploadedImgOpacity = 0.65;
+  const fileInput = document.getElementById('floorplanFileInput');
+  const uploadBtn = document.getElementById('uploadPlanBtn');
+  const opacityControl = document.getElementById('opacityControl');
+  const opacitySlider = document.getElementById('opacitySlider');
+
+  // Room Builder Tray
+  const toggleRoomTrayBtn = document.getElementById('toggleRoomTrayBtn');
+  const roomTray = document.getElementById('roomTray');
+
+  // Wizard Modal
+  const wizardModal = document.getElementById('wizardModal');
+  const openWizardBtn = document.getElementById('openWizardBtn');
+  const closeWizardBtn = document.getElementById('closeWizardBtn');
+  const submitWizardBtn = document.getElementById('submitWizardBtn');
+
+  // Virtual resolution
   const V_WIDTH = 800;
   const V_HEIGHT = 500;
 
@@ -42,17 +64,45 @@
   const gridImageData = offscreenCtx.createImageData(GRID_W, GRID_H);
 
   // --- State ---
-  let currentPreset = 'suburban';
   let activeBand = '5ghz'; // '5ghz' or '2.4ghz'
   let activeHardware = 'standard';
   let drawWallType = null;
   let wallStartPoint = null;
   let customWalls = [];
   let draggingNode = null;
+  let draggingRoom = null;
   let hoveredNode = null;
+  let hoveredRoom = null;
   let animTarget = null;
+  let isRoomEditMode = false;
 
-  // --- Hardware Power & Loss Configurations ---
+  // Active Floorplan Data
+  let activeFloorplan = {
+    name: 'Suburban 3-Bed Brick Home',
+    rooms: [
+      { id: 'r1', name: 'Living Room', x: 80, y: 70, w: 280, h: 210 },
+      { id: 'r2', name: 'Kitchen & Dining', x: 360, y: 70, w: 260, h: 170 },
+      { id: 'r3', name: 'Home Office', x: 620, y: 70, w: 120, h: 170 },
+      { id: 'r4', name: 'Master Bed', x: 80, y: 280, w: 220, h: 170 },
+      { id: 'r5', name: 'Ensuite', x: 300, y: 280, w: 110, h: 170 },
+      { id: 'r6', name: 'Bedroom 2', x: 410, y: 240, w: 210, h: 210 },
+      { id: 'r7', name: 'Alfresco Patio', x: 620, y: 240, w: 120, h: 210 }
+    ],
+    walls: [
+      { x1: 80, y1: 70, x2: 740, y2: 70, type: 'brick', loss: 16 },
+      { x1: 740, y1: 70, x2: 740, y2: 450, type: 'brick', loss: 16 },
+      { x1: 740, y1: 450, x2: 80, y2: 450, type: 'brick', loss: 16 },
+      { x1: 80, y1: 450, x2: 80, y2: 70, type: 'brick', loss: 16 },
+      { x1: 360, y1: 70, x2: 360, y2: 240, type: 'brick', loss: 14 },
+      { x1: 410, y1: 240, x2: 620, y2: 240, type: 'brick', loss: 12 },
+      { x1: 80, y1: 280, x2: 410, y2: 280, type: 'drywall', loss: 6 },
+      { x1: 300, y1: 280, x2: 300, y2: 450, type: 'drywall', loss: 6 },
+      { x1: 410, y1: 240, x2: 410, y2: 450, type: 'drywall', loss: 6 },
+      { x1: 620, y1: 70, x2: 620, y2: 450, type: 'drywall', loss: 8 }
+    ]
+  };
+
+  // --- Hardware Profiles ---
   const HARDWARE_PROFILES = {
     standard: { name: 'Standard Telco Modem', basePower: -30, wallMult: 1.25, max5G: 500, max2G: 180 },
     wifi6: { name: 'High-Power Wi-Fi 6 Router', basePower: -26, wallMult: 1.05, max5G: 750, max2G: 240 },
@@ -64,71 +114,7 @@
     { id: 'primary', type: 'router', name: 'Primary Router', x: 230, y: 200, isDragging: false }
   ];
 
-  // --- Pre-defined Australian Floorplans ---
-  const FLOORPLANS = {
-    suburban: {
-      name: 'Suburban 3-Bed Brick Home',
-      rooms: [
-        { name: 'Living Room', x: 80, y: 70, w: 280, h: 210 },
-        { name: 'Kitchen & Dining', x: 360, y: 70, w: 260, h: 170 },
-        { name: 'Home Office / Bed 3', x: 620, y: 70, w: 120, h: 170 },
-        { name: 'Master Bedroom', x: 80, y: 280, w: 220, h: 170 },
-        { name: 'Ensuite / Bath', x: 300, y: 280, w: 110, h: 170 },
-        { name: 'Bedroom 2', x: 410, y: 240, w: 210, h: 210 },
-        { name: 'Outdoor Patio / Alfresco', x: 620, y: 240, w: 120, h: 210 }
-      ],
-      walls: [
-        { x1: 80, y1: 70, x2: 740, y2: 70, type: 'brick', loss: 16 },
-        { x1: 740, y1: 70, x2: 740, y2: 450, type: 'brick', loss: 16 },
-        { x1: 740, y1: 450, x2: 80, y2: 450, type: 'brick', loss: 16 },
-        { x1: 80, y1: 450, x2: 80, y2: 70, type: 'brick', loss: 16 },
-        { x1: 360, y1: 70, x2: 360, y2: 240, type: 'brick', loss: 14 },
-        { x1: 410, y1: 240, x2: 620, y2: 240, type: 'brick', loss: 12 },
-        { x1: 80, y1: 280, x2: 410, y2: 280, type: 'drywall', loss: 6 },
-        { x1: 300, y1: 280, x2: 300, y2: 450, type: 'drywall', loss: 6 },
-        { x1: 410, y1: 240, x2: 410, y2: 450, type: 'drywall', loss: 6 },
-        { x1: 620, y1: 70, x2: 620, y2: 450, type: 'drywall', loss: 8 }
-      ]
-    },
-
-    townhouse: {
-      name: '2-Storey Townhouse',
-      rooms: [
-        { name: 'Ground: Living Room', x: 80, y: 90, w: 300, h: 280 },
-        { name: 'Ground: Kitchen & Dining', x: 380, y: 90, w: 340, h: 140 },
-        { name: 'Ground: Garage / Storage', x: 380, y: 230, w: 340, h: 140 },
-        { name: 'Upper: Master Bed', x: 80, y: 90, w: 200, h: 160, isUpper: true },
-        { name: 'Upper: Bedroom 2', x: 280, y: 90, w: 200, h: 160, isUpper: true }
-      ],
-      walls: [
-        { x1: 80, y1: 90, x2: 720, y2: 90, type: 'brick', loss: 18 },
-        { x1: 720, y1: 90, x2: 720, y2: 370, type: 'brick', loss: 18 },
-        { x1: 720, y1: 370, x2: 80, y2: 370, type: 'brick', loss: 18 },
-        { x1: 80, y1: 370, x2: 80, y2: 90, type: 'brick', loss: 18 },
-        { x1: 380, y1: 90, x2: 380, y2: 370, type: 'brick', loss: 16 },
-        { x1: 380, y1: 230, x2: 720, y2: 230, type: 'drywall', loss: 6 }
-      ]
-    },
-
-    apartment: {
-      name: 'Modern 2-Bed Apartment',
-      rooms: [
-        { name: 'Open Living & Balcony', x: 100, y: 90, w: 340, h: 280 },
-        { name: 'Kitchen & Island', x: 440, y: 90, w: 260, h: 130 },
-        { name: 'Master Bedroom', x: 440, y: 220, w: 260, h: 150 }
-      ],
-      walls: [
-        { x1: 100, y1: 90, x2: 700, y2: 90, type: 'brick', loss: 18 },
-        { x1: 700, y1: 90, x2: 700, y2: 370, type: 'brick', loss: 18 },
-        { x1: 700, y1: 370, x2: 100, y2: 370, type: 'brick', loss: 18 },
-        { x1: 100, y1: 370, x2: 100, y2: 90, type: 'brick', loss: 18 },
-        { x1: 440, y1: 90, x2: 440, y2: 370, type: 'brick', loss: 14 },
-        { x1: 440, y1: 220, x2: 700, y2: 220, type: 'drywall', loss: 5 }
-      ]
-    }
-  };
-
-  // --- Line-Line Segment Intersection Helper ---
+  // --- Helper: Line Intersection ---
   function linesIntersect(x1, y1, x2, y2, x3, y3, x4, y4) {
     const denom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
     if (denom === 0) return false;
@@ -139,7 +125,7 @@
 
   // --- Calculate Signal Strength (dBm) at Point (px, py) ---
   function getSignalStrengthAt(px, py, customNodes = null) {
-    const allWalls = [...FLOORPLANS[currentPreset].walls, ...customWalls];
+    const allWalls = [...activeFloorplan.walls, ...customWalls];
     const hw = HARDWARE_PROFILES[activeHardware];
     const wallMultiplier = (activeBand === '5ghz' ? 1.25 : 0.75) * hw.wallMult;
     const distanceDrop = activeBand === '5ghz' ? 24 : 19;
@@ -168,7 +154,7 @@
     return Math.max(-95, Math.min(-25, maxSignal));
   }
 
-  // Convert dBm to Est. Speed (Mbps)
+  // Convert dBm to Speed (Mbps)
   function signalToSpeed(dBm) {
     const hw = HARDWARE_PROFILES[activeHardware];
     const maxSpeed = activeBand === '5ghz' ? hw.max5G : hw.max2G;
@@ -178,7 +164,7 @@
     if (dBm >= -72) return Math.round(maxSpeed * 0.35);
     if (dBm >= -82) return Math.round(maxSpeed * 0.12);
     if (dBm >= -88) return 15;
-    return 0; // Dead zone
+    return 0;
   }
 
   // Map dBm to RGB Heatmap Color
@@ -238,7 +224,6 @@
 
   // --- Render Loop (60fps Canvas) ---
   function draw() {
-    // Smooth router lerp animation if target set
     if (animTarget) {
       const dx = animTarget.x - nodes[0].x;
       const dy = animTarget.y - nodes[0].y;
@@ -259,19 +244,26 @@
     ctx.fillStyle = '#0F172A';
     ctx.fillRect(0, 0, V_WIDTH, V_HEIGHT);
 
-    // 1. Draw Heatmap
+    // 1. Draw Uploaded Real Estate Floorplan Image if present
+    if (uploadedFloorplanImg) {
+      ctx.save();
+      ctx.globalAlpha = uploadedImgOpacity;
+      ctx.drawImage(uploadedFloorplanImg, 0, 0, V_WIDTH, V_HEIGHT);
+      ctx.restore();
+    }
+
+    // 2. Draw Heatmap
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(offscreenCanvas, 0, 0, GRID_W, GRID_H, 0, 0, V_WIDTH, V_HEIGHT);
 
-    // 2. Draw Rooms
-    const plan = FLOORPLANS[currentPreset];
-    plan.rooms.forEach(room => {
+    // 3. Draw Rooms
+    activeFloorplan.rooms.forEach(room => {
       ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
       ctx.fillRect(room.x, room.y, room.w, room.h);
 
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = room === hoveredRoom ? '#F59E0B' : 'rgba(255, 255, 255, 0.16)';
+      ctx.lineWidth = room === hoveredRoom ? 2 : 1;
       ctx.strokeRect(room.x, room.y, room.w, room.h);
 
       ctx.font = '700 11.5px "Plus Jakarta Sans", sans-serif';
@@ -286,8 +278,8 @@
       ctx.fillText(room.name, room.x + room.w / 2, room.y + room.h / 2);
     });
 
-    // 3. Draw All Walls (Preset + Custom)
-    const allWalls = [...plan.walls, ...customWalls];
+    // 4. Draw Walls
+    const allWalls = [...activeFloorplan.walls, ...customWalls];
     allWalls.forEach(wall => {
       ctx.beginPath();
       ctx.moveTo(wall.x1, wall.y1);
@@ -310,7 +302,7 @@
       }
     });
 
-    // 4. Draw Active Wall Preview while drawing
+    // 5. Draw Active Wall Preview
     if (drawWallType && wallStartPoint && wallStartPoint.currentX !== undefined) {
       ctx.beginPath();
       ctx.moveTo(wallStartPoint.x, wallStartPoint.y);
@@ -322,7 +314,7 @@
       ctx.setLineDash([]);
     }
 
-    // 5. Draw Transmitters
+    // 6. Draw Transmitters
     nodes.forEach((node, idx) => {
       const isHovered = hoveredNode === node;
       const isDrag = draggingNode === node;
@@ -361,14 +353,13 @@
 
   // --- Diagnostic Analytics Calculation ---
   function updateAnalytics() {
-    const plan = FLOORPLANS[currentPreset];
     let strongCount = 0;
     let goodCount = 0;
     let deadCount = 0;
     let roomRowsHtml = '';
     let totalSpeed = 0;
 
-    plan.rooms.forEach(room => {
+    activeFloorplan.rooms.forEach(room => {
       const midX = room.x + room.w / 2;
       const midY = room.y + room.h / 2;
       const dBm = getSignalStrengthAt(midX, midY);
@@ -400,13 +391,13 @@
 
     if (roomListContainer) roomListContainer.innerHTML = roomRowsHtml;
 
-    const totalRooms = plan.rooms.length;
+    const totalRooms = Math.max(1, activeFloorplan.rooms.length);
     const avgSpeed = Math.round(totalSpeed / totalRooms);
     const coverageScore = Math.min(100, Math.round(((strongCount * 1.0 + goodCount * 0.65 + (totalRooms - deadCount - strongCount - goodCount) * 0.2) / totalRooms) * 100));
     if (coveragePercentEl) coveragePercentEl.textContent = `${coverageScore}%`;
     if (progressFillEl) progressFillEl.style.width = `${coverageScore}%`;
 
-    // Update Activity Matrix in Plain English
+    // Activity Matrix
     if (actNetflix) {
       const streams = Math.max(1, Math.floor(avgSpeed / 25));
       actNetflix.innerHTML = `<span class="wifi-act-dot ${streams >= 3 ? '' : 'wifi-act-dot--warn'}"></span> Netflix: ${streams} 4K Streams`;
@@ -425,16 +416,15 @@
 
     if (adviceTextEl) {
       if (coverageScore >= 88) {
-        adviceTextEl.innerHTML = `<strong>✨ Optimal Coverage (${coverageScore}%):</strong> Your home Wi-Fi signal is strong across living spaces and bedrooms. If downloads feel slow or 4K streams buffer, your NBN speed tier is the bottleneck.`;
+        adviceTextEl.innerHTML = `<strong>✨ Optimal Coverage (${coverageScore}%):</strong> Wi-Fi signal is strong across all rooms. If downloads feel slow or 4K streams buffer, your NBN speed tier is the bottleneck.`;
       } else if (deadCount > 0 && nodes.length === 1) {
-        adviceTextEl.innerHTML = `<strong>⚠️ Dead Zones Detected (${deadCount} room${deadCount > 1 ? 's' : ''}):</strong> Double brick walls are blocking 5GHz Wi-Fi. Try clicking <em>"✨ Auto-Optimize"</em> or <em>"+ Add Booster"</em> to fix dead zones.`;
+        adviceTextEl.innerHTML = `<strong>⚠️ Dead Zones Detected (${deadCount} room${deadCount > 1 ? 's' : ''}):</strong> Double brick walls are blocking 5GHz Wi-Fi. Try clicking <em>"✨ Auto-Optimize"</em> or <em>"+ Add Booster"</em>.`;
       } else {
-        adviceTextEl.innerHTML = `<strong>📶 Mesh Node Active:</strong> Adding a second node eliminates dead zones across outer rooms. Make sure your mesh node is placed halfway between the main router and weak areas.`;
+        adviceTextEl.innerHTML = `<strong>📶 Mesh Node Active:</strong> Adding a second node eliminates dead zones. Make sure your booster is placed halfway between the main router and weak areas.`;
       }
     }
   }
 
-  // --- Show Toast Notification ---
   function showToast(msg) {
     if (!toastEl) return;
     toastEl.textContent = msg;
@@ -445,10 +435,9 @@
   // --- Populate Quick Room Jumpers ---
   function updateQuickJumpBar() {
     if (!quickJumpContainer) return;
-    const plan = FLOORPLANS[currentPreset];
     let html = '<span class="wifi-quick-jump-label">Jump Router:</span>';
 
-    plan.rooms.forEach(room => {
+    activeFloorplan.rooms.forEach(room => {
       const midX = room.x + room.w / 2;
       const midY = room.y + room.h / 2;
       html += `<button class="wifi-jump-btn" data-jump-x="${midX}" data-jump-y="${midY}">${room.name}</button>`;
@@ -466,15 +455,13 @@
 
   // --- Auto-Optimizer Algorithm ---
   function autoOptimizeRouterPosition() {
-    const plan = FLOORPLANS[currentPreset];
     let bestScore = -1;
     let bestPos = { x: 380, y: 250 };
 
-    // Test grid of 50 candidate positions
     for (let x = 160; x <= 640; x += 40) {
       for (let y = 140; y <= 380; y += 40) {
         let score = 0;
-        plan.rooms.forEach(room => {
+        activeFloorplan.rooms.forEach(room => {
           const midX = room.x + room.w / 2;
           const midY = room.y + room.h / 2;
           const sig = getSignalStrengthAt(midX, midY, [{ type: 'router', x, y }]);
@@ -494,7 +481,7 @@
     showToast('✨ Auto-positioned router for optimal whole-home signal!');
   }
 
-  // --- Coordinate Mapping Helpers ---
+  // --- Coordinate Mapping ---
   function getCanvasCoords(e) {
     const rect = canvas.getBoundingClientRect();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -513,7 +500,11 @@
     return nodes.find(node => Math.hypot(node.x - x, node.y - y) <= 28) || null;
   }
 
-  // --- Interaction Event Listeners ---
+  function findRoomAt(x, y) {
+    return activeFloorplan.rooms.find(r => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) || null;
+  }
+
+  // --- Pointer Handlers ---
   function onPointerDown(e) {
     const coords = getCanvasCoords(e);
 
@@ -529,6 +520,15 @@
       node.isDragging = true;
       canvas.style.cursor = 'grabbing';
       if (e.cancelable) e.preventDefault();
+      return;
+    }
+
+    if (isRoomEditMode) {
+      const room = findRoomAt(coords.x, coords.y);
+      if (room) {
+        draggingRoom = { room, offsetX: coords.x - room.x, offsetY: coords.y - room.y };
+        if (e.cancelable) e.preventDefault();
+      }
     }
   }
 
@@ -547,15 +547,21 @@
       computeHeatmapGrid();
       updateAnalytics();
       if (e.cancelable) e.preventDefault();
+    } else if (draggingRoom) {
+      draggingRoom.room.x = Math.max(20, Math.min(V_WIDTH - draggingRoom.room.w - 20, coords.x - draggingRoom.offsetX));
+      draggingRoom.room.y = Math.max(20, Math.min(V_HEIGHT - draggingRoom.room.h - 20, coords.y - draggingRoom.offsetY));
+      computeHeatmapGrid();
+      updateAnalytics();
+      if (e.cancelable) e.preventDefault();
     } else {
       hoveredNode = findNodeAt(coords.x, coords.y);
-      canvas.style.cursor = drawWallType ? 'crosshair' : (hoveredNode ? 'grab' : 'default');
+      hoveredRoom = isRoomEditMode ? findRoomAt(coords.x, coords.y) : null;
+      canvas.style.cursor = drawWallType ? 'crosshair' : (hoveredNode || hoveredRoom ? 'grab' : 'default');
 
       if (tooltip) {
         const dBm = getSignalStrengthAt(coords.x, coords.y);
         const speed = signalToSpeed(dBm);
-        const plan = FLOORPLANS[currentPreset];
-        const room = plan.rooms.find(r => coords.x >= r.x && coords.x <= r.x + r.w && coords.y >= r.y && coords.y <= r.y + r.h);
+        const room = findRoomAt(coords.x, coords.y);
 
         probeSpeedEl.textContent = `${speed} Mbps (${Math.round(dBm)} dBm)`;
         probeRoomEl.textContent = room ? room.name : 'Hallway / Open Space';
@@ -599,6 +605,12 @@
       computeHeatmapGrid();
       updateAnalytics();
     }
+
+    if (draggingRoom) {
+      draggingRoom = null;
+      computeHeatmapGrid();
+      updateAnalytics();
+    }
   }
 
   function onPointerLeave() {
@@ -614,6 +626,195 @@
   canvas.addEventListener('touchstart', onPointerDown, { passive: false });
   window.addEventListener('touchmove', onPointerMove, { passive: false });
   window.addEventListener('touchend', onPointerUp);
+
+  // ==========================================================================
+  // 📸 Option 2: Real Estate Floorplan Image Upload & Opacity Slider
+  // ==========================================================================
+  if (uploadBtn && fileInput) {
+    uploadBtn.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const img = new Image();
+        img.onload = () => {
+          uploadedFloorplanImg = img;
+          if (opacityControl) opacityControl.classList.add('is-visible');
+          uploadBtn.innerHTML = `
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Change Image
+          `;
+          showToast('📸 Real estate floorplan loaded as canvas background!');
+          computeHeatmapGrid();
+          updateAnalytics();
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  if (opacitySlider) {
+    opacitySlider.addEventListener('input', () => {
+      uploadedImgOpacity = parseFloat(opacitySlider.value);
+    });
+  }
+
+  // ==========================================================================
+  // 🧩 Option 3: Modular Room Block Drag & Drop Builder
+  // ==========================================================================
+  if (toggleRoomTrayBtn && roomTray) {
+    toggleRoomTrayBtn.addEventListener('click', () => {
+      isRoomEditMode = !isRoomEditMode;
+      toggleRoomTrayBtn.classList.toggle('is-active', isRoomEditMode);
+      roomTray.classList.toggle('is-active', isRoomEditMode);
+      showToast(isRoomEditMode ? '🧩 Room Builder active: Click + buttons or drag rooms' : 'Exited Room Builder');
+    });
+  }
+
+  document.querySelectorAll('[data-add-room]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const roomType = btn.dataset.addRoom;
+      const roomConfig = {
+        'Living Room': { w: 240, h: 180 },
+        'Master Bedroom': { w: 200, h: 160 },
+        'Bedroom': { w: 180, h: 150 },
+        'Kitchen': { w: 200, h: 140 },
+        'Home Office': { w: 160, h: 140 },
+        'Garage': { w: 220, h: 180 },
+        'Outdoor Patio': { w: 160, h: 160 }
+      }[roomType] || { w: 180, h: 150 };
+
+      const newRoom = {
+        id: `room_${Date.now()}`,
+        name: roomType,
+        x: Math.floor(Math.random() * (V_WIDTH - roomConfig.w - 100)) + 50,
+        y: Math.floor(Math.random() * (V_HEIGHT - roomConfig.h - 100)) + 50,
+        w: roomConfig.w,
+        h: roomConfig.h
+      };
+
+      activeFloorplan.rooms.push(newRoom);
+      updateQuickJumpBar();
+      computeHeatmapGrid();
+      updateAnalytics();
+      showToast(`Added ${roomType}! Drag it into position on canvas.`);
+    });
+  });
+
+  // ==========================================================================
+  // 🏠 Option 1: House Customizer Wizard Generator
+  // ==========================================================================
+  if (openWizardBtn && wizardModal && closeWizardBtn) {
+    openWizardBtn.addEventListener('click', () => wizardModal.classList.add('is-open'));
+    closeWizardBtn.addEventListener('click', () => wizardModal.classList.remove('is-open'));
+
+    // Pill selection inside wizard modal
+    document.querySelectorAll('.wifi-pill-opt').forEach(pill => {
+      pill.addEventListener('click', () => {
+        const group = pill.closest('.wifi-pill-options');
+        group.querySelectorAll('.wifi-pill-opt').forEach(p => p.classList.remove('is-selected'));
+        pill.classList.add('is-selected');
+      });
+    });
+
+    if (submitWizardBtn) {
+      submitWizardBtn.addEventListener('click', () => {
+        const beds = document.querySelector('[data-wizard-group="beds"] .is-selected')?.dataset.val || '3';
+        const shape = document.querySelector('[data-wizard-group="shape"] .is-selected')?.dataset.val || 'standard';
+        const wallMat = document.querySelector('[data-wizard-group="wall"] .is-selected')?.dataset.val || 'double_brick';
+        const nbnLoc = document.querySelector('[data-wizard-group="nbn"] .is-selected')?.dataset.val || 'living';
+
+        const lossVal = wallMat === 'double_brick' ? 16 : (wallMat === 'concrete' ? 18 : 8);
+
+        // Generate Custom House
+        if (beds === '1' || beds === '2') {
+          activeFloorplan = {
+            name: `${beds}-Bed Apartment`,
+            rooms: [
+              { id: 'r1', name: 'Open Living & Kitchen', x: 100, y: 90, w: 340, h: 280 },
+              { id: 'r2', name: 'Master Bedroom', x: 440, y: 90, w: 260, h: 140 },
+              { id: 'r3', name: 'Bathroom / Study', x: 440, y: 230, w: 260, h: 140 }
+            ],
+            walls: [
+              { x1: 100, y1: 90, x2: 700, y2: 90, type: 'brick', loss: lossVal },
+              { x1: 700, y1: 90, x2: 700, y2: 370, type: 'brick', loss: lossVal },
+              { x1: 700, y1: 370, x2: 100, y2: 370, type: 'brick', loss: lossVal },
+              { x1: 100, y1: 370, x2: 100, y2: 90, type: 'brick', loss: lossVal },
+              { x1: 440, y1: 90, x2: 440, y2: 370, type: 'brick', loss: lossVal - 2 },
+              { x1: 440, y1: 230, x2: 700, y2: 230, type: 'drywall', loss: 5 }
+            ]
+          };
+        } else if (shape === 'l_shape') {
+          activeFloorplan = {
+            name: `${beds}-Bed L-Shaped Home`,
+            rooms: [
+              { id: 'r1', name: 'Front Living', x: 80, y: 80, w: 280, h: 220 },
+              { id: 'r2', name: 'Kitchen & Dining', x: 360, y: 80, w: 360, h: 160 },
+              { id: 'r3', name: 'Master Bed', x: 80, y: 300, w: 200, h: 150 },
+              { id: 'r4', name: 'Bed 2', x: 280, y: 300, w: 200, h: 150 },
+              { id: 'r5', name: 'Home Office / Patio', x: 480, y: 240, w: 240, h: 210 }
+            ],
+            walls: [
+              { x1: 80, y1: 80, x2: 720, y2: 80, type: 'brick', loss: lossVal },
+              { x1: 720, y1: 80, x2: 720, y2: 450, type: 'brick', loss: lossVal },
+              { x1: 720, y1: 450, x2: 80, y2: 450, type: 'brick', loss: lossVal },
+              { x1: 80, y1: 450, x2: 80, y2: 80, type: 'brick', loss: lossVal },
+              { x1: 360, y1: 80, x2: 360, y2: 240, type: 'brick', loss: lossVal - 2 },
+              { x1: 80, y1: 300, x2: 480, y2: 300, type: 'drywall', loss: 6 }
+            ]
+          };
+        } else {
+          // Standard 3-4 Bed House
+          activeFloorplan = {
+            name: `${beds}-Bed Australian Family Home`,
+            rooms: [
+              { id: 'r1', name: 'Living Room', x: 80, y: 70, w: 280, h: 210 },
+              { id: 'r2', name: 'Kitchen & Dining', x: 360, y: 70, w: 260, h: 170 },
+              { id: 'r3', name: 'Home Office / Bed 3', x: 620, y: 70, w: 120, h: 170 },
+              { id: 'r4', name: 'Master Bed', x: 80, y: 280, w: 220, h: 170 },
+              { id: 'r5', name: 'Ensuite / Bath', x: 300, y: 280, w: 110, h: 170 },
+              { id: 'r6', name: 'Bedroom 2', x: 410, y: 240, w: 210, h: 210 },
+              { id: 'r7', name: 'Alfresco Patio', x: 620, y: 240, w: 120, h: 210 }
+            ],
+            walls: [
+              { x1: 80, y1: 70, x2: 740, y2: 70, type: 'brick', loss: lossVal },
+              { x1: 740, y1: 70, x2: 740, y2: 450, type: 'brick', loss: lossVal },
+              { x1: 740, y1: 450, x2: 80, y2: 450, type: 'brick', loss: lossVal },
+              { x1: 80, y1: 450, x2: 80, y2: 70, type: 'brick', loss: lossVal },
+              { x1: 360, y1: 70, x2: 360, y2: 240, type: 'brick', loss: lossVal - 2 },
+              { x1: 410, y1: 240, x2: 620, y2: 240, type: 'brick', loss: lossVal - 3 },
+              { x1: 80, y1: 280, x2: 410, y2: 280, type: 'drywall', loss: 6 },
+              { x1: 300, y1: 280, x2: 300, y2: 450, type: 'drywall', loss: 6 },
+              { x1: 410, y1: 240, x2: 410, y2: 450, type: 'drywall', loss: 6 },
+              { x1: 620, y1: 70, x2: 620, y2: 450, type: 'drywall', loss: 8 }
+            ]
+          };
+        }
+
+        // Set NBN Router position
+        if (nbnLoc === 'garage') {
+          nodes[0].x = 650; nodes[0].y = 350;
+        } else if (nbnLoc === 'hallway') {
+          nodes[0].x = 360; nodes[0].y = 260;
+        } else if (nbnLoc === 'office') {
+          nodes[0].x = 650; nodes[0].y = 150;
+        } else {
+          nodes[0].x = 220; nodes[0].y = 180;
+        }
+
+        customWalls = [];
+        wizardModal.classList.remove('is-open');
+        updateQuickJumpBar();
+        computeHeatmapGrid();
+        updateAnalytics();
+        showToast(`✨ Generated ${activeFloorplan.name}!`);
+      });
+    }
+  }
 
   // --- UI: Auto-Optimizer Button ---
   const autoOptBtn = document.getElementById('autoOptimizeBtn');
@@ -634,7 +835,6 @@
 
   // --- UI: Custom Wall Drawing Buttons ---
   const drawBrickBtn = document.getElementById('drawBrickBtn');
-  const drawDrywallBtn = document.getElementById('drawDrywallBtn');
 
   function setDrawMode(type, activeBtn) {
     if (drawWallType === type) {
@@ -643,15 +843,12 @@
       showToast('Wall drawing disabled');
     } else {
       drawWallType = type;
-      if (drawBrickBtn) drawBrickBtn.classList.remove('is-active');
-      if (drawDrywallBtn) drawDrywallBtn.classList.remove('is-active');
       activeBtn.classList.add('is-active');
       showToast(`Click & drag to draw ${type} wall`);
     }
   }
 
   if (drawBrickBtn) drawBrickBtn.addEventListener('click', () => setDrawMode('brick', drawBrickBtn));
-  if (drawDrywallBtn) drawDrywallBtn.addEventListener('click', () => setDrawMode('drywall', drawDrywallBtn));
 
   // --- UI: Share / Export PNG Snapshot ---
   const shareBtn = document.getElementById('shareFloorplanBtn');
@@ -659,7 +856,7 @@
     shareBtn.addEventListener('click', () => {
       try {
         const link = document.createElement('a');
-        link.download = `JRS-WiFi-Heatmap-${currentPreset}.png`;
+        link.download = `JRS-WiFi-Heatmap-${Date.now()}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
         showToast('📸 Heatmap snapshot saved to Downloads!');
@@ -668,32 +865,6 @@
       }
     });
   }
-
-  // --- UI: Floorplan Preset Buttons ---
-  document.querySelectorAll('[data-preset]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('[data-preset]').forEach(b => b.classList.remove('is-active'));
-      btn.classList.add('is-active');
-      currentPreset = btn.dataset.preset;
-      customWalls = [];
-      animTarget = null;
-
-      if (currentPreset === 'suburban') {
-        nodes[0].x = 230; nodes[0].y = 200;
-        if (nodes[1]) { nodes[1].x = 520; nodes[1].y = 340; }
-      } else if (currentPreset === 'townhouse') {
-        nodes[0].x = 220; nodes[0].y = 220;
-        if (nodes[1]) { nodes[1].x = 530; nodes[1].y = 160; }
-      } else if (currentPreset === 'apartment') {
-        nodes[0].x = 260; nodes[0].y = 220;
-        if (nodes[1]) { nodes[1].x = 560; nodes[1].y = 280; }
-      }
-
-      updateQuickJumpBar();
-      computeHeatmapGrid();
-      updateAnalytics();
-    });
-  });
 
   // --- UI: Frequency Band Toggle ---
   document.querySelectorAll('[data-band]').forEach(btn => {
@@ -734,7 +905,7 @@
   const modeSimBtn = document.getElementById('modeSimBtn');
   const modeLiveBtn = document.getElementById('modeLiveBtn');
   const simWorkspace = document.getElementById('simWorkspace');
-  const presetsBar = document.getElementById('presetsBar');
+  const layoutHub = document.getElementById('layoutHub');
   const quickJumpBar = document.getElementById('quickJumpContainer');
   const livePanel = document.getElementById('liveScannerPanel');
 
@@ -743,7 +914,7 @@
       modeSimBtn.classList.add('is-active');
       modeLiveBtn.classList.remove('is-active');
       simWorkspace.style.display = 'grid';
-      if (presetsBar) presetsBar.style.display = 'flex';
+      if (layoutHub) layoutHub.style.display = 'flex';
       if (quickJumpBar) quickJumpBar.style.display = 'flex';
       livePanel.classList.remove('is-active');
     });
@@ -752,14 +923,14 @@
       modeLiveBtn.classList.add('is-active');
       modeSimBtn.classList.remove('is-active');
       simWorkspace.style.display = 'none';
-      if (presetsBar) presetsBar.style.display = 'none';
+      if (layoutHub) layoutHub.style.display = 'none';
       if (quickJumpBar) quickJumpBar.style.display = 'none';
       livePanel.classList.add('is-active');
     });
   }
 
   // ==========================================================================
-  // 📱 Live In-Browser Mobile Phone Signal Scanner Engine (With Audit Table)
+  // 📱 Live In-Browser Mobile Phone Signal Scanner Engine
   // ==========================================================================
   const startScanBtn = document.getElementById('startRoomScanBtn');
   const liveQualityVal = document.getElementById('liveQualityVal');
@@ -821,10 +992,8 @@
       if (liveJitterNum) liveJitterNum.textContent = `${jitter} ms`;
       if (liveSpeedEstNum) liveSpeedEstNum.textContent = `${estBandwidth} Mbps`;
 
-      // Store in audit log
       scannedAuditLog[selectedRoomName] = { qualityScore, avgLatency, estBandwidth, statusLabel };
 
-      // Render audit log
       if (auditHistoryList) {
         let rows = '';
         Object.entries(scannedAuditLog).forEach(([room, data]) => {
