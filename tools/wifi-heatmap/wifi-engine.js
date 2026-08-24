@@ -1,7 +1,7 @@
 /**
- * JRS Digital — Home Wi-Fi & Mesh Heatmap Engine (HTML5 Canvas 2D)
- * Features: 60fps RF simulation, Router Hardware Presets, Custom Wall Drawing,
- * PNG Snapshot Sharing, and Live In-Browser Mobile Phone Signal Scanner.
+ * JRS Digital — Home Wi-Fi & Mesh Heatmap Engine (HTML5 Canvas 2D) - V2 Polish
+ * Features: Auto-Optimizer Algorithm, Quick Room Jumpers, Activity Suitability Matrix,
+ * Multi-Room Live Audit History, Hardware Profiles, Custom Wall Drawing & PNG Export.
  */
 
 (function () {
@@ -14,11 +14,19 @@
   const tooltip = document.getElementById('wifiProbeTooltip');
   const probeSpeedEl = document.getElementById('probeSpeed');
   const probeRoomEl = document.getElementById('probeRoom');
+  const probeActivityEl = document.getElementById('probeActivity');
   const coveragePercentEl = document.getElementById('coveragePercent');
   const progressFillEl = document.getElementById('progressFill');
   const adviceTextEl = document.getElementById('adviceText');
   const roomListContainer = document.getElementById('roomListContainer');
   const toastEl = document.getElementById('wifiToast');
+  const quickJumpContainer = document.getElementById('quickJumpContainer');
+
+  // Activity Matrix DOM
+  const actNetflix = document.getElementById('actNetflix');
+  const actGaming = document.getElementById('actGaming');
+  const actZoom = document.getElementById('actZoom');
+  const actDownload = document.getElementById('actDownload');
 
   // Virtual resolution for layout
   const V_WIDTH = 800;
@@ -36,12 +44,13 @@
   // --- State ---
   let currentPreset = 'suburban';
   let activeBand = '5ghz'; // '5ghz' or '2.4ghz'
-  let activeHardware = 'standard'; // 'standard', 'wifi6', 'wifi7_mesh'
-  let drawWallType = null; // null, 'brick', 'drywall'
+  let activeHardware = 'standard';
+  let drawWallType = null;
   let wallStartPoint = null;
   let customWalls = [];
   let draggingNode = null;
   let hoveredNode = null;
+  let animTarget = null;
 
   // --- Hardware Power & Loss Configurations ---
   const HARDWARE_PROFILES = {
@@ -119,7 +128,7 @@
     }
   };
 
-  // --- Helper: Line Intersection ---
+  // --- Line-Line Segment Intersection Helper ---
   function linesIntersect(x1, y1, x2, y2, x3, y3, x4, y4) {
     const denom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
     if (denom === 0) return false;
@@ -129,14 +138,15 @@
   }
 
   // --- Calculate Signal Strength (dBm) at Point (px, py) ---
-  function getSignalStrengthAt(px, py) {
+  function getSignalStrengthAt(px, py, customNodes = null) {
     const allWalls = [...FLOORPLANS[currentPreset].walls, ...customWalls];
     const hw = HARDWARE_PROFILES[activeHardware];
     const wallMultiplier = (activeBand === '5ghz' ? 1.25 : 0.75) * hw.wallMult;
     const distanceDrop = activeBand === '5ghz' ? 24 : 19;
+    const testNodes = customNodes || nodes;
     let maxSignal = -100;
 
-    nodes.forEach(node => {
+    testNodes.forEach(node => {
       const dx = px - node.x;
       const dy = py - node.y;
       const dist = Math.max(10, Math.hypot(dx, dy));
@@ -228,6 +238,24 @@
 
   // --- Render Loop (60fps Canvas) ---
   function draw() {
+    // Smooth router lerp animation if target set
+    if (animTarget) {
+      const dx = animTarget.x - nodes[0].x;
+      const dy = animTarget.y - nodes[0].y;
+      if (Math.hypot(dx, dy) > 2) {
+        nodes[0].x += dx * 0.15;
+        nodes[0].y += dy * 0.15;
+        computeHeatmapGrid();
+        updateAnalytics();
+      } else {
+        nodes[0].x = animTarget.x;
+        nodes[0].y = animTarget.y;
+        animTarget = null;
+        computeHeatmapGrid();
+        updateAnalytics();
+      }
+    }
+
     ctx.fillStyle = '#0F172A';
     ctx.fillRect(0, 0, V_WIDTH, V_HEIGHT);
 
@@ -282,7 +310,7 @@
       }
     });
 
-    // 4. Draw Active Wall Preview while user drags to draw
+    // 4. Draw Active Wall Preview while drawing
     if (drawWallType && wallStartPoint && wallStartPoint.currentX !== undefined) {
       ctx.beginPath();
       ctx.moveTo(wallStartPoint.x, wallStartPoint.y);
@@ -338,12 +366,14 @@
     let goodCount = 0;
     let deadCount = 0;
     let roomRowsHtml = '';
+    let totalSpeed = 0;
 
     plan.rooms.forEach(room => {
       const midX = room.x + room.w / 2;
       const midY = room.y + room.h / 2;
       const dBm = getSignalStrengthAt(midX, midY);
       const speed = signalToSpeed(dBm);
+      totalSpeed += speed;
 
       let tagClass = 'wifi-room-tag--strong';
       let tagText = `${speed} Mbps (Strong)`;
@@ -371,15 +401,33 @@
     if (roomListContainer) roomListContainer.innerHTML = roomRowsHtml;
 
     const totalRooms = plan.rooms.length;
+    const avgSpeed = Math.round(totalSpeed / totalRooms);
     const coverageScore = Math.min(100, Math.round(((strongCount * 1.0 + goodCount * 0.65 + (totalRooms - deadCount - strongCount - goodCount) * 0.2) / totalRooms) * 100));
     if (coveragePercentEl) coveragePercentEl.textContent = `${coverageScore}%`;
     if (progressFillEl) progressFillEl.style.width = `${coverageScore}%`;
+
+    // Update Activity Matrix in Plain English
+    if (actNetflix) {
+      const streams = Math.max(1, Math.floor(avgSpeed / 25));
+      actNetflix.innerHTML = `<span class="wifi-act-dot ${streams >= 3 ? '' : 'wifi-act-dot--warn'}"></span> Netflix: ${streams} 4K Streams`;
+    }
+    if (actGaming) {
+      const gamingOk = deadCount === 0;
+      actGaming.innerHTML = `<span class="wifi-act-dot ${gamingOk ? '' : 'wifi-act-dot--fail'}"></span> Gaming: ${gamingOk ? 'Low Ping (15ms)' : 'Lag Spikes'}`;
+    }
+    if (actZoom) {
+      actZoom.innerHTML = `<span class="wifi-act-dot ${avgSpeed > 50 ? '' : 'wifi-act-dot--warn'}"></span> Zoom: ${avgSpeed > 50 ? 'Crystal 1080p' : 'Choppy Video'}`;
+    }
+    if (actDownload) {
+      const mins = Math.max(1, Math.round(50000 / (Math.max(10, avgSpeed) * 7.5)));
+      actDownload.innerHTML = `<span class="wifi-act-dot"></span> 50GB Game: ~${mins} mins`;
+    }
 
     if (adviceTextEl) {
       if (coverageScore >= 88) {
         adviceTextEl.innerHTML = `<strong>✨ Optimal Coverage (${coverageScore}%):</strong> Your home Wi-Fi signal is strong across living spaces and bedrooms. If downloads feel slow or 4K streams buffer, your NBN speed tier is the bottleneck.`;
       } else if (deadCount > 0 && nodes.length === 1) {
-        adviceTextEl.innerHTML = `<strong>⚠️ Dead Zones Detected (${deadCount} room${deadCount > 1 ? 's' : ''}):</strong> Double brick walls are blocking 5GHz Wi-Fi to outer bedrooms/office. Try moving your router centrally or click <em>"+ Add Mesh Booster"</em> to test dual-node coverage.`;
+        adviceTextEl.innerHTML = `<strong>⚠️ Dead Zones Detected (${deadCount} room${deadCount > 1 ? 's' : ''}):</strong> Double brick walls are blocking 5GHz Wi-Fi. Try clicking <em>"✨ Auto-Optimize"</em> or <em>"+ Add Booster"</em> to fix dead zones.`;
       } else {
         adviceTextEl.innerHTML = `<strong>📶 Mesh Node Active:</strong> Adding a second node eliminates dead zones across outer rooms. Make sure your mesh node is placed halfway between the main router and weak areas.`;
       }
@@ -392,6 +440,58 @@
     toastEl.textContent = msg;
     toastEl.classList.add('is-visible');
     setTimeout(() => toastEl.classList.remove('is-visible'), 3200);
+  }
+
+  // --- Populate Quick Room Jumpers ---
+  function updateQuickJumpBar() {
+    if (!quickJumpContainer) return;
+    const plan = FLOORPLANS[currentPreset];
+    let html = '<span class="wifi-quick-jump-label">Jump Router:</span>';
+
+    plan.rooms.forEach(room => {
+      const midX = room.x + room.w / 2;
+      const midY = room.y + room.h / 2;
+      html += `<button class="wifi-jump-btn" data-jump-x="${midX}" data-jump-y="${midY}">${room.name}</button>`;
+    });
+
+    quickJumpContainer.innerHTML = html;
+
+    quickJumpContainer.querySelectorAll('.wifi-jump-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        animTarget = { x: parseFloat(btn.dataset.jumpX), y: parseFloat(btn.dataset.jumpY) };
+        showToast(`Moved router to ${btn.textContent}`);
+      });
+    });
+  }
+
+  // --- Auto-Optimizer Algorithm ---
+  function autoOptimizeRouterPosition() {
+    const plan = FLOORPLANS[currentPreset];
+    let bestScore = -1;
+    let bestPos = { x: 380, y: 250 };
+
+    // Test grid of 50 candidate positions
+    for (let x = 160; x <= 640; x += 40) {
+      for (let y = 140; y <= 380; y += 40) {
+        let score = 0;
+        plan.rooms.forEach(room => {
+          const midX = room.x + room.w / 2;
+          const midY = room.y + room.h / 2;
+          const sig = getSignalStrengthAt(midX, midY, [{ type: 'router', x, y }]);
+          if (sig >= -65) score += 3;
+          else if (sig >= -78) score += 1;
+          else score -= 2;
+        });
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestPos = { x, y };
+        }
+      }
+    }
+
+    animTarget = bestPos;
+    showToast('✨ Auto-positioned router for optimal whole-home signal!');
   }
 
   // --- Coordinate Mapping Helpers ---
@@ -417,7 +517,6 @@
   function onPointerDown(e) {
     const coords = getCanvasCoords(e);
 
-    // If in custom wall drawing mode
     if (drawWallType) {
       wallStartPoint = { x: coords.x, y: coords.y, currentX: coords.x, currentY: coords.y };
       return;
@@ -425,6 +524,7 @@
 
     const node = findNodeAt(coords.x, coords.y);
     if (node) {
+      animTarget = null;
       draggingNode = node;
       node.isDragging = true;
       canvas.style.cursor = 'grabbing';
@@ -459,6 +559,9 @@
 
         probeSpeedEl.textContent = `${speed} Mbps (${Math.round(dBm)} dBm)`;
         probeRoomEl.textContent = room ? room.name : 'Hallway / Open Space';
+        if (probeActivityEl) {
+          probeActivityEl.textContent = speed >= 300 ? '✅ 4K Gaming & 8K Streaming' : (speed >= 100 ? '✅ Fast 4K Streaming' : (speed >= 25 ? '⚠️ Basic Browsing / HD' : '❌ Dead Zone'));
+        }
         tooltip.style.left = `${coords.screenX}px`;
         tooltip.style.top = `${coords.screenY}px`;
         tooltip.style.display = 'block';
@@ -512,6 +615,12 @@
   window.addEventListener('touchmove', onPointerMove, { passive: false });
   window.addEventListener('touchend', onPointerUp);
 
+  // --- UI: Auto-Optimizer Button ---
+  const autoOptBtn = document.getElementById('autoOptimizeBtn');
+  if (autoOptBtn) {
+    autoOptBtn.addEventListener('click', autoOptimizeRouterPosition);
+  }
+
   // --- UI: Router Hardware Profile Dropdown ---
   const hwSelect = document.getElementById('routerHardwareSelect');
   if (hwSelect) {
@@ -526,7 +635,6 @@
   // --- UI: Custom Wall Drawing Buttons ---
   const drawBrickBtn = document.getElementById('drawBrickBtn');
   const drawDrywallBtn = document.getElementById('drawDrywallBtn');
-  const clearWallsBtn = document.getElementById('clearWallsBtn');
 
   function setDrawMode(type, activeBtn) {
     if (drawWallType === type) {
@@ -544,14 +652,6 @@
 
   if (drawBrickBtn) drawBrickBtn.addEventListener('click', () => setDrawMode('brick', drawBrickBtn));
   if (drawDrywallBtn) drawDrywallBtn.addEventListener('click', () => setDrawMode('drywall', drawDrywallBtn));
-  if (clearWallsBtn) {
-    clearWallsBtn.addEventListener('click', () => {
-      customWalls = [];
-      showToast('Cleared custom walls');
-      computeHeatmapGrid();
-      updateAnalytics();
-    });
-  }
 
   // --- UI: Share / Export PNG Snapshot ---
   const shareBtn = document.getElementById('shareFloorplanBtn');
@@ -576,6 +676,7 @@
       btn.classList.add('is-active');
       currentPreset = btn.dataset.preset;
       customWalls = [];
+      animTarget = null;
 
       if (currentPreset === 'suburban') {
         nodes[0].x = 230; nodes[0].y = 200;
@@ -588,6 +689,7 @@
         if (nodes[1]) { nodes[1].x = 560; nodes[1].y = 280; }
       }
 
+      updateQuickJumpBar();
       computeHeatmapGrid();
       updateAnalytics();
     });
@@ -611,15 +713,15 @@
       if (nodes.length === 1) {
         nodes.push({ id: 'mesh1', type: 'mesh', name: 'Mesh Booster', x: 540, y: 340, isDragging: false });
         addMeshBtn.innerHTML = `
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Remove Mesh Booster
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Remove Booster
         `;
         addMeshBtn.classList.add('wifi-tool-btn--accent');
       } else {
         nodes.pop();
         addMeshBtn.innerHTML = `
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          + Add Mesh Booster
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          + Add Booster
         `;
         addMeshBtn.classList.remove('wifi-tool-btn--accent');
       }
@@ -632,6 +734,8 @@
   const modeSimBtn = document.getElementById('modeSimBtn');
   const modeLiveBtn = document.getElementById('modeLiveBtn');
   const simWorkspace = document.getElementById('simWorkspace');
+  const presetsBar = document.getElementById('presetsBar');
+  const quickJumpBar = document.getElementById('quickJumpContainer');
   const livePanel = document.getElementById('liveScannerPanel');
 
   if (modeSimBtn && modeLiveBtn && simWorkspace && livePanel) {
@@ -639,6 +743,8 @@
       modeSimBtn.classList.add('is-active');
       modeLiveBtn.classList.remove('is-active');
       simWorkspace.style.display = 'grid';
+      if (presetsBar) presetsBar.style.display = 'flex';
+      if (quickJumpBar) quickJumpBar.style.display = 'flex';
       livePanel.classList.remove('is-active');
     });
 
@@ -646,21 +752,24 @@
       modeLiveBtn.classList.add('is-active');
       modeSimBtn.classList.remove('is-active');
       simWorkspace.style.display = 'none';
+      if (presetsBar) presetsBar.style.display = 'none';
+      if (quickJumpBar) quickJumpBar.style.display = 'none';
       livePanel.classList.add('is-active');
     });
   }
 
   // ==========================================================================
-  // 📱 Live In-Browser Mobile Phone Signal Scanner Engine
+  // 📱 Live In-Browser Mobile Phone Signal Scanner Engine (With Audit Table)
   // ==========================================================================
   const startScanBtn = document.getElementById('startRoomScanBtn');
   const liveQualityVal = document.getElementById('liveQualityVal');
   const liveLatencyNum = document.getElementById('liveLatencyNum');
   const liveJitterNum = document.getElementById('liveJitterNum');
   const liveSpeedEstNum = document.getElementById('liveSpeedEstNum');
+  const auditHistoryList = document.getElementById('auditHistoryList');
   let selectedRoomName = 'Living Room';
+  const scannedAuditLog = {};
 
-  // Room pick buttons
   document.querySelectorAll('[data-scan-room]').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('[data-scan-room]').forEach(b => b.classList.remove('is-selected'));
@@ -675,9 +784,6 @@
       startScanBtn.textContent = `Testing signal in ${selectedRoomName}...`;
 
       const pings = [];
-      const startTime = performance.now();
-
-      // Measure real-world RTT latency against edge endpoints
       for (let i = 0; i < 4; i++) {
         const t0 = performance.now();
         try {
@@ -692,28 +798,49 @@
       const avgLatency = Math.round(pings.reduce((a, b) => a + b, 0) / pings.length);
       const jitter = Math.max(...pings) - Math.min(...pings);
 
-      // Connection quality score
       let qualityScore = 95;
       let estBandwidth = 380;
+      let statusLabel = 'Excellent';
 
       if (avgLatency > 120) {
         qualityScore = 38;
         estBandwidth = 25;
+        statusLabel = 'Poor / Dead Zone';
       } else if (avgLatency > 70) {
         qualityScore = 65;
         estBandwidth = 110;
+        statusLabel = 'Fair';
       } else if (avgLatency > 40) {
         qualityScore = 85;
         estBandwidth = 240;
+        statusLabel = 'Good';
       }
 
-      // Display live stats
       if (liveQualityVal) liveQualityVal.textContent = `${qualityScore}%`;
       if (liveLatencyNum) liveLatencyNum.textContent = `${avgLatency} ms`;
       if (liveJitterNum) liveJitterNum.textContent = `${jitter} ms`;
       if (liveSpeedEstNum) liveSpeedEstNum.textContent = `${estBandwidth} Mbps`;
 
-      showToast(`✅ Signal scanned in ${selectedRoomName}: ${qualityScore}% Quality`);
+      // Store in audit log
+      scannedAuditLog[selectedRoomName] = { qualityScore, avgLatency, estBandwidth, statusLabel };
+
+      // Render audit log
+      if (auditHistoryList) {
+        let rows = '';
+        Object.entries(scannedAuditLog).forEach(([room, data]) => {
+          const badgeClass = data.qualityScore >= 80 ? 'wifi-room-tag--strong' : (data.qualityScore >= 60 ? 'wifi-room-tag--good' : 'wifi-room-tag--dead');
+          rows += `
+            <div class="wifi-audit-row">
+              <span><strong>${room}</strong></span>
+              <span style="color:#64748B; font-size:0.75rem;">${data.avgLatency}ms (${data.estBandwidth} Mbps)</span>
+              <span class="wifi-room-tag ${badgeClass}">${data.qualityScore}% ${data.statusLabel}</span>
+            </div>
+          `;
+        });
+        auditHistoryList.innerHTML = rows;
+      }
+
+      showToast(`✅ Scanned ${selectedRoomName}: ${qualityScore}% (${statusLabel})`);
       startScanBtn.disabled = false;
       startScanBtn.innerHTML = `
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -723,6 +850,7 @@
   }
 
   // --- Initial Launch ---
+  updateQuickJumpBar();
   computeHeatmapGrid();
   updateAnalytics();
   requestAnimationFrame(draw);
