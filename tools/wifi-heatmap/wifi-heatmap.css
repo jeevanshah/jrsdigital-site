@@ -1,5 +1,5 @@
 /* ==========================================================================
-   JRS Digital — Home Wi-Fi & Mesh Heatmap Simulator Stylesheet (V3 Full Suite)
+   JRS Digital — Home Wi-Fi & Mesh Heatmap Simulator Stylesheet (V4 Full CRUD)
    ========================================================================== */
 
 /* Main Layout */
@@ -97,7 +97,7 @@
 }
 
 /* ==========================================================================
-   🏠 Floorplan Creation Hub (Wizard, Room Blocks, Image Upload)
+   🏠 Floorplan Creation Hub
    ========================================================================== */
 .wifi-layout-hub {
   background: #FFFFFF;
@@ -114,6 +114,13 @@
 }
 
 .wifi-hub-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.wifi-hub-right {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -152,6 +159,17 @@
   color: #FFFFFF;
 }
 
+.wifi-hub-btn--danger {
+  color: #DC2626;
+  border-color: rgba(220, 38, 38, 0.25);
+}
+
+.wifi-hub-btn--danger:hover {
+  background: #FEF2F2;
+  border-color: #DC2626;
+  color: #B91C1C;
+}
+
 /* Hidden file upload input */
 .wifi-file-input {
   display: none;
@@ -176,26 +194,36 @@
 }
 
 .wifi-opacity-slider {
-  width: 80px;
+  width: 75px;
   accent-color: var(--w-accent);
   cursor: pointer;
 }
 
-/* Room Blocks Builder Tray */
+/* ==========================================================================
+   🧩 Room Blocks CRUD Tray
+   ========================================================================== */
 .wifi-room-tray {
   display: none;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
   padding: 10px 14px;
   background: #FFF7ED;
   border: 1.5px solid #FFEDD5;
   border-radius: 12px;
   margin-bottom: 14px;
   flex-wrap: wrap;
+  gap: 8px;
 }
 
 .wifi-room-tray.is-active {
   display: flex;
+}
+
+.wifi-tray-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .wifi-tray-label {
@@ -228,7 +256,32 @@
   color: #FFFFFF;
 }
 
-/* Quick Room Jumper Pill Bar */
+.wifi-tray-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wifi-tray-action-btn {
+  padding: 5px 10px;
+  background: #FFFFFF;
+  border: 1px solid rgba(17, 24, 39, 0.15);
+  border-radius: 6px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.wifi-tray-action-btn:hover {
+  background: #FEF2F2;
+  color: #DC2626;
+  border-color: #DC2626;
+}
+
+/* Quick Room Jumper Bar */
 .wifi-quick-jump-bar {
   display: flex;
   align-items: center;
@@ -417,6 +470,61 @@
   display: block;
 }
 
+/* Floating Selected Room CRUD Inspector */
+.wifi-room-inspector {
+  position: absolute;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  background: #0F172A;
+  border: 1.5px solid #FF4B16;
+  border-radius: 8px;
+  padding: 5px 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  transform: translate(-50%, -100%);
+  margin-top: -10px;
+  z-index: 20;
+}
+
+.wifi-room-inspector.is-active {
+  display: inline-flex;
+}
+
+.wifi-inspector-title {
+  color: #FFFFFF;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.wifi-inspector-btn {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
+  color: #FFFFFF;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 7px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.wifi-inspector-btn:hover {
+  background: var(--w-accent);
+  border-color: var(--w-accent);
+}
+
+.wifi-inspector-btn--delete {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: #EF4444;
+  color: #FCA5A5;
+}
+
+.wifi-inspector-btn--delete:hover {
+  background: #EF4444;
+  color: #FFFFFF;
+}
+
 /* Floating Live Cursor Probe */
 .wifi-probe-tooltip {
   position: absolute;
@@ -545,7 +653,7 @@
   transition: width 0.4s ease;
 }
 
-/* What Can My Home Do Activity Matrix */
+/* Activity Matrix */
 .wifi-activity-matrix {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1063,11 +1171,11 @@
     align-items: stretch;
   }
 
-  .wifi-hub-left {
+  .wifi-hub-left, .wifi-hub-right {
     justify-content: center;
   }
 
-  .wifi-presets-bar, .wifi-quick-jump-bar {
+  .wifi-quick-jump-bar {
     justify-content: flex-start;
     overflow-x: auto;
     scrollbar-width: none;
@@ -1077,7 +1185,7 @@
     -webkit-mask-image: linear-gradient(to right, black calc(100% - 32px), transparent 100%);
   }
 
-  .wifi-preset-btn, .wifi-jump-btn {
+  .wifi-jump-btn {
     flex-shrink: 0;
   }
 
