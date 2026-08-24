@@ -1,5 +1,5 @@
 /* ==========================================================================
-   JRS Digital — Home Wi-Fi & Mesh Heatmap Simulator Stylesheet
+   JRS Digital — Home Wi-Fi & Mesh Heatmap Simulator Stylesheet (Updated)
    ========================================================================== */
 
 /* Main Layout */
@@ -11,7 +11,7 @@
 
 .wifi-hero {
   text-align: center;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
 .wifi-badge {
@@ -51,9 +51,49 @@
 .wifi-hero p {
   font-size: 1.05rem;
   color: var(--w-ink-70);
-  max-width: 680px;
+  max-width: 700px;
   margin: 0 auto;
   line-height: 1.5;
+}
+
+/* Mode Switcher Tabs (Simulator vs Live Mobile Walkthrough) */
+.wifi-mode-switcher {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.wifi-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 22px;
+  border-radius: 12px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  border: 1.5px solid rgba(17, 24, 39, 0.14);
+  background: #FFFFFF;
+  color: var(--w-ink);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.wifi-mode-btn:hover {
+  border-color: var(--w-accent);
+  background: #FAF9F6;
+}
+
+.wifi-mode-btn.is-active {
+  background: #0F172A;
+  border-color: #0F172A;
+  color: #FFFFFF;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.2);
+}
+
+.wifi-mode-btn.is-active svg {
+  color: var(--w-accent);
 }
 
 /* Floorplan Selector Bar */
@@ -69,12 +109,12 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 18px;
+  padding: 9px 16px;
   background: #FFFFFF;
   border: 1.5px solid rgba(17, 24, 39, 0.14);
   border-radius: 10px;
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--w-ink);
   cursor: pointer;
@@ -96,7 +136,7 @@
 /* Main Workspace Grid: Canvas + Sidebar */
 .wifi-workspace {
   display: grid;
-  grid-template-columns: 1fr 340px;
+  grid-template-columns: 1fr 350px;
   gap: 20px;
   align-items: start;
 }
@@ -118,34 +158,52 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  background: rgba(15, 23, 42, 0.85);
+  padding: 10px 14px;
+  background: rgba(15, 23, 42, 0.9);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   color: #F8FAFC;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 
-.wifi-toolbar-left,
-.wifi-toolbar-right {
+.wifi-toolbar-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.wifi-hardware-select {
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: #FFFFFF;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+}
+
+.wifi-hardware-select option {
+  background: #1E293B;
+  color: #FFFFFF;
 }
 
 .wifi-tool-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 14px;
+  padding: 6px 12px;
   white-space: nowrap;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 8px;
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: #F8FAFC;
   cursor: pointer;
@@ -155,6 +213,13 @@
 .wifi-tool-btn:hover {
   background: rgba(255, 255, 255, 0.18);
   border-color: rgba(255, 255, 255, 0.3);
+}
+
+.wifi-tool-btn.is-active {
+  background: #F59E0B;
+  border-color: #F59E0B;
+  color: #0F172A;
+  font-weight: 700;
 }
 
 .wifi-tool-btn--accent {
@@ -175,12 +240,12 @@
 }
 
 .wifi-band-btn {
-  padding: 4px 10px;
+  padding: 4px 8px;
   border-radius: 4px;
   border: none;
   background: transparent;
   color: #94A3B8;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.12s ease;
@@ -242,7 +307,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px;
+  padding: 8px 14px;
   background: rgba(15, 23, 42, 0.95);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   color: #94A3B8;
@@ -252,8 +317,8 @@
 
 .wifi-legend-gradient {
   flex: 1;
-  max-width: 280px;
-  height: 8px;
+  max-width: 260px;
+  height: 7px;
   border-radius: 4px;
   background: linear-gradient(to right, #0F172A 0%, #EF4444 25%, #F59E0B 50%, #10B981 75%, #06B6D4 100%);
   margin: 0 12px;
@@ -270,7 +335,7 @@
   background: #FFFFFF;
   border: 1.5px solid rgba(17, 24, 39, 0.12);
   border-radius: 14px;
-  padding: 18px;
+  padding: 16px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
 }
 
@@ -278,7 +343,7 @@
   font-size: 0.95rem;
   font-weight: 700;
   color: var(--w-ink);
-  margin: 0 0 14px;
+  margin: 0 0 12px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -299,7 +364,7 @@
 }
 
 .wifi-coverage-percent {
-  font-size: 2.4rem;
+  font-size: 2.2rem;
   font-weight: 800;
   font-family: 'Plus Jakarta Sans', sans-serif;
   color: #10B981;
@@ -307,7 +372,7 @@
 }
 
 .wifi-coverage-label {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
   color: var(--w-ink-70);
 }
@@ -334,16 +399,18 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  max-height: 240px;
+  overflow-y: auto;
 }
 
 .wifi-room-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 10px;
+  padding: 5px 8px;
   background: #FAF9F6;
-  border-radius: 8px;
-  font-size: 0.8rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
   font-weight: 600;
 }
 
@@ -355,9 +422,9 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  padding: 2px 8px;
+  padding: 2px 6px;
   border-radius: 999px;
 }
 
@@ -421,6 +488,158 @@
   background: #E04010;
 }
 
+/* ==========================================================================
+   📱 Live Mobile Room-by-Room Scanner Mode
+   ========================================================================== */
+.wifi-live-scanner-panel {
+  display: none;
+  background: #FFFFFF;
+  border: 1.5px solid rgba(17, 24, 39, 0.14);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  margin-bottom: 30px;
+}
+
+.wifi-live-scanner-panel.is-active {
+  display: block;
+}
+
+.wifi-live-header {
+  text-align: center;
+  max-width: 500px;
+  margin: 0 auto 20px;
+}
+
+.wifi-live-header h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--w-ink);
+  margin: 0 0 6px;
+}
+
+.wifi-live-header p {
+  font-size: 0.9rem;
+  color: var(--w-ink-70);
+  margin: 0;
+}
+
+.wifi-live-meter-card {
+  background: #0F172A;
+  border-radius: 14px;
+  padding: 24px;
+  color: #FFFFFF;
+  text-align: center;
+  max-width: 480px;
+  margin: 0 auto 24px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.wifi-live-meter-val {
+  font-size: 3rem;
+  font-weight: 800;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #10B981;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.wifi-live-meter-label {
+  font-size: 0.85rem;
+  color: #94A3B8;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.wifi-live-stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.wifi-stat-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.wifi-stat-num {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #F8FAFC;
+}
+
+.wifi-stat-lbl {
+  font-size: 0.72rem;
+  color: #94A3B8;
+  text-transform: uppercase;
+}
+
+/* Room Action Buttons */
+.wifi-scan-actions {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.wifi-scan-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 20px;
+  background: var(--w-accent);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(255, 75, 22, 0.3);
+  transition: all 0.15s ease;
+  margin-bottom: 16px;
+}
+
+.wifi-scan-btn:hover {
+  background: #E04010;
+}
+
+.wifi-scan-btn:disabled {
+  background: #94A3B8;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.wifi-room-select-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.wifi-room-pick-btn {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(17, 24, 39, 0.14);
+  background: #FAF9F6;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--w-ink);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.wifi-room-pick-btn.is-selected {
+  border-color: var(--w-accent);
+  background: #FFF7ED;
+  color: var(--w-accent);
+  font-weight: 700;
+}
+
 /* Explainer Section */
 .wifi-guide-section {
   margin-top: 50px;
@@ -457,6 +676,33 @@
   color: var(--w-ink-70);
   line-height: 1.5;
   margin: 0;
+}
+
+/* Toast Notification */
+.wifi-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #0F172A;
+  color: #FFFFFF;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 100;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.wifi-toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* Mobile Responsiveness */
@@ -496,8 +742,7 @@
     align-items: stretch;
   }
 
-  .wifi-toolbar-left,
-  .wifi-toolbar-right {
+  .wifi-toolbar-group {
     justify-content: space-between;
   }
 }
