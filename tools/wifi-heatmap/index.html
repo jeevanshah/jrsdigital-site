@@ -377,8 +377,8 @@
               <span class="wifi-live-section-label">How it works</span>
               <h3 id="liveWalkControlsTitle">Let the phone watch while you walk</h3>
               <ol class="wifi-live-instructions">
-                <li><span>1</span><p><strong>Start beside your modem.</strong> Hold still for three readings while the baseline calibrates.</p></li>
-                <li><span>2</span><p><strong>Walk normally.</strong> The pulse refreshes every few seconds.</p></li>
+                <li><span>1</span><p><strong>Start beside your modem.</strong> Hold still for five readings while normal variation is learned.</p></li>
+                <li><span>2</span><p><strong>Walk, then pause.</strong> Hold each spot until confidence reaches Medium or High.</p></li>
                 <li><span>3</span><p><strong>Mark weak spots.</strong> They are saved as Spot 1, Spot 2 and can be renamed later.</p></li>
               </ol>
 
@@ -386,7 +386,8 @@
                 <input id="vibrateOnPoor" type="checkbox" checked>
                 <span><strong>Vibrate when it turns Poor</strong><small>Works on supported Android phones.</small></span>
               </label>
-              <p class="wifi-live-data-note">Uses roughly 5–6 MB of data per minute. The screen stays awake where supported.</p>
+              <button class="wifi-recalibrate-btn" id="recalibrateBaselineBtn" type="button" disabled>Back at the modem? Recalibrate</button>
+              <p class="wifi-live-data-note">Uses roughly 7 MB of data per minute while running. The screen stays awake where supported.</p>
             </section>
           </div>
 

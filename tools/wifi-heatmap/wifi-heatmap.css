@@ -1998,6 +1998,40 @@
   line-height: 1.4;
 }
 
+.wifi-recalibrate-btn {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 9px;
+  padding: 9px 12px;
+  border: 1px solid var(--w-border);
+  border-radius: var(--w-radius-sm);
+  background: var(--w-bg);
+  color: var(--w-ink);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 750;
+  cursor: pointer;
+  transition: border-color 160ms ease, color 160ms ease, background-color 160ms ease;
+}
+
+.wifi-recalibrate-btn:hover:not(:disabled) {
+  border-color: var(--w-accent);
+  color: var(--w-accent-strong);
+  background: color-mix(in srgb, var(--w-accent) 7%, var(--w-bg));
+}
+
+.wifi-recalibrate-btn:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--w-accent) 28%, transparent);
+  outline-offset: 2px;
+}
+
+.wifi-recalibrate-btn:disabled {
+  color: var(--w-ink-70);
+  background: var(--w-surface);
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .wifi-live-data-note {
   margin: 8px 0 0;
   text-align: center;

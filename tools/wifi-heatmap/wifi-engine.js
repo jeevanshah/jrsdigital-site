@@ -1665,13 +1665,15 @@
   const clearAuditBtn = document.getElementById('clearAuditBtn');
   const vibrateOnPoor = document.getElementById('vibrateOnPoor');
   const vibrationControl = document.getElementById('vibrationControl');
+  const recalibrateBaselineBtn = document.getElementById('recalibrateBaselineBtn');
   const localPreviewNote = document.getElementById('localPreviewNote');
   const liveStepEls = [...document.querySelectorAll('[data-live-step]')];
   const connectionTestAsset = '/assets/img/hero-house.webp';
   const markedSpotsStorageKey = 'jrs-wifi-marked-spots-v1';
-  const liveSampleIntervalMs = 3600;
+  const liveSampleIntervalMs = 2500;
   const parallelTransferCount = 2;
-  const baselineSampleTarget = 3;
+  const baselineSampleTarget = 5;
+  const liveSampleWindowSize = 5;
   const isLocalPreview = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
   let liveWalkActive = false;
@@ -1685,6 +1687,7 @@
   let baselineSamples = [];
   let baselineReading = null;
   let latestLiveReading = null;
+  let smoothedComparisonPercent = null;
   let lastLiveRating = '';
   let consecutiveSampleFailures = 0;
   let editingMarkId = null;
@@ -1721,6 +1724,11 @@
     const sorted = [...values].sort((a, b) => a - b);
     const middle = Math.floor(sorted.length / 2);
     return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+  };
+
+  const medianAbsoluteDeviation = values => {
+    const centre = median(values);
+    return median(values.map(value => Math.abs(value - centre)));
   };
 
   const getLiveRating = (comparisonPercent, responseRatio, failedSamples) => {
@@ -1761,10 +1769,11 @@
   const getReadingConfidence = samples => {
     if (samples.length < 3) return 'Low';
     const speeds = samples.map(sample => sample.measuredMbps);
-    const middle = Math.max(median(speeds), 0.1);
-    const relativeSpread = (Math.max(...speeds) - Math.min(...speeds)) / middle;
-    if (samples.length >= 5 && relativeSpread <= 0.35) return 'High';
-    return relativeSpread <= 0.7 ? 'Medium' : 'Low';
+    const responses = samples.map(sample => sample.responseMs);
+    const speedVariation = medianAbsoluteDeviation(speeds) / Math.max(median(speeds), 0.1);
+    const responseVariation = medianAbsoluteDeviation(responses) / Math.max(median(responses), 1);
+    if (samples.length >= 5 && speedVariation <= 0.18 && responseVariation <= 0.35) return 'High';
+    return speedVariation <= 0.4 && responseVariation <= 0.8 ? 'Medium' : 'Low';
   };
 
   const updateLiveReading = reading => {
@@ -1779,23 +1788,25 @@
     if (markWeakSpotBtn) markWeakSpotBtn.disabled = false;
   };
 
-  const resetLiveReading = () => {
+  const resetLiveReading = ({ keepWarmConnection = false } = {}) => {
     latestLiveReading = null;
     liveSamples = [];
     baselineSamples = [];
     baselineReading = null;
+    smoothedComparisonPercent = null;
     liveReadingCount = 0;
     lastLiveRating = '';
     consecutiveSampleFailures = 0;
-    liveWarmupComplete = false;
+    liveWarmupComplete = keepWarmConnection;
     if (liveRadarCard) liveRadarCard.dataset.rating = 'waiting';
     if (liveQualityVal) liveQualityVal.textContent = 'Calibrating';
     if (liveSpeedEstNum) liveSpeedEstNum.textContent = '—';
     if (liveLatencyNum) liveLatencyNum.textContent = '—';
     if (liveJitterNum) liveJitterNum.textContent = '—';
-    if (liveResultMeaning) liveResultMeaning.textContent = 'Stay beside the modem while three baseline readings complete.';
-    if (liveSampleCount) liveSampleCount.textContent = '0 of 3 baseline readings';
+    if (liveResultMeaning) liveResultMeaning.textContent = 'Stay beside the modem while five readings learn its normal variation.';
+    if (liveSampleCount) liveSampleCount.textContent = '0 of ' + baselineSampleTarget + ' baseline readings';
     if (markWeakSpotBtn) markWeakSpotBtn.disabled = true;
+    if (recalibrateBaselineBtn) recalibrateBaselineBtn.disabled = true;
   };
 
   const renderMarkedSpots = () => {
@@ -2005,20 +2016,37 @@
         if (liveJitterNum) liveJitterNum.textContent = 'Building';
 
         if (calibrationCount >= baselineSampleTarget) {
+          const baselineSpeeds = baselineSamples.map(sample => sample.measuredMbps);
+          const baselineResponses = baselineSamples.map(sample => sample.responseMs);
+          const baselineMbps = median(baselineSpeeds);
+          const baselineResponseMs = median(baselineResponses);
+          const speedMad = medianAbsoluteDeviation(baselineSpeeds);
+          const responseMad = medianAbsoluteDeviation(baselineResponses);
           baselineReading = {
-            responseMs: median(baselineSamples.map(sample => sample.responseMs)),
-            measuredMbps: median(baselineSamples.map(sample => sample.measuredMbps))
+            responseMs: baselineResponseMs,
+            measuredMbps: baselineMbps,
+            speedFloor: Math.max(0.1, baselineMbps - Math.min(
+              Math.max(speedMad * 2.5, baselineMbps * 0.15),
+              baselineMbps * 0.35
+            )),
+            responseCeiling: baselineResponseMs + Math.min(
+              Math.max(responseMad * 2.5, 20),
+              Math.max(60, baselineResponseMs * 1.5)
+            ),
+            confidence: getReadingConfidence(baselineSamples)
           };
           liveSamples = [];
+          smoothedComparisonPercent = null;
           consecutiveSampleFailures = 0;
           if (liveRadarCard) liveRadarCard.dataset.rating = 'good';
           if (liveQualityVal) liveQualityVal.textContent = 'Baseline ready';
           if (liveSpeedEstNum) liveSpeedEstNum.textContent = '100%';
           if (liveLatencyNum) liveLatencyNum.textContent = String(Math.round(baselineReading.responseMs)) + ' ms';
-          if (liveJitterNum) liveJitterNum.textContent = 'Baseline';
-          if (liveResultMeaning) liveResultMeaning.textContent = 'Starting point locked. Begin walking away from the modem.';
+          if (liveJitterNum) liveJitterNum.textContent = baselineReading.confidence;
+          if (liveResultMeaning) liveResultMeaning.textContent = 'Starting range learned. Walk to a room, then pause while five fresh readings settle.';
           if (liveSampleCount) liveSampleCount.textContent = 'Baseline ready';
-          if (scanProgress) scanProgress.textContent = 'Calibrated · start walking slowly.';
+          if (scanProgress) scanProgress.textContent = 'Calibrated · walk to a room, then hold still.';
+          if (recalibrateBaselineBtn) recalibrateBaselineBtn.disabled = false;
           if ('vibrate' in navigator) navigator.vibrate(60);
         }
         return;
@@ -2028,16 +2056,45 @@
       const sample = await takeConnectionSample();
       if (!liveWalkActive) return;
       liveSamples.push(sample);
-      if (liveSamples.length > 5) liveSamples.shift();
+      if (liveSamples.length > liveSampleWindowSize) liveSamples.shift();
       liveReadingCount += 1;
       consecutiveSampleFailures = 0;
+
+      if (liveSamples.length < liveSampleWindowSize) {
+        const settlingCount = liveSamples.length;
+        latestLiveReading = null;
+        if (liveRadarCard) liveRadarCard.dataset.rating = 'waiting';
+        if (liveQualityVal) liveQualityVal.textContent = 'Stabilising';
+        if (liveSpeedEstNum) liveSpeedEstNum.textContent = String(settlingCount) + ' / ' + liveSampleWindowSize;
+        if (liveLatencyNum) liveLatencyNum.textContent = String(Math.round(median(liveSamples.map(reading => reading.responseMs)))) + ' ms';
+        if (liveJitterNum) liveJitterNum.textContent = 'Building';
+        if (liveResultMeaning) liveResultMeaning.textContent = 'Hold this spot. A result appears after five readings use the same window as calibration.';
+        if (liveSampleCount) liveSampleCount.textContent = String(settlingCount) + ' of ' + liveSampleWindowSize + ' readings here';
+        if (markWeakSpotBtn) markWeakSpotBtn.disabled = true;
+        if (scanProgress) scanProgress.textContent = 'Hold still · stabilising this location…';
+        return;
+      }
 
       const responseMs = Math.round(median(liveSamples.map(reading => reading.responseMs)));
       const variationMs = Math.round(Math.max(...liveSamples.map(reading => reading.responseMs)) - Math.min(...liveSamples.map(reading => reading.responseMs)));
       const measuredMbpsRaw = median(liveSamples.map(reading => reading.measuredMbps));
       const measuredMbps = formatMbps(measuredMbpsRaw);
-      const comparisonPercent = Math.max(0, Math.min(100, Math.round((measuredMbpsRaw / Math.max(baselineReading.measuredMbps, 0.1)) * 100)));
-      const responseRatio = responseMs / Math.max(baselineReading.responseMs, 1);
+      const speedScore = Math.min(100, (measuredMbpsRaw / baselineReading.speedFloor) * 100);
+      const responseScore = Math.min(100, (baselineReading.responseCeiling / Math.max(responseMs, 1)) * 100);
+      const rawComparisonPercent = (speedScore * 0.7) + (responseScore * 0.3);
+      const withinBaselineNoise = measuredMbpsRaw >= baselineReading.speedFloor && responseMs <= baselineReading.responseCeiling;
+      if (withinBaselineNoise) {
+        smoothedComparisonPercent = 100;
+      } else if (smoothedComparisonPercent === null) {
+        smoothedComparisonPercent = rawComparisonPercent;
+      } else {
+        smoothedComparisonPercent = (smoothedComparisonPercent * 0.55) + (rawComparisonPercent * 0.45);
+      }
+      let comparisonPercent = Math.max(0, Math.min(100, Math.round(smoothedComparisonPercent / 5) * 5));
+      if (comparisonPercent >= 95) comparisonPercent = 100;
+      const responseRatio = responseMs <= baselineReading.responseCeiling
+        ? 1
+        : responseMs / baselineReading.responseCeiling;
       const confidence = getReadingConfidence(liveSamples);
       const rating = getLiveRating(comparisonPercent, responseRatio, consecutiveSampleFailures);
       latestLiveReading = {
@@ -2050,7 +2107,9 @@
       };
 
       updateLiveReading(latestLiveReading);
-      if (scanProgress) scanProgress.textContent = 'Live · walk slowly and mark any weak spot.';
+      if (scanProgress) scanProgress.textContent = confidence === 'Low'
+        ? 'Hold still · the reading is still settling.'
+        : 'Live · walk to the next spot or mark this one.';
 
       if (rating.ratingKey === 'poor' && lastLiveRating !== 'poor' && vibrateOnPoor?.checked && 'vibrate' in navigator) {
         navigator.vibrate([140, 80, 140]);
@@ -2094,6 +2153,7 @@
     if (liveSessionStatus) liveSessionStatus.textContent = 'Live';
     if (startLiveWalkBtn) startLiveWalkBtn.hidden = true;
     if (liveWalkControls) liveWalkControls.hidden = false;
+    if (recalibrateBaselineBtn) recalibrateBaselineBtn.disabled = !baselineReading;
     if (scanProgress) scanProgress.textContent = baselineReading ? 'Resuming comparison readings…' : 'Starting beside-modem calibration…';
     setLiveStep(2);
     requestScreenWakeLock();
@@ -2112,6 +2172,7 @@
     if (startLiveWalkBtn) startLiveWalkBtn.hidden = false;
     if (startLiveWalkBtnText) startLiveWalkBtnText.textContent = 'Resume live walk';
     if (liveWalkControls) liveWalkControls.hidden = true;
+    if (recalibrateBaselineBtn) recalibrateBaselineBtn.disabled = true;
     if (scanProgress) scanProgress.textContent = latestLiveReading
       ? 'Walk stopped. Your latest comparison and marks are still here.'
       : (baselineReading ? 'Walk stopped after calibration.' : 'Walk stopped before calibration completed.');
@@ -2122,6 +2183,16 @@
 
   startLiveWalkBtn?.addEventListener('click', startLiveWalk);
   stopLiveWalkBtn?.addEventListener('click', () => stopLiveWalk());
+  recalibrateBaselineBtn?.addEventListener('click', () => {
+    if (!liveWalkActive) return;
+    window.clearTimeout(liveSampleTimer);
+    liveSampleTimer = null;
+    liveAbortController?.abort();
+    resetLiveReading({ keepWarmConnection: true });
+    if (scanProgress) scanProgress.textContent = 'Recalibrating · keep the phone beside the modem and hold still.';
+    showToast('Recalibration started beside the modem.');
+    if (!liveSampleInFlight) runLiveSample();
+  });
   markWeakSpotBtn?.addEventListener('click', () => {
     if (!latestLiveReading) return;
     const nextNumber = markedSpots.reduce((highest, spot) => Math.max(highest, Number(spot.autoNumber) || 0), 0) + 1;
