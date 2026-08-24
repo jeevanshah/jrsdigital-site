@@ -1,11 +1,11 @@
 /**
- * JRS Digital — Home Wi-Fi & Mesh Heatmap Engine (V5 Smart Wall & Room Synchronization)
+ * JRS Digital — Home Wi-Fi & Mesh Heatmap Engine (V6 Dynamic Wall-Room Binding)
  * Features:
- * 1. Room Deletion also automatically removes its associated walls (no ghost walls!).
- * 2. Dedicated Wall Eraser Tool + Click-to-Select Wall with [🗑️ Delete Wall] Inspector.
- * 3. Full CRUD (Rename, Resize Handles, Move, Delete, Clear All, Reset).
- * 4. Real Estate Floorplan Upload with Auto-Generation.
- * 5. House Customizer Wizard & Live Mobile Scanner.
+ * 1. Walls are dynamically bound to rooms: Moving/Resizing/Deleting a room moves/resizes/deletes its walls in real-time!
+ * 2. Shared walls between rooms are automatically styled as Drywall (-6dB); exterior walls as Double Brick (-16dB).
+ * 3. Dedicated Wall Eraser Tool & Floating Wall Inspector for custom openings.
+ * 4. Custom walls drawing (Add Wall) + Floorplan image upload auto-generation.
+ * 5. Full CRUD & Auto-Optimizer.
  */
 
 (function () {
@@ -86,6 +86,7 @@
   let isEraserMode = false;
   let wallStartPoint = null;
   let customWalls = [];
+  let erasedWalls = new Set();
   let draggingNode = null;
   let draggingRoom = null;
   let resizingRoom = null;
@@ -97,33 +98,21 @@
   let animTarget = null;
   let isRoomEditMode = false;
 
-  // Default Template
-  const DEFAULT_SUBURBAN = {
-    name: 'Suburban 3-Bed Brick Home',
-    rooms: [
-      { id: 'r1', name: 'Living Room', x: 80, y: 70, w: 280, h: 210 },
-      { id: 'r2', name: 'Kitchen & Dining', x: 360, y: 70, w: 260, h: 170 },
-      { id: 'r3', name: 'Home Office', x: 620, y: 70, w: 120, h: 170 },
-      { id: 'r4', name: 'Master Bed', x: 80, y: 280, w: 220, h: 170 },
-      { id: 'r5', name: 'Ensuite', x: 300, y: 280, w: 110, h: 170 },
-      { id: 'r6', name: 'Bedroom 2', x: 410, y: 240, w: 210, h: 210 },
-      { id: 'r7', name: 'Alfresco Patio', x: 620, y: 240, w: 120, h: 210 }
-    ],
-    walls: [
-      { id: 'w1', x1: 80, y1: 70, x2: 740, y2: 70, type: 'brick', loss: 16 },
-      { id: 'w2', x1: 740, y1: 70, x2: 740, y2: 450, type: 'brick', loss: 16 },
-      { id: 'w3', x1: 740, y1: 450, x2: 80, y2: 450, type: 'brick', loss: 16 },
-      { id: 'w4', x1: 80, y1: 450, x2: 80, y2: 70, type: 'brick', loss: 16 },
-      { id: 'w5', x1: 360, y1: 70, x2: 360, y2: 240, type: 'brick', loss: 14 },
-      { id: 'w6', x1: 410, y1: 240, x2: 620, y2: 240, type: 'brick', loss: 12 },
-      { id: 'w7', x1: 80, y1: 280, x2: 410, y2: 280, type: 'drywall', loss: 6 },
-      { id: 'w8', x1: 300, y1: 280, x2: 300, y2: 450, type: 'drywall', loss: 6 },
-      { id: 'w9', x1: 410, y1: 240, x2: 410, y2: 450, type: 'drywall', loss: 6 },
-      { id: 'w10', x1: 620, y1: 70, x2: 620, y2: 450, type: 'drywall', loss: 8 }
-    ]
-  };
+  // Default Template Rooms
+  const DEFAULT_ROOMS = [
+    { id: 'r1', name: 'Living Room', x: 80, y: 70, w: 280, h: 210 },
+    { id: 'r2', name: 'Kitchen & Dining', x: 360, y: 70, w: 260, h: 170 },
+    { id: 'r3', name: 'Home Office', x: 620, y: 70, w: 120, h: 170 },
+    { id: 'r4', name: 'Master Bed', x: 80, y: 280, w: 220, h: 170 },
+    { id: 'r5', name: 'Ensuite', x: 300, y: 280, w: 110, h: 170 },
+    { id: 'r6', name: 'Bedroom 2', x: 410, y: 240, w: 210, h: 210 },
+    { id: 'r7', name: 'Alfresco Patio', x: 620, y: 240, w: 120, h: 210 }
+  ];
 
-  let activeFloorplan = JSON.parse(JSON.stringify(DEFAULT_SUBURBAN));
+  let activeFloorplan = {
+    name: 'Suburban 3-Bed Brick Home',
+    rooms: JSON.parse(JSON.stringify(DEFAULT_ROOMS))
+  };
 
   // --- Hardware Profiles ---
   const HARDWARE_PROFILES = {
@@ -134,7 +123,7 @@
 
   // --- Transmitters ---
   const nodes = [
-    { id: 'primary', type: 'router', name: 'Primary Router', x: 230, y: 200, isDragging: false }
+    { id: 'primary', type: 'router', name: 'Primary Router', x: 220, y: 175, isDragging: false }
   ];
 
   // --- Helper: Line Intersection ---
@@ -155,9 +144,50 @@
     return Math.hypot(px - (x1 + t * (x2 - x1)), py - (y1 + t * (y2 - y1)));
   }
 
+  // ==========================================================================
+  // 🧱 Procedural Dynamic Wall Derivation (Bound to Active Rooms)
+  // ==========================================================================
+  function getAllActiveWalls() {
+    const walls = [];
+
+    activeFloorplan.rooms.forEach(r => {
+      const edges = [
+        { id: `${r.id}_top`, x1: r.x, y1: r.y, x2: r.x + r.w, y2: r.y, roomId: r.id, edge: 'top' },
+        { id: `${r.id}_right`, x1: r.x + r.w, y1: r.y, x2: r.x + r.w, y2: r.y + r.h, roomId: r.id, edge: 'right' },
+        { id: `${r.id}_bottom`, x1: r.x + r.w, y1: r.y + r.h, x2: r.x, y2: r.y + r.h, roomId: r.id, edge: 'bottom' },
+        { id: `${r.id}_left`, x1: r.x, y1: r.y + r.h, x2: r.x, y2: r.y, roomId: r.id, edge: 'left' }
+      ];
+
+      edges.forEach(edge => {
+        if (erasedWalls.has(edge.id)) return;
+
+        // Check if edge is internal shared partition with another room
+        const midX = (edge.x1 + edge.x2) / 2;
+        const midY = (edge.y1 + edge.y2) / 2;
+
+        const isInternal = activeFloorplan.rooms.some(other => {
+          if (other.id === r.id) return false;
+          const nearX = Math.abs(other.x - midX) < 6 || Math.abs(other.x + other.w - midX) < 6;
+          const nearY = Math.abs(other.y - midY) < 6 || Math.abs(other.y + other.h - midY) < 6;
+          const inX = midX >= other.x - 6 && midX <= other.x + other.w + 6;
+          const inY = midY >= other.y - 6 && midY <= other.y + other.h + 6;
+          return (nearX && inY) || (nearY && inX);
+        });
+
+        walls.push({
+          ...edge,
+          type: isInternal ? 'drywall' : 'brick',
+          loss: isInternal ? 6 : 16
+        });
+      });
+    });
+
+    return [...walls, ...customWalls];
+  }
+
   // --- Calculate Signal Strength (dBm) at Point (px, py) ---
   function getSignalStrengthAt(px, py, customNodes = null) {
-    const allWalls = [...activeFloorplan.walls, ...customWalls];
+    const allWalls = getAllActiveWalls();
     const hw = HARDWARE_PROFILES[activeHardware];
     const wallMultiplier = (activeBand === '5ghz' ? 1.25 : 0.75) * hw.wallMult;
     const distanceDrop = activeBand === '5ghz' ? 24 : 19;
@@ -294,7 +324,7 @@
       const isSel = room === selectedRoom;
       const isHov = room === hoveredRoom;
 
-      ctx.fillStyle = isSel ? 'rgba(255, 75, 22, 0.15)' : 'rgba(255, 255, 255, 0.05)';
+      ctx.fillStyle = isSel ? 'rgba(255, 75, 22, 0.18)' : 'rgba(255, 255, 255, 0.05)';
       ctx.fillRect(room.x, room.y, room.w, room.h);
 
       ctx.strokeStyle = isSel ? '#FF4B16' : (isHov ? '#F59E0B' : 'rgba(255, 255, 255, 0.16)');
@@ -322,8 +352,8 @@
       ctx.fillText(room.name, room.x + room.w / 2, room.y + room.h / 2);
     });
 
-    // 4. Draw Walls
-    const allWalls = [...activeFloorplan.walls, ...customWalls];
+    // 4. Draw Dynamic & Custom Walls
+    const allWalls = getAllActiveWalls();
     allWalls.forEach(wall => {
       const isWallSel = wall === selectedWall;
       const isWallHov = wall === hoveredWall;
@@ -360,7 +390,7 @@
       }
     });
 
-    // 5. Draw Active Wall Preview
+    // 5. Draw Active Wall Drawing Preview
     if (drawWallType && wallStartPoint && wallStartPoint.currentX !== undefined) {
       ctx.beginPath();
       ctx.moveTo(wallStartPoint.x, wallStartPoint.y);
@@ -560,44 +590,20 @@
 
   // --- Find Wall at Point ---
   function findWallAt(px, py) {
-    const allWalls = [...activeFloorplan.walls, ...customWalls];
+    const allWalls = getAllActiveWalls();
     return allWalls.find(w => distToSegment(px, py, w.x1, w.y1, w.x2, w.y2) <= 12) || null;
   }
 
   // --- Delete a Specific Wall ---
   function deleteWall(wall) {
     if (!wall) return;
-    activeFloorplan.walls = activeFloorplan.walls.filter(w => w !== wall);
+    if (wall.id) erasedWalls.add(wall.id);
     customWalls = customWalls.filter(w => w !== wall);
     selectedWall = null;
     updateWallInspector();
     computeHeatmapGrid();
     updateAnalytics();
     showToast('🧹 Wall removed!');
-  }
-
-  // --- Auto-Prune Walls When Room is Deleted ---
-  function pruneWallsForRoom(room) {
-    const rx1 = room.x, ry1 = room.y;
-    const rx2 = room.x + room.w, ry2 = room.y + room.h;
-
-    // Remove any internal or boundary walls that coincide with this room's borders if no other rooms share them
-    activeFloorplan.walls = activeFloorplan.walls.filter(w => {
-      const isLeft = (w.x1 === rx1 && w.x2 === rx1 && Math.max(w.y1, w.y2) >= ry1 && Math.min(w.y1, w.y2) <= ry2);
-      const isRight = (w.x1 === rx2 && w.x2 === rx2 && Math.max(w.y1, w.y2) >= ry1 && Math.min(w.y1, w.y2) <= ry2);
-      const isTop = (w.y1 === ry1 && w.y2 === ry1 && Math.max(w.x1, w.x2) >= rx1 && Math.min(w.x1, w.x2) <= rx2);
-      const isBottom = (w.y1 === ry2 && w.y2 === ry2 && Math.max(w.x1, w.x2) >= rx1 && Math.min(w.x1, w.x2) <= rx2);
-
-      if (isLeft || isRight || isTop || isBottom) {
-        // Check if another room still touches this wall
-        const stillUsed = activeFloorplan.rooms.some(r => r !== room && (
-          (w.x1 >= r.x && w.x1 <= r.x + r.w && w.y1 >= r.y && w.y1 <= r.y + r.h) ||
-          (w.x2 >= r.x && w.x2 <= r.x + r.w && w.y2 >= r.y && w.y2 <= r.y + r.h)
-        ));
-        return stillUsed;
-      }
-      return true;
-    });
   }
 
   // --- Auto-Optimizer Algorithm ---
@@ -695,7 +701,19 @@
       return;
     }
 
-    // Wall Selection
+    // Room Selection & Dragging (Takes precedence for moving room + attached walls)
+    const room = findRoomAt(coords.x, coords.y);
+    if (room) {
+      selectedRoom = room;
+      selectedWall = null;
+      draggingRoom = { room, offsetX: coords.x - room.x, offsetY: coords.y - room.y };
+      updateRoomInspector();
+      updateWallInspector();
+      if (e.cancelable) e.preventDefault();
+      return;
+    }
+
+    // Wall Selection if clicked directly on a wall
     const clickedWall = findWallAt(coords.x, coords.y);
     if (clickedWall) {
       selectedWall = clickedWall;
@@ -709,19 +727,8 @@
       updateWallInspector();
     }
 
-    // Room Selection & Dragging
-    const room = findRoomAt(coords.x, coords.y);
-    if (room) {
-      selectedRoom = room;
-      selectedWall = null;
-      draggingRoom = { room, offsetX: coords.x - room.x, offsetY: coords.y - room.y };
-      updateRoomInspector();
-      updateWallInspector();
-      if (e.cancelable) e.preventDefault();
-    } else {
-      selectedRoom = null;
-      updateRoomInspector();
-    }
+    selectedRoom = null;
+    updateRoomInspector();
   }
 
   function onPointerMove(e) {
@@ -749,6 +756,7 @@
       updateAnalytics();
       if (e.cancelable) e.preventDefault();
     } else if (draggingRoom) {
+      // 🌟 Moving room simultaneously moves its dynamically derived perimeter walls!
       draggingRoom.room.x = Math.max(20, Math.min(V_WIDTH - draggingRoom.room.w - 20, coords.x - draggingRoom.offsetX));
       draggingRoom.room.y = Math.max(20, Math.min(V_HEIGHT - draggingRoom.room.h - 20, coords.y - draggingRoom.offsetY));
       updateRoomInspector();
@@ -848,7 +856,7 @@
   window.addEventListener('touchend', onPointerUp);
 
   // ==========================================================================
-  // ✏️ Room Inspector CRUD Actions (Rename, Delete + Auto-Prune Walls)
+  // ✏️ Room Inspector CRUD Actions (Rename, Delete)
   // ==========================================================================
   if (inspectorRenameBtn) {
     inspectorRenameBtn.addEventListener('click', () => {
@@ -870,13 +878,12 @@
       const name = selectedRoom.name;
       const targetRoom = selectedRoom;
       activeFloorplan.rooms = activeFloorplan.rooms.filter(r => r !== targetRoom);
-      pruneWallsForRoom(targetRoom);
       selectedRoom = null;
       updateRoomInspector();
       updateQuickJumpBar();
       computeHeatmapGrid();
       updateAnalytics();
-      showToast(`🗑️ Deleted ${name} and removed associated walls`);
+      showToast(`🗑️ Deleted ${name}`);
     });
   }
 
@@ -906,8 +913,8 @@
     clearCanvasBtn.addEventListener('click', () => {
       if (confirm('Clear all rooms and walls to start from scratch?')) {
         activeFloorplan.rooms = [];
-        activeFloorplan.walls = [];
         customWalls = [];
+        erasedWalls.clear();
         selectedRoom = null;
         selectedWall = null;
         uploadedFloorplanImg = null;
@@ -925,13 +932,14 @@
 
   if (resetDefaultBtn) {
     resetDefaultBtn.addEventListener('click', () => {
-      activeFloorplan = JSON.parse(JSON.stringify(DEFAULT_SUBURBAN));
+      activeFloorplan.rooms = JSON.parse(JSON.stringify(DEFAULT_ROOMS));
       customWalls = [];
+      erasedWalls.clear();
       selectedRoom = null;
       selectedWall = null;
       uploadedFloorplanImg = null;
       if (opacityControl) opacityControl.classList.remove('is-visible');
-      nodes[0].x = 230; nodes[0].y = 200;
+      nodes[0].x = 220; nodes[0].y = 175;
       updateRoomInspector();
       updateWallInspector();
       updateQuickJumpBar();
@@ -966,22 +974,14 @@
             { id: 'auto_r5', name: 'Bed 2 / Office', x: 450, y: 250, w: 260, h: 200 }
           ];
 
-          activeFloorplan.walls = [
-            { id: 'auto_w1', x1: 90, y1: 80, x2: 710, y2: 80, type: 'brick', loss: 16 },
-            { id: 'auto_w2', x1: 710, y1: 80, x2: 710, y2: 450, type: 'brick', loss: 16 },
-            { id: 'auto_w3', x1: 710, y1: 450, x2: 90, y2: 450, type: 'brick', loss: 16 },
-            { id: 'auto_w4', x1: 90, y1: 450, x2: 90, y2: 80, type: 'brick', loss: 16 },
-            { id: 'auto_w5', x1: 420, y1: 80, x2: 420, y2: 250, type: 'brick', loss: 14 },
-            { id: 'auto_w6', x1: 90, y1: 310, x2: 450, y2: 310, type: 'drywall', loss: 6 }
-          ];
-
           customWalls = [];
+          erasedWalls.clear();
           nodes[0].x = 250; nodes[0].y = 190;
           uploadBtn.innerHTML = `
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             Change Image
           `;
-          showToast('✨ Auto-generated 5 rooms & boundary walls from your floorplan image!');
+          showToast('✨ Auto-generated 5 rooms with matching walls from your floorplan image!');
           updateQuickJumpBar();
           computeHeatmapGrid();
           updateAnalytics();
@@ -1032,23 +1032,13 @@
         h: roomConfig.h
       };
 
-      // Add corresponding 4 perimeter walls for the new room
-      const rx1 = newRoom.x, ry1 = newRoom.y;
-      const rx2 = newRoom.x + newRoom.w, ry2 = newRoom.y + newRoom.h;
-      activeFloorplan.walls.push(
-        { id: `w_top_${Date.now()}`, x1: rx1, y1: ry1, x2: rx2, y2: ry1, type: 'brick', loss: 14 },
-        { id: `w_right_${Date.now()}`, x1: rx2, y1: ry1, x2: rx2, y2: ry2, type: 'brick', loss: 14 },
-        { id: `w_bottom_${Date.now()}`, x1: rx2, y1: ry2, x2: rx1, y2: ry2, type: 'brick', loss: 14 },
-        { id: `w_left_${Date.now()}`, x1: rx1, y1: ry2, x2: rx1, y2: ry1, type: 'brick', loss: 14 }
-      );
-
       activeFloorplan.rooms.push(newRoom);
       selectedRoom = newRoom;
       updateRoomInspector();
       updateQuickJumpBar();
       computeHeatmapGrid();
       updateAnalytics();
-      showToast(`Added ${roomType} with matching walls! Drag to reposition.`);
+      showToast(`Added ${roomType}! Drag to move (walls move with room).`);
     });
   });
 
@@ -1071,10 +1061,7 @@
       submitWizardBtn.addEventListener('click', () => {
         const beds = document.querySelector('[data-wizard-group="beds"] .is-selected')?.dataset.val || '3';
         const shape = document.querySelector('[data-wizard-group="shape"] .is-selected')?.dataset.val || 'standard';
-        const wallMat = document.querySelector('[data-wizard-group="wall"] .is-selected')?.dataset.val || 'double_brick';
         const nbnLoc = document.querySelector('[data-wizard-group="nbn"] .is-selected')?.dataset.val || 'living';
-
-        const lossVal = wallMat === 'double_brick' ? 16 : (wallMat === 'concrete' ? 18 : 8);
 
         if (beds === '1' || beds === '2') {
           activeFloorplan = {
@@ -1083,14 +1070,6 @@
               { id: 'r1', name: 'Open Living & Kitchen', x: 100, y: 90, w: 340, h: 280 },
               { id: 'r2', name: 'Master Bedroom', x: 440, y: 90, w: 260, h: 140 },
               { id: 'r3', name: 'Bathroom / Study', x: 440, y: 230, w: 260, h: 140 }
-            ],
-            walls: [
-              { id: 'w1', x1: 100, y1: 90, x2: 700, y2: 90, type: 'brick', loss: lossVal },
-              { id: 'w2', x1: 700, y1: 90, x2: 700, y2: 370, type: 'brick', loss: lossVal },
-              { id: 'w3', x1: 700, y1: 370, x2: 100, y2: 370, type: 'brick', loss: lossVal },
-              { id: 'w4', x1: 100, y1: 370, x2: 100, y2: 90, type: 'brick', loss: lossVal },
-              { id: 'w5', x1: 440, y1: 90, x2: 440, y2: 370, type: 'brick', loss: lossVal - 2 },
-              { id: 'w6', x1: 440, y1: 230, x2: 700, y2: 230, type: 'drywall', loss: 5 }
             ]
           };
         } else if (shape === 'l_shape') {
@@ -1102,14 +1081,6 @@
               { id: 'r3', name: 'Master Bed', x: 80, y: 300, w: 200, h: 150 },
               { id: 'r4', name: 'Bed 2', x: 280, y: 300, w: 200, h: 150 },
               { id: 'r5', name: 'Home Office / Patio', x: 480, y: 240, w: 240, h: 210 }
-            ],
-            walls: [
-              { id: 'w1', x1: 80, y1: 80, x2: 720, y2: 80, type: 'brick', loss: lossVal },
-              { id: 'w2', x1: 720, y1: 80, x2: 720, y2: 450, type: 'brick', loss: lossVal },
-              { id: 'w3', x1: 720, y1: 450, x2: 80, y2: 450, type: 'brick', loss: lossVal },
-              { id: 'w4', x1: 80, y1: 450, x2: 80, y2: 80, type: 'brick', loss: lossVal },
-              { id: 'w5', x1: 360, y1: 80, x2: 360, y2: 240, type: 'brick', loss: lossVal - 2 },
-              { id: 'w6', x1: 80, y1: 300, x2: 480, y2: 300, type: 'drywall', loss: 6 }
             ]
           };
         } else {
@@ -1118,23 +1089,11 @@
             rooms: [
               { id: 'r1', name: 'Living Room', x: 80, y: 70, w: 280, h: 210 },
               { id: 'r2', name: 'Kitchen & Dining', x: 360, y: 70, w: 260, h: 170 },
-              { id: 'r3', name: 'Home Office / Bed 3', x: 620, y: 70, w: 120, h: 170 },
+              { id: 'r3', name: 'Home Office', x: 620, y: 70, w: 120, h: 170 },
               { id: 'r4', name: 'Master Bed', x: 80, y: 280, w: 220, h: 170 },
-              { id: 'r5', name: 'Ensuite / Bath', x: 300, y: 280, w: 110, h: 170 },
+              { id: 'r5', name: 'Ensuite', x: 300, y: 280, w: 110, h: 170 },
               { id: 'r6', name: 'Bedroom 2', x: 410, y: 240, w: 210, h: 210 },
               { id: 'r7', name: 'Alfresco Patio', x: 620, y: 240, w: 120, h: 210 }
-            ],
-            walls: [
-              { id: 'w1', x1: 80, y1: 70, x2: 740, y2: 70, type: 'brick', loss: lossVal },
-              { id: 'w2', x1: 740, y1: 70, x2: 740, y2: 450, type: 'brick', loss: lossVal },
-              { id: 'w3', x1: 740, y1: 450, x2: 80, y2: 450, type: 'brick', loss: lossVal },
-              { id: 'w4', x1: 80, y1: 450, x2: 80, y2: 70, type: 'brick', loss: lossVal },
-              { id: 'w5', x1: 360, y1: 70, x2: 360, y2: 240, type: 'brick', loss: lossVal - 2 },
-              { id: 'w6', x1: 410, y1: 240, x2: 620, y2: 240, type: 'brick', loss: lossVal - 3 },
-              { id: 'w7', x1: 80, y1: 280, x2: 410, y2: 280, type: 'drywall', loss: 6 },
-              { id: 'w8', x1: 300, y1: 280, x2: 300, y2: 450, type: 'drywall', loss: 6 },
-              { id: 'w9', x1: 410, y1: 240, x2: 410, y2: 450, type: 'drywall', loss: 6 },
-              { id: 'w10', x1: 620, y1: 70, x2: 620, y2: 450, type: 'drywall', loss: 8 }
             ]
           };
         }
@@ -1146,10 +1105,11 @@
         } else if (nbnLoc === 'office') {
           nodes[0].x = 650; nodes[0].y = 150;
         } else {
-          nodes[0].x = 220; nodes[0].y = 180;
+          nodes[0].x = 220; nodes[0].y = 175;
         }
 
         customWalls = [];
+        erasedWalls.clear();
         selectedRoom = null;
         selectedWall = null;
         wizardModal.classList.remove('is-open');
