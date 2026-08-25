@@ -1,6 +1,6 @@
 /**
  * JRS Digital — Home Wi-Fi & Mesh Heatmap Engine
- * ⚡ LEETCODE LEVEL ZERO-ALLOCATION SIMD-STYLE PERFORMANCE ENGINE ⚡
+ * High-Performance Zero-Allocation RF Engine
  *
  * Micro-Architectural Optimizations:
  * 1. Struct-of-Arrays (SoA) Contiguous Memory: Wall geometry stored in flat Float32Array buffers for cache-line locality.
@@ -94,13 +94,13 @@
   const offscreenCtx = offscreenCanvas.getContext('2d', { willReadFrequently: true });
   const gridImageData = offscreenCtx.createImageData(GRID_W, GRID_H);
 
-  // ⚡ 32-bit Uint32 Direct Memory Pixel Buffer View
+  // 32-bit Uint32 Direct Memory Pixel Buffer View
   const gridPixelBuffer32 = new Uint32Array(gridImageData.data.buffer);
-  // ⚡ Float32Array dBm Signal Cache for O(1) Instant Tooltip Sampling
+  // Float32Array dBm Signal Cache for O(1) Instant Tooltip Sampling
   const gridDbmBuffer = new Float32Array(GRID_TOTAL);
 
   // ==========================================================================
-  // ⚡ OPTIMIZATION 1: Pre-Baked 256-Entry 32-bit Color LUT (0xAABBGGRR Little-Endian)
+  // OPTIMIZATION 1: Pre-Baked 256-Entry 32-bit Color LUT (0xAABBGGRR Little-Endian)
   // ==========================================================================
   const COLOR_LUT_32 = new Uint32Array(256);
   (function buildColorPaletteLUT() {
@@ -137,7 +137,7 @@
   })();
 
   // ==========================================================================
-  // ⚡ OPTIMIZATION 2: Struct-of-Arrays (SoA) Contiguous Memory for Walls
+  // OPTIMIZATION 2: Struct-of-Arrays (SoA) Contiguous Memory for Walls
   // ==========================================================================
   const MAX_WALLS = 256;
   const wX1 = new Float32Array(MAX_WALLS);
@@ -226,7 +226,7 @@
   };
 
   // ==========================================================================
-  // ⚡ OPTIMIZATION 3: Division-Free Cross-Product Orientation Ray Intersection
+  // OPTIMIZATION 3: Division-Free Cross-Product Orientation Ray Intersection
   // ==========================================================================
   function fastRayWallIntersect(p0x, p0y, p1x, p1y, i) {
     // 1. Instant Axis-Aligned Bounding Box (AABB) Rejection
@@ -260,7 +260,7 @@
   }
 
   // ==========================================================================
-  // ⚡ Sync Rooms to Flat SoA Buffers (O(N) Overlap Merging)
+  // Sync Rooms to Flat SoA Buffers (O(N) Overlap Merging)
   // ==========================================================================
   function rebuildSoABuffers() {
     const rawSegments = [];
@@ -333,7 +333,7 @@
   }
 
   // ==========================================================================
-  // ⚡ OPTIMIZATION 4: High-Performance Kernel Compute Loop (<0.3ms Runtime)
+  // OPTIMIZATION 4: High-Performance Kernel Compute Loop (<0.3ms Runtime)
   // ==========================================================================
   function computeHeatmapGridKernel() {
     if (isWallsDirty) {
@@ -473,7 +473,7 @@
   }
 
   // ==========================================================================
-  // ⚡ Smart Idle State Render Loop
+  // Smart Idle State Render Loop
   // ==========================================================================
   function requestRender() {
     if (!isAnimationRunning) {
@@ -665,7 +665,7 @@
 
       ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
       ctx.font = '700 10.5px "Plus Jakarta Sans", sans-serif';
-      const tagText = node.type === 'router' ? '📡 Main Router' : `📶 Mesh Node ${idx}`;
+      const tagText = node.type === 'router' ? 'Main Router' : `Mesh Node ${idx}`;
       const tagW = ctx.measureText(tagText).width + 14;
       ctx.fillRect(node.x - tagW * 0.5, node.y + 20, tagW, 20);
       ctx.fillStyle = '#FFFFFF';
@@ -746,13 +746,13 @@
 
     if (adviceTextEl) {
       if (activeFloorplan.rooms.length === 0) {
-        adviceTextEl.innerHTML = `<strong>💡 Canvas Cleared:</strong> Use the <em>"+ Add Room"</em> tray or <em>"📸 Upload Floorplan"</em> to design your house layout.`;
+        adviceTextEl.innerHTML = `<strong>Canvas Cleared:</strong> Use the <em>"+ Add Room"</em> tray or <em>"Upload Floorplan"</em> to design your house layout.`;
       } else if (coverageScore >= 88) {
-        adviceTextEl.innerHTML = `<strong>✨ Optimal Coverage (${coverageScore}%):</strong> Wi-Fi signal is strong across all rooms. Doors allow signal to flow naturally down hallways.`;
+        adviceTextEl.innerHTML = `<strong>Optimal Coverage (${coverageScore}%):</strong> Wi-Fi signal is strong across all rooms. Doors allow signal to flow naturally down hallways.`;
       } else if (deadCount > 0 && nodes.length === 1) {
         adviceTextEl.innerHTML = `<strong>Weak rooms detected (${deadCount}):</strong> Walls and distance are reducing 5 GHz coverage. Try <em>"Find best router spot"</em> or add a mesh node.`;
       } else {
-        adviceTextEl.innerHTML = `<strong>📶 Mesh Node Active:</strong> Adding a second node eliminates dead zones. Make sure your booster is placed halfway between the main router and weak areas.`;
+        adviceTextEl.innerHTML = `<strong>Mesh Node Active:</strong> Adding a second node eliminates dead zones. Make sure your booster is placed halfway between the main router and weak areas.`;
       }
     }
   }
@@ -845,7 +845,7 @@
     updateWallInspector();
     markDirty();
     updateAnalytics();
-    showToast('🧹 Wall removed!');
+    showToast('Wall removed');
   }
 
   function autoOptimizeRouterPosition() {
@@ -873,7 +873,7 @@
     }
 
     animTarget = bestPos;
-    showToast('✨ Auto-positioned router for optimal whole-home signal!');
+    showToast('Positioned router for optimal whole-home signal');
     requestRender();
   }
 
@@ -920,7 +920,7 @@
           isHorizontal: isH,
           width: 36
         });
-        showToast('🚪 Added doorway! RF signal now flows through naturally.');
+        showToast('Added doorway. RF signal flows through naturally.');
         markDirty();
         updateAnalytics();
       }
@@ -931,7 +931,7 @@
       const door = findDoorAt(coords.x, coords.y);
       if (door) {
         doors = doors.filter(d => d !== door);
-        showToast('🧹 Door removed');
+        showToast('Door removed');
         markDirty();
         updateAnalytics();
         return;
@@ -1058,7 +1058,7 @@
         probeSpeedEl.textContent = `${speed} Mbps (${Math.round(dBm)} dBm)`;
         probeRoomEl.textContent = room ? room.name : 'Hallway / Open Space';
         if (probeActivityEl) {
-          probeActivityEl.textContent = speed >= 300 ? '✅ 4K Gaming & 8K Streaming' : (speed >= 100 ? '✅ Fast 4K Streaming' : (speed >= 25 ? '⚠️ Basic Browsing / HD' : '❌ Dead Zone'));
+          probeActivityEl.textContent = speed >= 300 ? '4K Gaming & 8K Streaming' : (speed >= 100 ? 'Fast 4K Streaming' : (speed >= 25 ? 'Basic Browsing / HD' : 'Dead Zone'));
         }
         tooltip.style.left = `${coords.screenX}px`;
         tooltip.style.top = `${coords.screenY}px`;
@@ -1154,7 +1154,7 @@
       updateQuickJumpBar();
       markDirty();
       updateAnalytics();
-      showToast(`🗑️ Deleted ${name}`);
+      showToast(`Deleted ${name}`);
     });
   }
 
@@ -1169,7 +1169,7 @@
       addDoorBtn.setAttribute('aria-pressed', String(isDoorMode));
       if (drawBrickBtn) drawBrickBtn.setAttribute('aria-pressed', 'false');
       if (eraseWallBtn) eraseWallBtn.setAttribute('aria-pressed', 'false');
-      showToast(isDoorMode ? '🚪 Door Mode: Click on any wall to place a doorway' : 'Door Mode disabled');
+      showToast(isDoorMode ? 'Door Mode: Click on any wall to place a doorway' : 'Door Mode disabled');
       requestRender();
     });
   }
@@ -1185,7 +1185,7 @@
       eraseWallBtn.setAttribute('aria-pressed', String(isEraserMode));
       if (drawBrickBtn) drawBrickBtn.setAttribute('aria-pressed', 'false');
       if (addDoorBtn) addDoorBtn.setAttribute('aria-pressed', 'false');
-      showToast(isEraserMode ? '🧹 Eraser active: Click any wall or door on canvas to remove it' : 'Eraser disabled');
+      showToast(isEraserMode ? 'Eraser active: Click any wall or door on canvas to remove it' : 'Eraser disabled');
       requestRender();
     });
   }
@@ -1213,7 +1213,7 @@
         updateQuickJumpBar();
         markDirty();
         updateAnalytics();
-        showToast('🗑️ Cleared canvas. Add rooms to start building!');
+        showToast('Cleared canvas. Add rooms to start building.');
       }
     });
   }
@@ -1241,7 +1241,7 @@
       updateQuickJumpBar();
       markDirty();
       updateAnalytics();
-      showToast('🔄 Reset layout to standard Home with Hallway');
+      showToast('Reset layout to standard Home with Hallway');
     });
   }
 
@@ -1300,7 +1300,7 @@
       toggleRoomTrayBtn.classList.toggle('is-active', isRoomEditMode);
       roomTray.classList.toggle('is-active', isRoomEditMode);
       toggleRoomTrayBtn.setAttribute('aria-expanded', String(isRoomEditMode));
-      showToast(isRoomEditMode ? '🧩 Room Builder active: Click + buttons or drag/resize rooms' : 'Exited Room Builder');
+      showToast(isRoomEditMode ? 'Room Builder active: Click + buttons or drag/resize rooms' : 'Exited Room Builder');
     });
   }
 
@@ -1560,7 +1560,7 @@
         link.download = `JRS-WiFi-Heatmap-${Date.now()}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
-        showToast('📸 Heatmap snapshot saved to Downloads!');
+        showToast('Heatmap snapshot saved to Downloads');
       } catch (err) {
         showToast('Shared floorplan copied to clipboard!');
       }
