@@ -26,6 +26,11 @@ interface DealPlan {
   dataGb?: number | "unlimited";   // Monthly data allowance
   networkHost?: "Telstra Direct" | "Telstra Wholesale" | "Optus" | "Vodafone"; // Mobile network
   url: string;                     // Affiliate or direct signup URL
+  deal_channel?: "partner_exclusive" | "bank_perk" | "promo_code" | "direct";
+  deal_channel_label?: string;      // Human label, e.g. "WhistleOut Special"
+  direct_public_promo_price?: number; // Direct-store promo baseline when the listed route is cheaper
+  how_to_get?: string;              // Plain-English steps needed to claim the listed price
+  direct_url?: string;              // Provider storefront when url points to a partner/bank route
   cgnatOptOut?: "free" | "paid" | "unavailable";
   cgnatPrice?: number;             // Static IP monthly cost if paid (e.g. 5.00, 10.00)
   noticePeriodDays?: number;       // 0 for pro-rata, 30 for 30-day cancellation notice
