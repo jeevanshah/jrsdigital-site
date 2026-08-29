@@ -829,7 +829,7 @@
 }
 
 .deals-tier-btn {
-  padding: 8px 14px;
+  padding: 8px 11px;
   font-size: 0.82rem;
   font-weight: 600;
   font-family: inherit;
@@ -1312,6 +1312,22 @@
   .deal-group-cost .deal-cell-total .deal-cell-caption {
     display: none;
   }
+}
+
+.deal-provider-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.deal-provider-logo {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  object-fit: contain;
+  background: var(--w-surface);
+  border: 1px solid var(--w-border);
 }
 
 .deal-provider-name {

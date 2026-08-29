@@ -398,6 +398,21 @@ body.wide-theme {
   }
   .w-nav a:hover { background: #F5F5F4; color: var(--w-ink); }
   .w-nav a.active { background: rgba(255, 75, 22, 0.08); }
+
+  /* Brand + CTA + hamburger were ~11px too wide to share a row at common
+     phone widths, so the CTA/toggle group wrapped onto its own line below
+     the logo. Trim the group's gap and the CTA's own size so it reads as
+     one header bar again. */
+  .w-header { gap: 10px; }
+  .w-header-right { gap: 10px; }
+  .w-header-cta { padding: 9px 12px; font-size: 0.78rem; }
+}
+
+@media (max-width: 380px) {
+  /* Even trimmed, the CTA still doesn't leave brand + toggle enough room
+     on the narrowest common phone widths (~360px Android, 320px iPhone
+     SE) -- drop the "Get" prefix rather than shrinking padding further. */
+  .w-header-cta-prefix { display: none; }
 }
 
 @media (max-width: 640px) {

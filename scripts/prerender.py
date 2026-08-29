@@ -209,10 +209,18 @@ def main():
     schema = build_deal_schema(all_deals)
     schema_html = '<script type="application/ld+json">\n' + json.dumps(schema, indent=2) + "\n</script>"
 
+    plan_count = schema["numberOfItems"]
+    provider_count = len({d["provider"] for d in all_deals if d.get("provider")})
+    herostats_html = (
+        f"<strong>{plan_count}</strong> NBN, OptiComm, mobile and satellite plans "
+        f"from <strong>{provider_count}</strong>"
+    )
+
     html = DEALS_HTML.read_text(encoding="utf-8")
     for name, outer_html in captured.items():
         html = splice(html, name, outer_html)
     html = splice(html, "SCHEMA", schema_html)
+    html = splice(html, "HEROSTATS", herostats_html)
     DEALS_HTML.write_text(html, encoding="utf-8")
     print(
         "Pre-rendered deals/index.html:",
