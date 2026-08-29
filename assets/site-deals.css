@@ -1,5 +1,29 @@
 /* JRS Digital — Deals page stylesheet */
 
+/* Explicit deviation from the "no decorative illustration" position taken
+   earlier in this file (see the hero comment below) -- kept by request.
+   Very low-detail/near-white network-line art positioned behind the top
+   of the page only (background-size:contain, no-repeat, no fixed
+   attachment) so it never tiles down through the 260+ row comparison
+   table or competes with data legibility there; every real component
+   already has its own solid background regardless. Two source images
+   (wide/tall) swap by viewport so neither gets stretched or cropped. */
+/* body.wide-theme (site-wide.css) sets the `background` shorthand, which
+   resets background-image to none -- match its specificity here so this
+   actually wins rather than silently losing to source order. */
+body.wide-theme {
+  background-image: url('/assets/img/deals-bg-pattern-wide.webp');
+  background-repeat: no-repeat;
+  background-position: top center;
+  background-size: contain;
+}
+
+@media (max-width: 640px) {
+  body.wide-theme {
+    background-image: url('/assets/img/deals-bg-pattern-tall.webp');
+  }
+}
+
 /* ---------- hero ----------
    Deliberately a compact page-title block, not a marketing hero -- no
    illustration, no separate promotional banner. This is a comparison

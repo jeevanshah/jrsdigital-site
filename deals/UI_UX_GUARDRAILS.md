@@ -17,6 +17,12 @@ This document governs *visual and interaction design*. It does not replace or du
 - Existing design tokens (`--w-accent`, `--w-ink`, `--w-ink-70`, `--w-border`, `--jrs-green`, etc. — defined in `assets/site-wide.css`) are the palette. Reuse them; do not invent parallel one-off colors.
 - See **§33 Project File Map** at the end for exactly where things live.
 
+## Approved exceptions
+
+A hard constraint can still be overridden by an explicit, informed product-owner decision — that's a deliberate call, not drift. Current standing exceptions:
+
+- **Page background illustration.** §1/§5 otherwise rule out decorative background art. The product owner explicitly requested a very-low-detail network-line background image (`assets/img/deals-bg-pattern-wide.webp` / `-tall.webp`) after being shown the tradeoff. It's scoped to sit behind the top of the page only (`background-size: contain`, no tiling, no fixed attachment) so it never competes with the comparison table's legibility. Don't remove this citing §1/§5 without checking with the user first — it's intentional, not an oversight.
+
 ---
 
 # 1. Product Identity
