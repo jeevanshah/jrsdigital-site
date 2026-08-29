@@ -1,12 +1,133 @@
 /* JRS Digital — Deals page stylesheet */
 
-/* ---------- hero ---------- */
+/* ---------- hero ----------
+   Deliberately a compact page-title block, not a marketing hero -- no
+   illustration, no separate promotional banner. This is a comparison
+   utility; a real result should be reachable without scrolling past
+   decoration on any tested viewport (see the JRS UI/UX guardrails, §3/§14). */
 .deals-hero {
-  display: grid;
-  grid-template-columns: minmax(320px, 460px) 1fr;
-  gap: 40px;
-  align-items: center;
-  padding: 20px 0 24px;
+  max-width: 640px;
+  padding: 16px 0 8px;
+}
+
+/* "Same plan, different signup price" example -- desktop-only use of the
+   hero's spare width (see renderHeroMoat() in deals/index.html). Hidden
+   entirely below 981px rather than shrunk to one line, so it can never
+   push a result below the fold on the viewports that matter most. Kept
+   deliberately lighter than the comparison table itself: no card, no
+   shadow, no radius, no gradient, no icons, just type + thin dividers,
+   with orange reserved for the one lowest-price figure. */
+.deals-hero-moat {
+  display: none;
+}
+
+@media (min-width: 981px) {
+  .deals-hero {
+    max-width: none;
+    display: flex;
+    align-items: flex-start;
+    gap: 56px;
+  }
+
+  .deals-hero-copy {
+    flex: 1 1 480px;
+    max-width: 560px;
+    min-width: 0;
+  }
+
+  .deals-hero-moat:not([hidden]) {
+    display: block;
+    flex: 0 1 300px;
+    max-width: 300px;
+    min-width: 260px;
+    padding: 8px 0 0 28px;
+    border-left: 1px solid var(--w-border);
+  }
+}
+
+.deals-hero-moat-kicker {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--w-ink-50);
+  margin: 0 0 10px;
+}
+
+.deals-hero-moat-example-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--w-ink);
+  margin: 0 0 8px;
+}
+
+.deals-hero-moat-routes {
+  margin: 0 0 10px;
+  border-top: 1px solid var(--w-border);
+}
+
+.deals-hero-moat-routes > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--w-border);
+  font-size: 0.82rem;
+}
+
+.deals-hero-moat-routes dt {
+  margin: 0;
+  color: var(--w-ink-70);
+  font-weight: 600;
+}
+
+.deals-hero-moat-routes dd {
+  margin: 0;
+  color: var(--w-ink);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.deals-hero-moat-routes .is-lowest dd {
+  color: var(--w-accent);
+}
+
+.deals-hero-moat-flag {
+  font-weight: 600;
+  font-size: 0.68rem;
+  color: var(--w-ink-50);
+  white-space: nowrap;
+}
+
+.deals-hero-moat-total {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--w-ink-70);
+  margin: 0 0 8px;
+}
+
+.deals-hero-moat-total strong {
+  color: var(--w-ink);
+  font-size: 0.95rem;
+}
+
+.deals-hero-moat-verified {
+  font-size: 0.7rem;
+  color: var(--w-ink-50);
+  margin: 0 0 12px;
+}
+
+.deals-hero-moat-tagline {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--w-ink-70);
+  line-height: 1.4;
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--w-border);
 }
 
 .deals-eyebrow {
@@ -40,6 +161,15 @@
   margin: 0 0 14px;
 }
 
+/* Compact "N plans / M providers" reading of the same HEROSTATS numbers,
+   swapped in for .deals-hero-longform on narrow screens (see the mobile
+   breakpoint below) so the hero reads as one tight line instead of a full
+   sentence + a separate "Last updated" line. */
+.deals-hero-compact,
+.deals-hero-dot {
+  display: none;
+}
+
 .deals-updated {
   display: flex;
   align-items: center;
@@ -65,7 +195,7 @@
    changelog.json hasn't loaded or has no entries yet, rather than showing
    an empty/loading placeholder. */
 .deals-changelog {
-  margin-top: 14px;
+  margin-top: 10px;
 }
 
 .deals-changelog-label {
@@ -160,88 +290,10 @@
   }
 }
 
-/* ---------- hero illustration (layered PNG/WebP assets, absolutely
-   positioned over the background art) ---------- */
-.deals-hero-art-wrap {
-  position: relative;
-  width: 100%;
-}
-
-.deals-hero-art {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  overflow: hidden;
-  border-radius: var(--w-radius);
-  background: #E8EDE9;
-}
-
-.deals-hero-bleed {
-  position: absolute;
-  bottom: 0%;
-  height: auto;
-  width: 36%;
-  z-index: 2;
-  pointer-events: none;
-}
-
-.deals-hero-bleed-l {
-  left: -9%;
-}
-
-.deals-hero-bleed-r {
-  right: 0%;
-}
-
-.deals-hero-bg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: 0;
-}
-
-.deals-hero-house,
-.deals-hero-phone {
-  position: absolute;
-  height: auto;
-}
-
-.deals-hero-house {
-  left: 20%;
-  bottom: 0;
-  width: 50%;
-  z-index: 1;
-  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.08));
-}
-
-.deals-hero-phone {
-  right: 2%;
-  bottom: -2%;
-  width: 17%;
-  z-index: 3;
-  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.12));
-}
-
-.deals-hero-art::after {
-  content: "";
-  position: absolute;
-  top: 35%;
-  left: 50%;
-  width: 280px;
-  height: 280px;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.5) 0%, rgba(255, 248, 235, 0.2) 45%, rgba(255, 255, 255, 0) 75%);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 1;
-}
-
 /* ---------- toolbar ---------- */
 .deals-toolbar-section {
   padding-top: 0;
-  padding-bottom: 20px;
+  padding-bottom: 14px;
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -269,6 +321,7 @@
   font-size: 0.88rem;
   font-weight: 600;
   font-family: 'Plus Jakarta Sans', sans-serif;
+  white-space: nowrap;
   border-width: 1.5px 1.5px 0 1.5px;
   border-style: solid;
   border-color: rgba(17, 24, 39, 0.16);
@@ -277,6 +330,17 @@
   color: var(--w-ink);
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Between the mobile-sheet breakpoint (640px, its own horizontal-scroll
+   tab row) and desktop's roomy width, the 4 tabs + Share button were ~13px
+   too wide for one row at ~768px -- tightening padding here rather than
+   letting text wrap inside a tab or the row overflow horizontally. */
+@media (min-width: 641px) and (max-width: 900px) {
+  .deals-filter-btn {
+    padding: 11px 14px;
+    gap: 6px;
+  }
 }
 
 .deals-filter-btn svg {
@@ -297,99 +361,6 @@
   border-color: var(--w-accent);
   color: #FFFFFF;
   box-shadow: 0 -2px 10px rgba(255, 75, 22, 0.2);
-}
-
-/* ---------- wi-fi diagnostic banner ---------- */
-.deals-wifi-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  background: #FFF8F5;
-  border: 1px solid rgba(255, 75, 22, 0.22);
-  border-radius: var(--w-radius);
-  padding: 12px 18px;
-  margin-bottom: 16px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.deals-wifi-banner:hover {
-  border-color: rgba(255, 75, 22, 0.4);
-  box-shadow: 0 4px 14px rgba(255, 75, 22, 0.06);
-}
-
-.deals-wifi-banner-content {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.deals-wifi-banner-kicker {
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--w-accent);
-}
-
-.deals-wifi-banner-text {
-  font-size: 0.88rem;
-  color: var(--w-ink-70);
-  margin: 0;
-  line-height: 1.4;
-}
-
-.deals-wifi-banner-text strong {
-  color: var(--w-ink);
-  font-weight: 700;
-  margin-right: 4px;
-}
-
-.deals-wifi-banner-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  background: #FFFFFF;
-  border: 1.5px solid rgba(255, 75, 22, 0.35);
-  border-radius: 8px;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--w-accent);
-  text-decoration: none;
-  white-space: nowrap;
-  flex-shrink: 0;
-  transition: all 0.15s ease;
-}
-
-.deals-wifi-banner-cta svg {
-  width: 14px;
-  height: 14px;
-  transition: transform 0.15s ease;
-}
-
-.deals-wifi-banner-cta:hover {
-  background: var(--w-accent);
-  border-color: var(--w-accent);
-  color: #FFFFFF;
-}
-
-.deals-wifi-banner-cta:hover svg {
-  transform: translateX(2px);
-}
-
-@media (max-width: 680px) {
-  .deals-wifi-banner {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-    padding: 12px 14px;
-  }
-
-  .deals-wifi-banner-cta {
-    justify-content: center;
-  }
 }
 
 .deals-toolbar-header {
@@ -437,7 +408,7 @@
   align-items: start;
   border: 1px solid var(--w-border);
   border-radius: 0 var(--w-radius) var(--w-radius) var(--w-radius);
-  padding: 20px 24px;
+  padding: 16px 24px;
   background: #FFFFFF;
   min-width: 0;
   max-width: 100%;
@@ -473,8 +444,8 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 14px;
-  padding: 12px 18px;
+  margin-top: 10px;
+  padding: 10px 18px;
   border: 1px solid var(--w-border);
   border-radius: var(--w-radius);
   background: #FFF8F5;
@@ -783,6 +754,23 @@
    button hides itself at the same breakpoint. */
 .deals-filter-col--share {
   display: none;
+}
+
+/* ---------- mobile filters sheet ----------
+   Desktop: Providers/Sort/toggles/share stay inline grid items of
+   .deals-filters-box exactly as before -- .deals-filters-sheet disappears
+   via display:contents so wrapping it changed nothing structurally.
+   Mobile (see the 640px breakpoint below): the same wrapper becomes a
+   fixed slide-up sheet, and the compact summary bar + "Filters" button
+   become the only always-visible entry point to it. */
+.deals-mobile-summary-bar,
+.deals-filters-sheet-backdrop,
+.deals-filters-sheet-header {
+  display: none;
+}
+
+.deals-filters-sheet {
+  display: contents;
 }
 
 /* ---------- speed/tier chips ---------- */
@@ -1138,6 +1126,24 @@
   background: transparent;
 }
 
+/* Top card of whatever the current sort produces -- see topPickLabel().
+   Neutral ink, not green: this names its own math (the ribbon text is the
+   active sort criterion, e.g. "Lowest 1st-year cost"), it isn't a "this is
+   the winner" endorsement, so it must not read as one. */
+.deal-entry--top,
+.deal-entry--top:hover {
+  border-color: var(--w-ink);
+}
+
+.deal-top-badge {
+  padding: 6px 14px;
+  background: var(--w-ink);
+  color: #FFFFFF;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
 .deal-row:last-child {
   border-bottom: none;
 }
@@ -1279,41 +1285,31 @@
 }
 
 .deal-channel {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  width: fit-content;
-  font-size: 0.67rem;
   font-weight: 700;
-  line-height: 1.35;
   color: var(--w-ink-70);
 }
 
-.deal-channel--partner-exclusive,
-.deal-channel--bank-perk,
-.deal-channel--promo-code {
-  padding: 3px 7px;
-  border-radius: 999px;
-  border: 1px solid rgba(217, 119, 6, 0.24);
-  background: #FFF8EB;
-  color: #8A4B08;
+/* A plan with no partner channel, no lock-in fact, no notice caveat and no
+   extra terms has nothing to show here (the hidden .deal-badge-note is
+   always present as a child, so :empty alone won't catch this) -- collapse
+   the whole row rather than leaving a bare "Offer" caption over blank
+   space (see the ::before rule further down, mobile only). */
+.deal-offer-summary:not(:has(.deal-offer-fact-text, .deal-offer-toggle)) {
+  display: none;
 }
 
 .deal-offer-summary {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
   width: 100%;
   min-width: 0;
 }
 
-.deal-offer-route,
-.deal-offer-fact {
-  display: flex;
-  align-items: flex-start;
-  gap: 7px;
+/* One inline fact line (e.g. "WhistleOut Special · 30-day notice") instead
+   of a separate icon+label row per fact -- plan metadata, not a badge. */
+.deal-offer-facts {
   min-width: 0;
   color: var(--w-ink-70);
   font-size: 0.74rem;
@@ -1321,32 +1317,29 @@
   line-height: 1.35;
 }
 
-.deal-offer-route > svg,
-.deal-offer-fact > svg {
-  width: 14px;
-  height: 14px;
-  margin-top: 1px;
-  flex: 0 0 auto;
-  color: var(--w-ink-70);
+.deal-offer-facts-sep {
+  color: var(--w-ink-50);
+  font-weight: 400;
 }
 
-button.deal-offer-fact {
-  width: 100%;
+button.deal-offer-fact-text {
   padding: 0;
   border: 0;
   background: transparent;
-  font-family: inherit;
-  text-align: left;
+  font: inherit;
+  color: inherit;
   cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
 }
 
-.deal-offer-fact--warn,
-.deal-offer-fact--warn > svg {
+.deal-offer-fact-text--warn {
   color: #9A5B0A;
 }
 
-button.deal-offer-fact:hover,
-button.deal-offer-fact:focus-visible {
+button.deal-offer-fact-text:hover,
+button.deal-offer-fact-text:focus-visible {
   color: var(--w-accent-strong);
   text-decoration: underline;
 }
@@ -1402,7 +1395,14 @@ button.deal-offer-fact:focus-visible {
 .deals-table-body.is-compact .deal-cell-vsmine,
 .deals-table-body.is-compact .deal-direct-price,
 .deals-table-body.is-compact .deal-cell-after .deal-cell-caption,
-.deals-table-body.is-compact .deal-offer-fact:not(.deal-offer-fact--warn) {
+.deals-table-body.is-compact .deal-offer-fact-text--contract {
+  display: none;
+}
+
+/* "No lock-in" alone (hidden above in compact mode) shouldn't leave an
+   empty, padded .deal-offer-summary behind -- see the always-empty case
+   handled near .deal-offer-summary's base rule. */
+.deals-table-body.is-compact .deal-offer-summary:not(:has(.deal-offer-fact-text:not(.deal-offer-fact-text--contract), .deal-offer-toggle)) {
   display: none;
 }
 
@@ -1413,7 +1413,10 @@ button.deal-offer-fact:focus-visible {
 .deals-table-body.is-compact .deal-essential-saving {
   display: inline-flex;
   width: fit-content;
-  margin-top: 3px;
+  margin-top: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(52, 139, 39, 0.12);
   color: #237348;
   font-size: 0.7rem;
   font-weight: 700;
@@ -2040,16 +2043,6 @@ button.deal-badge[aria-expanded="true"] {
 
 /* ---------- responsive ---------- */
 @media (max-width: 980px) {
-  .deals-hero {
-    grid-template-columns: 1fr;
-    padding: 16px 0 20px;
-  }
-
-  .deals-hero-art {
-    max-width: 440px;
-    margin: 0 auto;
-  }
-
   .pm-banner-cta {
     align-items: flex-start;
   }
@@ -2414,6 +2407,39 @@ button.deal-badge[aria-expanded="true"] {
 }
 
 @media (max-width: 640px) {
+  /* Condense the hero sentence + separate "Last updated" line into one
+     "264 plans • 37 providers • Updated <date> [check]" row -- same
+     HEROSTATS/UPDATED values, just the compact wording swapped in for the
+     full sentence (see the .deals-hero-longform/-compact split above). */
+  .deals-hero-longform {
+    display: none;
+  }
+
+  .deals-hero-compact,
+  .deals-hero-dot {
+    display: inline;
+  }
+
+  .deals-hero-sub {
+    margin-bottom: 4px;
+  }
+
+  .deals-updated {
+    gap: 4px;
+  }
+
+  .deals-hero-dot--updated {
+    order: 1;
+  }
+
+  .deals-updated-text {
+    order: 2;
+  }
+
+  .deals-check {
+    order: 3;
+  }
+
   .deals-toolbar-header {
     display: flex;
     flex-direction: column;
@@ -2508,6 +2534,156 @@ button.deal-badge[aria-expanded="true"] {
     min-width: 0;
     max-width: 100%;
     width: 100%;
+  }
+
+  .deals-mobile-summary-bar {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--w-border);
+  }
+
+  .deals-mobile-summary-text {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--w-ink-70);
+    line-height: 1.4;
+  }
+
+  .deals-mobile-summary-text strong {
+    color: var(--w-ink);
+  }
+
+  .deals-mobile-summary-sort {
+    font-size: 0.76rem;
+    color: var(--w-ink-50);
+  }
+
+  .deals-mobile-filters-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    padding: 9px 14px;
+    border: 1.5px solid var(--w-accent);
+    border-radius: 8px;
+    background: #FFFFFF;
+    color: var(--w-accent);
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .deals-mobile-filters-btn svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .deals-filters-sheet-backdrop:not([hidden]) {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.4);
+    z-index: 59;
+  }
+
+  .deals-filters-sheet {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 80vh;
+    overflow-y: auto;
+    background: #FFFFFF;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -12px 36px rgba(17, 24, 39, 0.18);
+    padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    box-sizing: border-box;
+    z-index: 60;
+    transform: translateY(100%);
+    transition: transform 0.25s ease;
+  }
+
+  .deals-filters-sheet.is-open {
+    transform: translateY(0);
+  }
+
+  .deals-filters-sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--w-border);
+  }
+
+  .deals-filters-sheet-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--w-ink);
+  }
+
+  .deals-filters-sheet-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--w-border);
+    border-radius: 8px;
+    background: #FFFFFF;
+    color: var(--w-ink);
+    cursor: pointer;
+  }
+
+  .deals-filters-sheet-close svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  body.deals-sheet-open {
+    overflow: hidden;
+  }
+
+  /* Docked to the viewport instead of sitting inline above the grid --
+     it's a page-wide comparison input every card reads from
+     (vsMineHtml()), so it earns staying reachable while scrolling
+     through 260+ plans instead of requiring a scroll back to the top.
+     (site-deals.css is only ever loaded on this one page, so a bare
+     body rule here is safely scoped without needing :has().) */
+  body {
+    padding-bottom: 84px;
+  }
+
+  .deals-mine-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    margin-top: 0;
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+    border-radius: 0;
+    border-width: 1px 0 0;
+    box-shadow: 0 -6px 20px rgba(17, 24, 39, 0.08);
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+
+  .deals-mine-label {
+    font-size: 0.78rem;
+  }
+
+  .deals-mine-hint {
+    display: none;
   }
 
   .deals-multiselect,
@@ -3396,154 +3572,3 @@ button.deal-badge[aria-expanded="true"] {
   min-width: 0;
 }
 
-
-/* ---------- Interactive Rooftop Wi-Fi Broadcast (Hover & Touch Ping) ---------- */
-.deals-hero-signal {
-  position: absolute;
-  left: 45.2%;
-  top: 57.5%;
-  width: 9.5%;
-  height: auto;
-  z-index: 2;
-  pointer-events: none;
-  transform: translate(-50%, -50%);
-  opacity: 0.35;
-  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  filter: drop-shadow(0 2px 6px rgba(30, 41, 59, 0.25));
-}
-
-.deals-signal-svg {
-  width: 100%;
-  height: auto;
-  display: block;
-  overflow: visible;
-}
-
-.deals-signal-arc {
-  opacity: 0.4;
-  transform-origin: 60px 58px;
-  transition: opacity 0.3s ease, transform 0.3s ease, stroke 0.3s ease;
-}
-
-.deals-signal-dot {
-  opacity: 0.8;
-  transition: opacity 0.3s ease, filter 0.3s ease;
-}
-
-/* Bold Brand Charcoal & Accent Orange Broadcast Waves */
-@keyframes waveBroadcast1 {
-  0% {
-    opacity: 0.35;
-    transform: scale(0.94);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.05);
-    stroke: #FF4B16;
-  }
-  100% {
-    opacity: 0.5;
-    transform: scale(0.98);
-  }
-}
-
-@keyframes waveBroadcast2 {
-  0% {
-    opacity: 0.3;
-    transform: scale(0.94);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.06);
-    stroke: #1E293B;
-  }
-  100% {
-    opacity: 0.45;
-    transform: scale(0.98);
-  }
-}
-
-@keyframes waveBroadcast3 {
-  0% {
-    opacity: 0.2;
-    transform: scale(0.94);
-  }
-  50% {
-    opacity: 0.9;
-    transform: scale(1.08);
-    stroke: #FF4B16;
-  }
-  100% {
-    opacity: 0.35;
-    transform: scale(0.98);
-  }
-}
-
-@keyframes beaconLivePulse {
-  0%, 100% {
-    fill: #FF4B16;
-    filter: drop-shadow(0 0 2px rgba(255, 75, 22, 0.4));
-  }
-  50% {
-    fill: #F59E0B;
-    filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.9));
-  }
-}
-
-/* When Desktop User Hovers OR Mobile User Taps/Enters */
-.deals-hero-art:hover .deals-hero-signal,
-.deals-hero-signal.is-broadcasting {
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1.06);
-  filter: drop-shadow(0 4px 12px rgba(30, 41, 59, 0.35));
-}
-
-.deals-hero-art:hover .deals-signal-arc--1,
-.deals-hero-signal.is-broadcasting .deals-signal-arc--1 {
-  animation: waveBroadcast1 2s ease-in-out infinite;
-}
-
-.deals-hero-art:hover .deals-signal-arc--2,
-.deals-hero-signal.is-broadcasting .deals-signal-arc--2 {
-  animation: waveBroadcast2 2s ease-in-out infinite 0.28s;
-}
-
-.deals-hero-art:hover .deals-signal-arc--3,
-.deals-hero-signal.is-broadcasting .deals-signal-arc--3 {
-  animation: waveBroadcast3 2s ease-in-out infinite 0.56s;
-}
-
-.deals-hero-art:hover .deals-signal-dot,
-.deals-hero-signal.is-broadcasting .deals-signal-dot {
-  opacity: 1;
-  animation: beaconLivePulse 1.6s ease-in-out infinite;
-}
-
-/* Mobile ambient loop when idle */
-@media (hover: none) {
-  .deals-hero-signal {
-    opacity: 0.85;
-  }
-  .deals-signal-arc--1 {
-    animation: waveBroadcast1 3.2s ease-in-out infinite;
-  }
-  .deals-signal-arc--2 {
-    animation: waveBroadcast2 3.2s ease-in-out infinite 0.4s;
-  }
-  .deals-signal-arc--3 {
-    animation: waveBroadcast3 3.2s ease-in-out infinite 0.8s;
-  }
-  .deals-signal-dot {
-    opacity: 0.95;
-    animation: beaconLivePulse 2s ease-in-out infinite;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .deals-signal-arc--1,
-  .deals-signal-arc--2,
-  .deals-signal-arc--3,
-  .deals-signal-dot {
-    animation: none !important;
-  }
-}

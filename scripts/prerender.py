@@ -211,9 +211,19 @@ def main():
 
     plan_count = schema["numberOfItems"]
     provider_count = len({d["provider"] for d in all_deals if d.get("provider")})
+    # Two presentations share this one marker: the long descriptive sentence
+    # (desktop) and a compact "N plans / M providers" label (mobile) -- see
+    # the .deals-hero-longform/.deals-hero-compact CSS toggle in
+    # site-deals.css. Keeping both in the single HEROSTATS splice point
+    # avoids a second marker just to restate the same two numbers.
     herostats_html = (
-        f"<strong>{plan_count}</strong> NBN, OptiComm, mobile and satellite plans "
-        f"from <strong>{provider_count}</strong>"
+        f'<strong>{plan_count}</strong>'
+        f'<span class="deals-hero-longform"> NBN, OptiComm, mobile and satellite plans from </span>'
+        f'<span class="deals-hero-compact"> plans</span>'
+        f'<span class="deals-hero-dot"> &bull; </span>'
+        f'<strong>{provider_count}</strong>'
+        f'<span class="deals-hero-longform"> Australian providers</span>'
+        f'<span class="deals-hero-compact"> providers</span>'
     )
 
     html = DEALS_HTML.read_text(encoding="utf-8")
