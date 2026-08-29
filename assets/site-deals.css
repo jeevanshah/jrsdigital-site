@@ -60,39 +60,6 @@
   display: block;
 }
 
-/* ---------- trust badge ---------- */
-.deals-trust-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(4, 52, 44, 0.06);
-  border: 1px solid rgba(4, 52, 44, 0.16);
-  color: #04342C;
-  font-size: 0.82rem;
-  font-weight: 500;
-  padding: 6px 14px;
-  border-radius: 20px;
-  margin-top: 14px;
-}
-
-.deals-trust-badge svg {
-  width: 15px;
-  height: 15px;
-  color: #0A6C58;
-  flex-shrink: 0;
-}
-
-.deals-trust-badge a {
-  color: #0A6C58;
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.deals-trust-badge a:hover {
-  color: #04342C;
-}
-
 /* Freshness signal below the "Last updated" line -- same muted caption
    language, hidden entirely (via the [hidden] attribute set from JS) if
    changelog.json hasn't loaded or has no entries yet, rather than showing
@@ -513,11 +480,6 @@
   background: #FFF8F5;
 }
 
-.deals-mine-icon {
-  font-size: 1.15rem;
-  line-height: 1;
-}
-
 .deals-mine-label {
   font-size: 0.82rem;
   font-weight: 600;
@@ -816,6 +778,9 @@
   border-radius: 10px;
 }
 
+/* Hidden on desktop -- the toolbar's own Share button covers that case.
+   Revealed full-width in the mobile filters box (below) once the toolbar
+   button hides itself at the same breakpoint. */
 .deals-filter-col--share {
   display: none;
 }
@@ -1130,35 +1095,6 @@
   text-transform: none;
 }
 
-.deals-th-with-info {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.deals-info {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--w-ink-50);
-  cursor: help;
-  opacity: 0.75;
-  transition: opacity 0.15s ease, color 0.15s ease;
-  vertical-align: middle;
-}
-
-.deals-info:hover {
-  opacity: 1;
-  color: var(--w-accent);
-}
-
-.deals-info svg {
-  width: 12px;
-  height: 12px;
-  display: block;
-}
-
-.deals-loading,
 .deals-error,
 .deals-empty {
   text-align: center;
@@ -1340,11 +1276,6 @@
 .deal-plan-tier {
   font-size: 0.78rem;
   color: var(--w-ink-50);
-}
-
-.deal-channel-line {
-  display: flex;
-  margin-top: 3px;
 }
 
 .deal-channel {
@@ -2483,16 +2414,6 @@ button.deal-badge[aria-expanded="true"] {
 }
 
 @media (max-width: 640px) {
-  .deals-hero-stats-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 8px 10px;
-    padding: 10px 12px;
-  }
-
-  .deals-stat-number {
-    font-size: 1.25rem;
-  }
-
   .deals-toolbar-header {
     display: flex;
     flex-direction: column;
@@ -2704,12 +2625,6 @@ button.deal-badge[aria-expanded="true"] {
 }
 
 @media (max-width: 480px) {
-  .deals-trust-badge {
-    font-size: 0.74rem;
-    padding: 5px 10px;
-    line-height: 1.35;
-  }
-
   .deals-h1 {
     font-size: 1.85rem;
   }
@@ -3360,9 +3275,7 @@ button.deal-badge[aria-expanded="true"] {
 .deal-price-total,
 .deal-savings-amt,
 .deal-cell-value,
-.deal-cell-num,
 .deals-mine-input,
-.deal-mine-diff,
 .reminder-calc-val,
 .deal-savings-pct {
   font-variant-numeric: tabular-nums;
@@ -3387,14 +3300,6 @@ button.deal-badge[aria-expanded="true"] {
 .deal-badge-i svg {
   width: 9px;
   height: 9px;
-  display: block;
-}
-
-.deals-mine-icon-svg {
-  width: 18px;
-  height: 18px;
-  color: var(--jrs-green);
-  flex-shrink: 0;
   display: block;
 }
 
@@ -3473,6 +3378,14 @@ button.deal-badge[aria-expanded="true"] {
 
 .deals-filter-row--toggles::-webkit-scrollbar {
   display: none;
+}
+
+.deals-filter-row-label {
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--w-ink-70);
 }
 
 .deals-feature-toggles {

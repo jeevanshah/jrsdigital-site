@@ -293,33 +293,6 @@ section h2 {
   background: var(--border);
 }
 
-/* ---------- asymmetric pull-quote (About) ---------- */
-.pull-quote {
-  display: grid;
-  grid-template-columns: 0.8fr 2fr;
-  gap: 32px;
-  align-items: start;
-}
-.pull-quote .label {
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-.pull-quote blockquote {
-  margin: 0;
-  font-family: 'Playfair Display', Georgia, serif;
-  font-weight: 700;
-  font-size: clamp(1.6rem, 3.4vw, 2.4rem);
-  line-height: 1.25;
-}
-.pull-quote .note {
-  margin: 22px 0 0;
-  max-width: 48ch;
-  color: var(--text-muted);
-}
-
 /* ---------- phone-frame: realistic hardware shell, real screenshot inside ----------
    The case itself is always a dark, neutral device material (graphite/glass),
    independent of --accent or the page theme — real phone hardware doesn't
@@ -417,13 +390,6 @@ section h2 {
   object-fit: cover;
   object-position: top center;
 }
-.phone-screen-content {
-  padding: 16px 14px;
-  height: 100%;
-  box-sizing: border-box;
-}
-.phone-screen-media + .phone-screen-content { display: none; }
-
 /* No rotation here anymore (see .phone-frame, above) — just a subtle
    shadow deepen on hover, toggled by hero-effects.js via the .tilting
    class, so the mockup still feels a little alive without ever tilting. */
@@ -529,66 +495,6 @@ section h2 {
   box-shadow: 0 8px 24px var(--shadow);
 }
 
-.feature-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
-}
-.feature h3 {
-  font-size: 1.05rem;
-  margin-bottom: 0.4rem;
-}
-.feature p {
-  color: var(--text-muted);
-  margin: 0;
-  font-size: 0.95rem;
-}
-.feature-icon {
-  color: var(--accent);
-  margin-bottom: 0.75rem;
-}
-.feature-icon svg { display: block; width: 26px; height: 26px; }
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.4rem;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 0.95rem;
-  text-decoration: none;
-  border: 1px solid transparent;
-  transition: background-color 0.15s ease;
-}
-.btn-primary {
-  background: var(--accent);
-  color: #0B0B11;
-}
-.btn-primary:hover { background: var(--accent-strong); color: #0B0B11; }
-.btn-large {
-  padding: 1rem 2rem;
-  font-size: 1.05rem;
-}
-.btn-disabled {
-  background: transparent;
-  border: 1px dashed var(--border);
-  color: var(--text-muted);
-  cursor: default;
-  pointer-events: none;
-}
-
-.cta {
-  text-align: center;
-  padding: 48px 24px;
-  border-radius: 18px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-}
-.cta h2 { margin-bottom: 0.5rem; }
-.cta p { color: var(--text-muted); margin-top: 0; }
-.cta .btn { margin-top: 1rem; }
-
 .mockup-caption {
   text-align: center;
   font-size: 0.8rem;
@@ -618,33 +524,9 @@ section h2 {
 .footer-links a { color: var(--text-muted); }
 .footer-links a:hover { color: var(--accent); }
 
-.contact-card {
-  text-align: center;
-  padding: 56px 24px;
-  border-radius: 18px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-}
-.contact-card p {
-  color: var(--text-muted);
-  max-width: 46ch;
-  margin: 0.5rem auto 1.5rem;
-}
-
 .note-muted {
   color: var(--text-muted);
   margin-top: 24px;
-}
-
-.prose { max-width: 680px; padding-top: 32px; padding-bottom: 64px; }
-.prose h1 { font-size: 1.6rem; margin-bottom: 0.1rem; }
-.prose p.meta { color: var(--text-muted); margin-top: 0; font-size: 0.9rem; }
-.prose h2 { font-size: 1.1rem; margin-top: 2.2rem; }
-.prose code {
-  background: rgba(127, 127, 127, 0.15);
-  padding: 0.1em 0.35em;
-  border-radius: 4px;
-  font-size: 0.9em;
 }
 
 /* Tablet: the hero phone stops bleeding past the container, the rotated edge
@@ -674,7 +556,6 @@ section h2 {
     color: var(--text-muted);
   }
   .stats-callout .callout-line, .stats-callout .callout-dot { display: none; }
-  .pull-quote { grid-template-columns: 1fr; }
   .phone-gallery {
     height: auto;
     max-width: none;

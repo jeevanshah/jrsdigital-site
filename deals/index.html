@@ -8650,9 +8650,6 @@
           <a href="/priceminder/privacy.html">Privacy</a>
           <a href="/contact.html">Contact</a>
         </nav>
-        <span class="w-theme-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
-        </span>
         <a class="w-header-cta" href="https://play.google.com/store/apps/details?id=au.com.priceminder.app" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 3.5c0-.9 1-1.5 1.8-1l13 8.5c.7.5.7 1.5 0 2l-13 8.5c-.8.5-1.8-.1-1.8-1V3.5z"/></svg>
           <span class="w-header-cta-label"><span class="w-header-cta-prefix">Get </span>PriceMinder</span>
@@ -8814,6 +8811,13 @@
               365-Day Long Expiry
             </button>
           </div>
+        </div>
+
+        <div class="deals-filter-col deals-filter-col--share">
+          <button type="button" class="deals-share-btn-inline" data-share-btn>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            Share this comparison
+          </button>
         </div>
       </div>
 
@@ -9178,7 +9182,7 @@
   var sortSelect = document.querySelector('[data-sort]');
   var tabBtns = document.querySelectorAll('[data-tab]');
   var moreBtn = document.querySelector('[data-more]');
-  var shareBtn = document.querySelector('[data-share-btn]');
+  var shareBtns = document.querySelectorAll('[data-share-btn]');
   var uploadToggleBtn = document.querySelector('[data-upload-toggle]');
   var cgnatToggleBtn = document.querySelector('[data-cgnat-toggle]');
   var noticeToggleBtn = document.querySelector('[data-notice-toggle]');
@@ -10879,9 +10883,11 @@
     }, 2500);
   }
 
-  // --- Share Button ---
-  if (shareBtn) {
-    shareBtn.addEventListener('click', function () {
+  // --- Share Button(s) --- desktop toolbar button + the mobile-only inline
+  // one inside the filters box (hidden on desktop, shown in place of the
+  // toolbar button below the 640px breakpoint) share this one handler.
+  shareBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
       syncUrlState();
       var url = window.location.href;
       if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -10894,7 +10900,7 @@
         showToast('Link ready in address bar!');
       }
     });
-  }
+  });
 
   // --- Tab Switcher ---
   tabBtns.forEach(function (btn) {
