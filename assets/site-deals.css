@@ -25,24 +25,65 @@
   .deals-hero {
     max-width: none;
     display: flex;
-    align-items: flex-start;
-    gap: 56px;
+    align-items: center;
+    gap: 40px;
   }
 
   .deals-hero-copy {
-    flex: 1 1 480px;
+    flex: 0 1 480px;
     max-width: 560px;
     min-width: 0;
   }
 
+  /* A deliberate, documented exception to the page's general "no card
+     shadow/radius" restraint (see the JRS UI/UX guardrails §4) -- this one
+     panel is meant to read as a distinct explanatory example set apart
+     from the plain comparison rows, not as the default component style.
+     Still: exactly one icon, two real verified prices (never a fabricated
+     third route), and the "lowest found" emphasis stays brand orange, not
+     a green "winner" treatment (that's the same reasoning behind the
+     neutral top-pick ribbon on the results grid).
+     margin-left: auto pins it flush to the shell's right edge instead of
+     leaving unclaimed space past a fixed max-width when the viewport is
+     wider than both columns combined. */
   .deals-hero-moat:not([hidden]) {
-    display: block;
-    flex: 0 1 300px;
-    max-width: 300px;
-    min-width: 260px;
-    padding: 8px 0 0 28px;
-    border-left: 1px solid var(--w-border);
+    display: flex;
+    flex-direction: column;
+    flex: 0 1 380px;
+    max-width: 420px;
+    min-width: 300px;
+    margin-left: auto;
+    background: #FFFFFF;
+    border: 1px solid var(--w-border);
+    border-radius: 14px;
+    box-shadow: 0 4px 18px rgba(17, 24, 39, 0.07);
+    box-sizing: border-box;
+    overflow: hidden;
   }
+}
+
+.deals-hero-moat-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 20px 24px 16px;
+}
+
+.deals-hero-moat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: rgba(255, 75, 22, 0.1);
+  color: var(--w-accent);
+}
+
+.deals-hero-moat-icon svg {
+  width: 18px;
+  height: 18px;
 }
 
 .deals-hero-moat-kicker {
@@ -51,20 +92,23 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--w-ink-50);
-  margin: 0 0 10px;
+  margin: 2px 0 0;
+  line-height: 1.5;
 }
 
 .deals-hero-moat-example-title {
+  display: inline-block;
+  margin-top: 4px;
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 700;
   font-size: 0.95rem;
+  text-transform: none;
+  letter-spacing: normal;
   color: var(--w-ink);
-  margin: 0 0 8px;
 }
 
 .deals-hero-moat-routes {
-  margin: 0 0 10px;
-  border-top: 1px solid var(--w-border);
+  margin: 4px 24px 16px;
 }
 
 .deals-hero-moat-routes > div {
@@ -72,8 +116,9 @@
   justify-content: space-between;
   align-items: baseline;
   gap: 12px;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--w-border);
+  padding: 8px 10px;
+  margin: 0 -10px;
+  border-radius: 8px;
   font-size: 0.82rem;
 }
 
@@ -90,6 +135,11 @@
   white-space: nowrap;
 }
 
+.deals-hero-moat-routes .is-lowest {
+  background: rgba(255, 75, 22, 0.07);
+}
+
+.deals-hero-moat-routes .is-lowest dt,
 .deals-hero-moat-routes .is-lowest dd {
   color: var(--w-accent);
 }
@@ -106,7 +156,7 @@
   justify-content: space-between;
   font-size: 0.85rem;
   color: var(--w-ink-70);
-  margin: 0 0 8px;
+  margin: 0 24px 8px;
 }
 
 .deals-hero-moat-total strong {
@@ -117,7 +167,7 @@
 .deals-hero-moat-verified {
   font-size: 0.7rem;
   color: var(--w-ink-50);
-  margin: 0 0 12px;
+  margin: 0 24px 20px;
 }
 
 .deals-hero-moat-tagline {
@@ -126,8 +176,8 @@
   color: var(--w-ink-70);
   line-height: 1.4;
   margin: 0;
-  padding-top: 10px;
-  border-top: 1px solid var(--w-border);
+  padding: 14px 24px;
+  background: #FFF8F5;
 }
 
 .deals-eyebrow {
@@ -1127,17 +1177,19 @@
 }
 
 /* Top card of whatever the current sort produces -- see topPickLabel().
-   Neutral ink, not green: this names its own math (the ribbon text is the
-   active sort criterion, e.g. "Lowest 1st-year cost"), it isn't a "this is
-   the winner" endorsement, so it must not read as one. */
+   Brand orange, not a green/red "success" color: this names its own math
+   (the ribbon text is the active sort criterion, e.g. "Lowest 1st-year
+   cost"), it isn't a "this is the winner" endorsement -- it's the same
+   accent already used for the lowest-price row in the hero example and
+   for every primary action on the page, not a special "you won" color. */
 .deal-entry--top,
 .deal-entry--top:hover {
-  border-color: var(--w-ink);
+  border-color: var(--w-accent);
 }
 
 .deal-top-badge {
   padding: 6px 14px;
-  background: var(--w-ink);
+  background: var(--w-accent);
   color: #FFFFFF;
   font-size: 0.72rem;
   font-weight: 700;
@@ -2215,8 +2267,11 @@ button.deal-badge[aria-expanded="true"] {
   .deal-cell-provider,
   .deal-cell-action {
     grid-column: 1 / -1;
-    flex-direction: column;
     align-items: stretch;
+  }
+
+  .deal-cell-provider {
+    flex-direction: column;
   }
 
   .deal-cell-provider::before,
@@ -2242,41 +2297,61 @@ button.deal-badge[aria-expanded="true"] {
     display: inline-flex;
   }
 
+  /* Side by side instead of stacked -- View deal + Remind me were two full-
+     width rows (~90px combined) on every card that has a reminder option.
+     Row layout cuts that to one ~46px row without losing either action. */
   .deal-cell-action {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 8px;
     padding-top: 10px;
     margin-top: 6px;
     border-top: 1px solid var(--w-border);
-    align-items: center;
   }
 
-  .deal-link {
-    width: 100%;
+  /* Specificity note: base rules elsewhere set width:100% on .deal-link
+     (0,1,0) and on .deal-group-action .deal-reminder-trigger (0,2,0) --
+     matching that with .deal-cell-action ancestor selectors here (also
+     0,2,0, and later in source order) so these actually win instead of
+     flex-basis:auto quietly resolving back to the old width:100%. */
+  .deal-cell-action .deal-link {
+    width: auto;
+    flex: 1 1 auto;
+    min-width: 0;
     justify-content: center;
     padding: 11px 16px;
     font-size: 0.88rem;
   }
 
   .deal-offer-toggle {
-    width: 100%;
-    min-height: 40px;
+    width: auto;
+    min-height: 36px;
     justify-content: center;
     margin-top: 2px;
+    padding: 0 14px;
     border: 1px solid var(--w-border);
     border-radius: 8px;
     background: #FFFFFF;
     font-size: 0.8rem;
   }
 
-  .deal-pm-subtle,
-  .deal-reminder-trigger {
-    width: 100%;
+  .deal-cell-action .deal-pm-subtle,
+  .deal-cell-action .deal-reminder-trigger {
+    width: auto;
+    flex: 0 0 auto;
     justify-content: center;
-    padding: 9px 12px;
+    padding: 9px 14px;
     min-height: 40px;
     font-size: 0.8rem;
-    margin-top: 6px;
+    margin-top: 0;
     box-sizing: border-box;
     border-radius: 8px;
+  }
+
+  .deal-cell-action .deal-reminder-trigger span {
+    display: none;
   }
 }
 
