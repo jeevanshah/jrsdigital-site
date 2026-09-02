@@ -446,6 +446,14 @@ body.wide-theme {
   z-index: 1;
 }
 
+.deals-toolbar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.deals-kofi-toolbar-btn,
 .deals-share-btn {
   display: inline-flex;
   align-items: center;
@@ -458,17 +466,21 @@ body.wide-theme {
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--w-ink);
+  text-decoration: none;
   cursor: pointer;
   transition: all 0.15s ease;
-  margin-bottom: 2px;
+  line-height: 1.2;
 }
 
+.deals-kofi-toolbar-btn svg,
 .deals-share-btn svg {
   width: 15px;
   height: 15px;
   color: var(--w-accent);
+  flex-shrink: 0;
 }
 
+.deals-kofi-toolbar-btn:hover,
 .deals-share-btn:hover {
   border-color: var(--w-accent);
   color: var(--w-accent);
@@ -2578,6 +2590,7 @@ button.deal-badge[aria-expanded="true"] {
     height: 15px;
   }
 
+  .deals-toolbar-header .deals-toolbar-actions,
   .deals-toolbar-header .deals-share-btn {
     display: none !important;
   }
@@ -2659,6 +2672,44 @@ button.deal-badge[aria-expanded="true"] {
   .deals-mobile-summary-sort {
     font-size: 0.76rem;
     color: var(--w-ink-50);
+  }
+
+  .deals-mobile-summary-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .deals-mobile-support-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 9px 12px;
+    border: 1.5px solid rgba(17, 24, 39, 0.16);
+    border-radius: 8px;
+    background: #FFFFFF;
+    color: var(--w-ink);
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+    line-height: 1.2;
+  }
+
+  .deals-mobile-support-btn svg {
+    width: 14px;
+    height: 14px;
+    color: var(--w-accent);
+    flex-shrink: 0;
+  }
+
+  .deals-mobile-support-btn:hover {
+    border-color: var(--w-accent);
+    color: var(--w-accent);
   }
 
   .deals-mobile-filters-btn {
@@ -3669,5 +3720,119 @@ button.deal-badge[aria-expanded="true"] {
   flex-wrap: wrap;
   gap: 8px;
   min-width: 0;
+}
+
+/* ---------- Deals Support / Independence Card ---------- */
+.deals-support-section {
+  margin: 36px 0 0;
+}
+
+.deals-support-card {
+  background: #FCFCFD;
+  border: 1px solid var(--w-border);
+  border-radius: var(--w-radius);
+  padding: 26px 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.deals-support-content {
+  flex: 1 1 auto;
+  max-width: 740px;
+}
+
+.deals-support-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--w-accent-strong);
+  margin-bottom: 8px;
+}
+
+.deals-support-badge-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.deals-support-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--w-ink);
+  line-height: 1.3;
+  margin: 0 0 8px;
+}
+
+.deals-support-desc {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--w-ink-70);
+  margin: 0;
+}
+
+.deals-support-action {
+  flex-shrink: 0;
+}
+
+.deals-kofi-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  background: var(--w-ink);
+  color: #FFFFFF;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 12px 22px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  white-space: nowrap;
+}
+
+.deals-kofi-btn:hover {
+  background: #000000;
+  color: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(17, 24, 39, 0.12);
+}
+
+.deals-kofi-btn-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.audit-support-note {
+  margin-top: 10px;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.audit-support-note a {
+  color: #FF8C38;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .deals-support-card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 20px 18px;
+    gap: 18px;
+  }
+  .deals-support-action {
+    width: 100%;
+  }
+  .deals-kofi-btn {
+    width: 100%;
+  }
 }
 
