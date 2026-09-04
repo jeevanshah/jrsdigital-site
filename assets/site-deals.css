@@ -45,6 +45,49 @@ body.wide-theme {
   display: none;
 }
 
+/* Mobile: compact floating card docked above bottom controls */
+.deals-hero-moat:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  bottom: 16px;
+  left: 14px;
+  right: 14px;
+  max-width: 400px;
+  margin: 0 auto;
+  background: #FFFFFF;
+  border: 1px solid var(--w-border);
+  border-radius: 14px;
+  box-shadow: 0 10px 28px rgba(17, 24, 39, 0.16), 0 2px 8px rgba(17, 24, 39, 0.08);
+  box-sizing: border-box;
+  overflow: hidden;
+  z-index: 50;
+  animation: dealsMoatFloatIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dealsMoatFloatIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .deals-hero-moat:not([hidden]) {
+    bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (max-width: 980px) {
+  .deals-hero-moat.is-mobile-dismissed {
+    display: none !important;
+  }
+}
+
 @media (min-width: 981px) {
   .deals-hero {
     max-width: none;
@@ -59,80 +102,151 @@ body.wide-theme {
     min-width: 0;
   }
 
-  /* A deliberate, documented exception to the page's general "no card
-     shadow/radius" restraint (see the JRS UI/UX guardrails §4) -- this one
-     panel is meant to read as a distinct explanatory example set apart
-     from the plain comparison rows, not as the default component style.
-     Still: exactly one icon, two real verified prices (never a fabricated
-     third route), and the "lowest found" emphasis stays brand orange, not
-     a green "winner" treatment (that's the same reasoning behind the
-     neutral top-pick ribbon on the results grid).
-     margin-left: auto pins it flush to the shell's right edge instead of
-     leaving unclaimed space past a fixed max-width when the viewport is
-     wider than both columns combined. */
+  /* Desktop: right-column explanatory card */
   .deals-hero-moat:not([hidden]) {
-    display: flex;
-    flex-direction: column;
+    position: relative;
+    bottom: auto;
+    left: auto;
+    right: auto;
     flex: 0 1 380px;
     max-width: 420px;
     min-width: 300px;
-    margin-left: auto;
-    background: #FFFFFF;
-    border: 1px solid var(--w-border);
-    border-radius: 14px;
+    margin: 0 0 0 auto;
     box-shadow: 0 4px 18px rgba(17, 24, 39, 0.07);
-    box-sizing: border-box;
-    overflow: hidden;
+    z-index: auto;
+    animation: none;
   }
 }
 
 .deals-hero-moat-header {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 20px 24px 16px;
+  gap: 10px;
+  padding: 12px 14px 8px;
+  position: relative;
+}
+
+@media (min-width: 981px) {
+  .deals-hero-moat-header {
+    gap: 12px;
+    padding: 18px 20px 14px;
+  }
 }
 
 .deals-hero-moat-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
   border-radius: 50%;
   background: rgba(255, 75, 22, 0.1);
   color: var(--w-accent);
 }
 
+@media (min-width: 981px) {
+  .deals-hero-moat-icon {
+    width: 34px;
+    height: 34px;
+  }
+}
+
 .deals-hero-moat-icon svg {
-  width: 18px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
+}
+
+@media (min-width: 981px) {
+  .deals-hero-moat-icon svg {
+    width: 17px;
+    height: 17px;
+  }
+}
+
+.deals-hero-moat-header-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.deals-hero-moat-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0;
+  margin: -2px -2px 0 0;
+  border: 1px solid var(--w-border);
+  border-radius: 7px;
+  background: #FFFFFF;
+  color: var(--w-ink-50);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+
+@media (min-width: 981px) {
+  .deals-hero-moat-close {
+    display: none !important;
+  }
+}
+
+.deals-hero-moat-close:hover {
+  color: var(--w-ink);
+  background: rgba(17, 24, 39, 0.04);
+  border-color: rgba(17, 24, 39, 0.2);
+}
+
+.deals-hero-moat-close:focus-visible {
+  outline: 2px solid var(--w-accent);
+  outline-offset: 2px;
+  color: var(--w-ink);
+}
+
+.deals-hero-moat-close svg {
+  width: 14px;
+  height: 14px;
 }
 
 .deals-hero-moat-kicker {
-  font-size: 0.7rem;
+  font-size: 0.67rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--w-ink-50);
-  margin: 2px 0 0;
-  line-height: 1.5;
+  margin: 0;
+  line-height: 1.35;
 }
 
 .deals-hero-moat-example-title {
   display: inline-block;
-  margin-top: 4px;
+  margin-top: 2px;
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   text-transform: none;
   letter-spacing: normal;
   color: var(--w-ink);
 }
 
+@media (min-width: 981px) {
+  .deals-hero-moat-example-title {
+    margin-top: 3px;
+    font-size: 0.92rem;
+  }
+}
+
 .deals-hero-moat-routes {
-  margin: 4px 24px 16px;
+  margin: 0 14px 8px;
+}
+
+@media (min-width: 981px) {
+  .deals-hero-moat-routes {
+    margin: 4px 20px 14px;
+  }
 }
 
 .deals-hero-moat-routes > div {
@@ -140,10 +254,19 @@ body.wide-theme {
   justify-content: space-between;
   align-items: baseline;
   gap: 12px;
-  padding: 8px 10px;
-  margin: 0 -10px;
-  border-radius: 8px;
-  font-size: 0.82rem;
+  padding: 5px 8px;
+  margin: 0 -8px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+}
+
+@media (min-width: 981px) {
+  .deals-hero-moat-routes > div {
+    padding: 7px 10px;
+    margin: 0 -10px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+  }
 }
 
 .deals-hero-moat-routes dt {
@@ -170,7 +293,7 @@ body.wide-theme {
 
 .deals-hero-moat-flag {
   font-weight: 600;
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   color: var(--w-ink-50);
   white-space: nowrap;
 }
@@ -178,30 +301,58 @@ body.wide-theme {
 .deals-hero-moat-total {
   display: flex;
   justify-content: space-between;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--w-ink-70);
-  margin: 0 24px 8px;
+  margin: 0 14px 4px;
+}
+
+@media (min-width: 981px) {
+  .deals-hero-moat-total {
+    font-size: 0.84rem;
+    margin: 0 20px 6px;
+  }
 }
 
 .deals-hero-moat-total strong {
   color: var(--w-ink);
-  font-size: 0.95rem;
+  font-size: 0.88rem;
+}
+
+@media (min-width: 981px) {
+  .deals-hero-moat-total strong {
+    font-size: 0.92rem;
+  }
 }
 
 .deals-hero-moat-verified {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: var(--w-ink-50);
-  margin: 0 24px 20px;
+  margin: 0 14px 8px;
+}
+
+@media (min-width: 981px) {
+  .deals-hero-moat-verified {
+    font-size: 0.7rem;
+    margin: 0 20px 12px;
+  }
 }
 
 .deals-hero-moat-tagline {
-  font-size: 0.8rem;
+  font-size: 0.74rem;
   font-weight: 600;
   color: var(--w-ink-70);
-  line-height: 1.4;
+  line-height: 1.35;
   margin: 0;
-  padding: 14px 24px;
+  padding: 8px 14px;
   background: #FFF8F5;
+}
+
+@media (min-width: 981px) {
+  .deals-hero-moat-tagline {
+    font-size: 0.78rem;
+    line-height: 1.4;
+    padding: 12px 20px;
+  }
 }
 
 .deals-eyebrow {

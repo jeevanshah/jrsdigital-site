@@ -8713,13 +8713,9 @@
         </div><!-- PRERENDER:CHANGELOG:END -->
       </div>
 
-      <!-- Desktop-only (see @media in site-deals.css) -- one real, live
-           example of "same plan, different signup price", computed by
-           renderHeroMoat() from actual current data. Hidden entirely on
-           mobile rather than shown as a shortened line, so the above-the-
-           fold fix (a real result visible without scrolling) never
-           regresses. Stays hidden if no deal currently qualifies -- never
-           a placeholder/fabricated example. -->
+      <!-- Real, live example of "same plan, different signup price" plus verified
+           fine print terms, computed by renderHeroMoat() from actual current data.
+           Closable by the user, with state remembered in localStorage. -->
       <div class="deals-hero-moat" data-hero-moat hidden></div>
     </section>
 
@@ -10991,13 +10987,19 @@
   // One real, currently-live example of the actual product story ("same
   // plan, different signup price") for the desktop hero's empty space --
   // computed from whichever live deal has a genuine provider-direct vs
-  // partner-channel price gap, never a hardcoded/illustrative number that
-  // could go stale or misrepresent current pricing. Desktop-only by CSS;
-  // stays hidden entirely (never a fabricated placeholder) if no deal
-  // currently qualifies.
+  // Real, currently-live example of the actual product story ("same plan,
+  // different signup price") -- computed from whichever live deal has a
+  // genuine provider-direct vs partner-channel price gap, never a
+  // hardcoded/illustrative number. Displays as an integrated card on desktop;
+  // floats on mobile with dismissibility (state saved in localStorage).
   function renderHeroMoat() {
     var moat = document.querySelector('[data-hero-moat]');
     if (!moat) return;
+
+    // Clear legacy global dismissal so desktop is never erroneously hidden
+    try {
+      localStorage.removeItem('jrs_hero_moat_dismissed');
+    } catch (e) {}
 
     var candidate = null;
     for (var i = 0; i < deals.length; i++) {
@@ -11026,10 +11028,27 @@
     var todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
     var verifiedText = candidate.postedAt === todayStr ? 'Today' : formatShortDate(candidate.postedAt);
 
+    // Apply mobile-only dismissal class if previously closed on mobile
+    var isMobileDismissed = false;
+    try {
+      isMobileDismissed = localStorage.getItem('jrs_hero_moat_mobile_dismissed') === 'true';
+    } catch (e) {}
+
+    if (isMobileDismissed) {
+      moat.classList.add('is-mobile-dismissed');
+    } else {
+      moat.classList.remove('is-mobile-dismissed');
+    }
+
     moat.innerHTML =
       '<div class="deals-hero-moat-header">' +
         '<span class="deals-hero-moat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>' +
-        '<p class="deals-hero-moat-kicker">We check more than the provider price.<br><span class="deals-hero-moat-example-title">Example: ' + esc(candidate.provider) + ' ' + esc(candidate.tier || candidate.title || '') + '</span></p>' +
+        '<div class="deals-hero-moat-header-text">' +
+          '<p class="deals-hero-moat-kicker">We check more than the provider price.<br><span class="deals-hero-moat-example-title">Example: ' + esc(candidate.provider) + ' ' + esc(candidate.tier || candidate.title || '') + '</span></p>' +
+        '</div>' +
+        '<button type="button" class="deals-hero-moat-close" data-hero-moat-close aria-label="Dismiss floating card">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>' +
+        '</button>' +
       '</div>' +
       '<dl class="deals-hero-moat-routes">' +
         '<div><dt>Provider direct</dt><dd>$' + directPrice.toFixed(2) + '/mo</dd></div>' +
@@ -11038,6 +11057,17 @@
       '<p class="deals-hero-moat-total">First-year total <strong>$' + firstYear.toFixed(2) + '</strong></p>' +
       '<p class="deals-hero-moat-verified">$' + diff.toFixed(2) + ' cheaper than provider direct &middot; Last verified ' + esc(verifiedText) + '</p>' +
       '<p class="deals-hero-moat-tagline">Same plan. Different signup price. We find the lowest verified route.</p>';
+
+    var closeBtn = moat.querySelector('[data-hero-moat-close]');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function () {
+        moat.classList.add('is-mobile-dismissed');
+        try {
+          localStorage.setItem('jrs_hero_moat_mobile_dismissed', 'true');
+        } catch (e) {}
+      });
+    }
+
     moat.hidden = false;
   }
 
