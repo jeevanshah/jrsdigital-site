@@ -595,6 +595,7 @@ body.wide-theme {
   gap: 12px;
   position: relative;
   z-index: 1;
+  flex-wrap: wrap;
 }
 
 .deals-toolbar-actions {
@@ -602,6 +603,12 @@ body.wide-theme {
   align-items: center;
   gap: 8px;
   margin-bottom: 2px;
+}
+
+@media (max-width: 1060px) {
+  .deals-toolbar-header .deals-toolbar-actions {
+    display: none !important;
+  }
 }
 
 .deals-kofi-toolbar-btn,
@@ -3985,5 +3992,131 @@ button.deal-badge[aria-expanded="true"] {
   .deals-kofi-btn {
     width: 100%;
   }
+}
+
+/* ==========================================================================
+   Bundle Offer & Filter Styles
+   ========================================================================== */
+
+/* Bundle toggle chip in toolbar */
+.deals-bundle-toggle svg {
+  color: #7C3AED;
+}
+
+.deals-bundle-toggle.is-active {
+  background: #5B21B6;
+  color: #EDE9FE;
+  border-color: #5B21B6;
+}
+
+.deals-bundle-toggle.is-active svg {
+  color: #EDE9FE;
+}
+
+/* Bundle badge on plan cards */
+.deal-badge--bundle {
+  background: #F5F3FF;
+  color: #6D28D9;
+  border: 1px solid rgba(109, 40, 217, 0.25);
+  font-weight: 600;
+}
+
+button.deal-badge--bundle:hover,
+button.deal-badge--bundle:focus-visible {
+  background: #EDE9FE;
+  border-color: rgba(109, 40, 217, 0.45);
+  color: #5B21B6;
+}
+
+/* Bundle breakdown box in detailed view & bundle cards */
+.deal-bundle-box {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  background: #FAF5FF;
+  border: 1px solid #E9D5FF;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--w-ink);
+}
+
+.deals-table-body.is-compact .deal-bundle-box {
+  display: none;
+}
+
+.deal-bundle-box-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: #6D28D9;
+  margin-bottom: 4px;
+}
+
+.deal-bundle-box-desc {
+  margin: 0 0 6px;
+  color: var(--w-ink-70);
+}
+
+.deal-bundle-box-math {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 6px 10px;
+  background: #FFFFFF;
+  border-radius: 4px;
+  border: 1px solid rgba(109, 40, 217, 0.15);
+  margin: 6px 0;
+  font-size: 0.8rem;
+  color: var(--w-ink-70);
+}
+
+.deal-bundle-box-math strong {
+  color: var(--w-ink);
+}
+
+.deal-bundle-box-math .deal-bundle-save-tag {
+  color: #047857;
+  font-weight: 700;
+}
+
+.deal-bundle-box-reality {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(109, 40, 217, 0.25);
+  font-size: 0.77rem;
+  color: #5B21B6;
+  line-height: 1.4;
+}
+
+.deal-bundle-box-reality strong {
+  color: #4C1D95;
+}
+
+/* Bundle package breakdown components inside bundle cards */
+.deal-bundle-services {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 4px 0;
+  font-size: 0.82rem;
+}
+
+.deal-bundle-service-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--w-ink-70);
+}
+
+.deal-bundle-service-item strong {
+  color: var(--w-ink);
+}
+
+.deal-bundle-service-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: #6D28D9;
 }
 
