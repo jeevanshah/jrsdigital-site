@@ -4130,3 +4130,265 @@ button.deal-badge--bundle:focus-visible {
   color: #6D28D9;
 }
 
+/* ---------- Speed Tier Landing Pages (/deals/nbn-50/, /deals/nbn-100/, /deals/nbn-1000/) ---------- */
+
+.deals-speed-hero {
+  padding: 8px 0 20px;
+}
+
+.deals-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 0 8px;
+  font-size: 0.82rem;
+  color: var(--w-ink-50);
+}
+
+.deals-breadcrumb a {
+  color: var(--w-ink-70);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.deals-breadcrumb a:hover {
+  color: var(--w-accent);
+  text-decoration: underline;
+}
+
+.deals-breadcrumb-sep {
+  color: var(--w-ink-50);
+  font-size: 0.75rem;
+}
+
+.deals-breadcrumb-current {
+  color: var(--w-ink);
+  font-weight: 600;
+}
+
+/* Speed Switcher Segmented Control */
+.deals-speed-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0 20px;
+}
+
+.deals-speed-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--w-ink);
+  background: #FFFFFF;
+  border: 1.5px solid var(--w-border);
+  border-radius: 9999px;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.deals-speed-pill:hover {
+  border-color: var(--w-accent);
+  color: var(--w-accent-strong);
+  box-shadow: 0 2px 8px rgba(17, 24, 39, 0.06);
+}
+
+.deals-speed-pill.is-active {
+  background: var(--w-ink);
+  color: #FFFFFF;
+  border-color: var(--w-ink);
+  box-shadow: 0 2px 10px rgba(17, 24, 39, 0.18);
+}
+
+.deals-speed-pill.is-active .speed-pill-tag {
+  background: var(--w-accent);
+  color: #FFFFFF;
+}
+
+.speed-pill-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background: #F0F2F5;
+  color: var(--w-ink-70);
+  line-height: 1.2;
+}
+
+.deals-speed-pill--all {
+  border-style: dashed;
+  color: var(--w-ink-70);
+}
+
+.deals-speed-pill--all:hover {
+  border-style: solid;
+}
+
+/* Speed Benchmark Dashboard */
+.deals-speed-dashboard {
+  background: #FFFFFF;
+  border: 1.5px solid var(--w-border);
+  border-radius: 14px;
+  padding: 16px 20px;
+  box-shadow: 0 4px 20px rgba(17, 24, 39, 0.04);
+  margin: 18px 0 8px;
+}
+
+.deals-speed-dashboard-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--w-border);
+  flex-wrap: wrap;
+}
+
+.deals-speed-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--jrs-green);
+}
+
+.deals-speed-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--jrs-green);
+  box-shadow: 0 0 0 3px rgba(52, 139, 39, 0.18);
+  display: inline-block;
+}
+
+.deals-speed-tier-kicker {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--w-ink-70);
+}
+
+.deals-speed-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 840px) {
+  .deals-speed-metrics {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .deals-speed-metrics {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
+.deals-speed-metric-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.deals-speed-metric-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--w-ink-50);
+}
+
+.deals-speed-metric-val {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.18rem;
+  font-weight: 800;
+  color: var(--w-ink);
+  line-height: 1.25;
+}
+
+.deals-speed-metric-sub {
+  font-size: 0.74rem;
+  color: var(--w-ink-70);
+  line-height: 1.35;
+}
+
+/* Speed Page Toolbar & Filter Bar */
+.deals-speed-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  background: #F8F9FB;
+  border: 1px solid var(--w-border);
+  border-radius: var(--w-radius);
+  margin-top: 14px;
+}
+
+.deals-speed-controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.deals-speed-control-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.deals-speed-control-item label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--w-ink-70);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.deals-speed-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: #FFFFFF url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23475467' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;
+  padding: 6px 30px 6px 12px;
+  border: 1.5px solid var(--w-border);
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--w-ink);
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.deals-speed-select:focus {
+  outline: none;
+  border-color: var(--w-accent);
+  box-shadow: 0 0 0 2px rgba(255, 75, 22, 0.15);
+}
+
+.deals-speed-stats-badge {
+  font-size: 0.82rem;
+  color: var(--w-ink-70);
+}
+
+.deals-speed-stats-badge strong {
+  color: var(--w-ink);
+  font-weight: 700;
+}
+
+

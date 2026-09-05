@@ -15,9 +15,11 @@ Run from anywhere; paths are resolved relative to the repo root.
 import argparse
 import json
 import re
+import html
 import subprocess
 import sys
 import time
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -187,6 +189,220 @@ def build_deal_schema(deals: list[dict], bundles: list[dict] | None = None) -> d
     }
 
 
+def render_speed_page_grid(tier_deals: list[dict], target_tier: str) -> str:
+    """Renders the static pre-rendered grid for dedicated speed tier landing pages.
+    Matches the exact semantic class hierarchy of site-deals.css and speed-tier.js."""
+    def total_first_year(d):
+        try:
+            promo = float(d.get("promoPrice") or 0)
+        except Exception:
+            promo = 0
+        try:
+            regular = float(d.get("regularPrice") or 0)
+        except Exception:
+            regular = 0
+        try:
+            months = int(d.get("promoMonths") or 0)
+        except Exception:
+            months = 0
+        if promo > 0 and months > 0 and promo != regular:
+            promo_count = min(months, 12)
+            reg_count = 12 - promo_count
+            return (promo * promo_count) + (regular * reg_count)
+        return (regular or promo) * 12
+
+    def total_six_month(d):
+        try:
+            promo = float(d.get("promoPrice") or 0)
+        except Exception:
+            promo = 0
+        try:
+            regular = float(d.get("regularPrice") or 0)
+        except Exception:
+            regular = 0
+        try:
+            months = int(d.get("promoMonths") or 0)
+        except Exception:
+            months = 0
+        if promo > 0 and months > 0 and promo != regular:
+            promo_count = min(months, 6)
+            reg_count = 6 - promo_count
+            return (promo * promo_count) + (regular * reg_count)
+        return (regular or promo) * 6
+
+    sorted_deals = sorted(tier_deals, key=total_first_year)
+    if not sorted_deals:
+        return '<div class="deals-table-body is-compact" data-grid=""><div class="deals-empty"><p class="deals-empty-title">No plans found</p></div></div>'
+
+    provider_metadata = {
+        'Aussie Broadband': {'cgnat': 'opt_out_free', 'notice': 'none'},
+        'Superloop': {'cgnat': 'opt_out_free', 'notice': '30_days'},
+        'Leaptel': {'cgnat': 'opt_out_free', 'notice': 'none'},
+        'Tangerine': {'cgnat': 'opt_out_free', 'notice': 'none'},
+        'More Telecom': {'cgnat': 'opt_out_free', 'notice': 'none'},
+        'Neptune Internet': {'cgnat': 'opt_out_free', 'notice': 'none'},
+        'Telstra': {'cgnat': 'paid_only', 'notice': 'none'},
+        'Optus': {'cgnat': 'paid_only', 'notice': '30_days'},
+        'TPG': {'cgnat': 'paid_only', 'notice': '30_days'},
+        'iiNet': {'cgnat': 'paid_only', 'notice': '30_days'},
+        'Dodo': {'cgnat': 'paid_only', 'notice': '30_days'},
+        'SpinTel': {'cgnat': 'paid_only', 'notice': '30_days'},
+        'Exetel': {'cgnat': 'paid_only', 'notice': '30_days'},
+        'Swoop': {'cgnat': 'opt_out_free', 'notice': '30_days'},
+        'Flip': {'cgnat': 'paid_only', 'notice': 'none'},
+    }
+
+    def esc(s):
+        return html.escape(str(s or ''))
+
+    items_html = []
+    for idx, d in enumerate(sorted_deals):
+        try:
+            promo = float(d.get("promoPrice") or 0)
+        except Exception:
+            promo = 0
+        try:
+            regular = float(d.get("regularPrice") or 0)
+        except Exception:
+            regular = 0
+        try:
+            months = int(d.get("promoMonths") or 0)
+        except Exception:
+            months = 0
+
+        has_promo = promo > 0 and months > 0 and promo != regular
+        first_year = total_first_year(d)
+        six_month = total_six_month(d)
+        effective_regular = regular if regular > 0 else promo
+        savings = (effective_regular * 12) - first_year if has_promo else 0
+        meta = provider_metadata.get(d.get("provider"), {})
+
+        speed_val = f"~{d['typicalEveningSpeed']} Mbps" if d.get('typicalEveningSpeed') else (d.get('tier') or '')
+        speed_caption = "Typical evening"
+
+        badges_html = ''
+        if meta.get('cgnat') == 'opt_out_free':
+            badges_html = '<button type="button" class="deal-badge deal-badge--good" title="Free dynamic public IPv4 available on request">Free CGNAT opt-out</button>'
+
+        offer_facts = []
+        if meta.get('notice') == '30_days':
+            offer_facts.append('<button type="button" class="deal-offer-fact-text deal-offer-fact-text--warn" title="Provider requires 30 days written notice to cancel">30-day notice</button>')
+        if has_promo:
+            offer_facts.append(f'<span class="deal-offer-fact-text">Save ${savings:.0f} intro</span>')
+
+        try:
+            contract_months = int(d.get("contractMonths") or 0)
+        except Exception:
+            contract_months = 0
+        is_no_lock_in = contract_months == 0
+
+        url = d.get("url") or "#"
+        try:
+            domain = urllib.parse.urlparse(url).hostname or ''
+            logo_url = f"https://www.google.com/s2/favicons?sz=64&domain={domain}" if domain else ""
+        except Exception:
+            logo_url = ''
+
+        top_entry_cls = ' deal-entry--top' if idx == 0 else ''
+        top_badge = '<div class="deal-top-badge">Lowest 1st-year cost</div>' if idx == 0 else ''
+        badges_wrap = f'<div class="deal-provider-badges">{badges_html}</div>' if badges_html else ''
+
+        promo_price_str = f"${promo:.2f}" if has_promo else f"${regular:.2f}"
+        promo_caption = f"for {months} mos" if has_promo else "ongoing rate"
+
+        savings_html = (
+            f'<span class="deal-savings-amt">${savings:.2f}</span><span class="deal-savings-pct">Save {round((savings / (effective_regular * 12)) * 100)}%</span>'
+            if savings > 0 else '<span class="deal-cell-caption">—</span>'
+        )
+        first_year_savings = f'<span class="deal-essential-saving">Save ${savings:.0f} promo</span>' if savings > 0 else ''
+
+        offer_facts_joined = '<span class="deal-offer-facts-sep" aria-hidden="true"> &middot; </span>'.join(offer_facts)
+        offer_facts_html = f'<div class="deal-offer-facts">{offer_facts_joined}</div>' if offer_facts else ''
+        no_lock_in_html = '<span class="deal-offer-fact-text deal-offer-fact-text--contract">No lock-in</span>' if is_no_lock_in else ''
+
+        provider_name = esc(d.get('provider', ''))
+        plan_title = esc(d.get('title') or d.get('tier') or '')
+        logo_html = f'<img class="deal-provider-logo" src="{esc(logo_url)}" alt="" width="20" height="20" loading="lazy" onerror="this.remove()">' if logo_url else ''
+
+        item = (
+            f'<article class="deal-entry{top_entry_cls}">'
+            f'{top_badge}'
+            f'<div class="deal-row">'
+            f'<div class="deal-group deal-group-plan">'
+            f'<div class="deal-cell deal-cell-provider">'
+            f'<div class="deal-provider-head">'
+            f'{logo_html}'
+            f'<span class="deal-provider-name">{provider_name}</span>'
+            f'</div>'
+            f'<span class="deal-plan-tier">{plan_title}</span>'
+            f'{badges_wrap}'
+            f'</div>'
+            f'<div class="deal-cell deal-cell-speed" data-label="Speed &amp; Tech">'
+            f'<span class="deal-cell-body">'
+            f'<span class="deal-cell-value">{esc(speed_val)}</span>'
+            f'<span class="deal-cell-caption">{esc(speed_caption)}</span>'
+            f'</span>'
+            f'</div>'
+            f'</div>'
+            f'<div class="deal-group deal-group-cost">'
+            f'<div class="deal-cost-primary">'
+            f'<div class="deal-cell deal-cell-promo" data-label="Intro">'
+            f'<span class="deal-cell-body">'
+            f'<span class="deal-price-orange">{promo_price_str}<small>/mo</small></span>'
+            f'<span class="deal-cell-caption">{promo_caption}</span>'
+            f'</span>'
+            f'</div>'
+            f'<div class="deal-cell deal-cell-after" data-label="Ongoing">'
+            f'<span class="deal-cell-body">'
+            f'<span class="deal-price-navy">${regular:.2f}<small>/mo</small></span>'
+            f'<span class="deal-cell-caption">ongoing</span>'
+            f'</span>'
+            f'</div>'
+            f'</div>'
+            f'<div class="deal-cost-totals">'
+            f'<div class="deal-cell deal-cell-sixmonth" data-label="6-mo total">'
+            f'<span class="deal-cell-body">'
+            f'<span class="deal-price-navy">${six_month:.2f}</span>'
+            f'<span class="deal-cell-caption">6 months</span>'
+            f'</span>'
+            f'</div>'
+            f'<div class="deal-cell deal-cell-total" data-label="1-year total">'
+            f'<span class="deal-cell-body">'
+            f'<span class="deal-price-total">${first_year:.2f}</span>'
+            f'<span class="deal-cell-caption">first year</span>'
+            f'{first_year_savings}'
+            f'</span>'
+            f'</div>'
+            f'<div class="deal-cell deal-cell-savings" data-label="Savings">'
+            f'<span class="deal-cell-body">'
+            f'{savings_html}'
+            f'</span>'
+            f'</div>'
+            f'</div>'
+            f'</div>'
+            f'<div class="deal-group deal-group-offer">'
+            f'<div class="deal-offer-summary" data-label="Offer">'
+            f'{offer_facts_html}'
+            f'{no_lock_in_html}'
+            f'</div>'
+            f'</div>'
+            f'<div class="deal-group deal-group-action">'
+            f'<div class="deal-cell deal-cell-action">'
+            f'<a class="deal-link" href="{esc(url)}" target="_blank" rel="nofollow noopener" '
+            f'data-outbound="deal" data-provider="{esc(provider_name)}" data-plan="{esc(plan_title)}" data-tier="{esc(target_tier)}">'
+            f'View plan'
+            f'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>'
+            f'</a>'
+            f'</div>'
+            f'</div>'
+            f'</div>'
+            f'</article>'
+        )
+        items_html.append(item)
+
+    return '<div class="deals-table-body is-compact" data-grid="">' + ''.join(items_html) + '</div>'
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=8123)
@@ -232,10 +448,10 @@ def main():
             for slug, target_tier, sp_path in SPEED_PAGES:
                 try:
                     page.goto(f"{base_url}/deals/{slug}/", wait_until="networkidle", timeout=30000)
-                    page.wait_for_selector(".deal-entry, .deal-row", state="attached", timeout=15000)
+                    page.wait_for_function("() => window.__SPEED_TIER_RENDERED__ === true", timeout=15000)
                     speed_grids[slug] = page.eval_on_selector("[data-grid]", "el => el.outerHTML")
                 except Exception as e:
-                    print(f"Warning: could not prerender speed page {slug}: {e}")
+                    print(f"Notice: Playwright capture for {slug} will use direct renderer ({e})")
 
             browser.close()
     finally:
@@ -313,8 +529,8 @@ def main():
         tier_schema_html = '<script type="application/ld+json">\n' + json.dumps(tier_schema, indent=2) + "\n</script>"
 
         sp_html = sp_path.read_text(encoding="utf-8")
-        if slug in speed_grids:
-            sp_html = splice(sp_html, "GRID", speed_grids[slug])
+        grid_html = speed_grids.get(slug) or render_speed_page_grid(tier_deals, target_tier)
+        sp_html = splice(sp_html, "GRID", grid_html)
         sp_html = splice(sp_html, "SCHEMA", tier_schema_html)
         sp_path.write_text(sp_html, encoding="utf-8")
         print(f"Pre-rendered deals/{slug}/index.html: {len(tier_deals)} schema items")

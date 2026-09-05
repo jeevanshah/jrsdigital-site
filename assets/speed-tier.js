@@ -1,7 +1,7 @@
 /**
  * Dedicated Speed Tier Landing Page Controller (JRS Digital)
  * Powers /deals/nbn-50/, /deals/nbn-100/, and /deals/nbn-1000/
- * Reuses site-deals.css design tokens and calculation models.
+ * Reuses site-deals.css design tokens, classes, and calculation models.
  */
 (function () {
   'use strict';
@@ -25,30 +25,6 @@
     'Exetel': { cgnat: 'paid_only', notice: '30_days', cisUrl: 'https://www.exetel.com.au/terms' },
     'Swoop': { cgnat: 'opt_out_free', notice: '30_days', cisUrl: 'https://www.swoop.com.au/legal' },
     'Flip': { cgnat: 'paid_only', notice: 'none', cisUrl: 'https://www.flipconnect.com.au/critical-information-summary' }
-  };
-
-  var LOGO_FILENAMES = {
-    'Aussie Broadband': 'aussie-broadband.webp',
-    'Superloop': 'superloop.webp',
-    'Leaptel': 'leaptel.webp',
-    'Tangerine': 'tangerine.webp',
-    'More Telecom': 'more.webp',
-    'Telstra': 'telstra.webp',
-    'Optus': 'optus.webp',
-    'TPG': 'tpg.webp',
-    'iiNet': 'iinet.webp',
-    'Dodo': 'dodo.webp',
-    'SpinTel': 'spintel.webp',
-    'Exetel': 'exetel.webp',
-    'Swoop': 'swoop.webp',
-    'Flip': 'flip.webp',
-    'Vodafone': 'vodafone.webp',
-    'Origin': 'origin.webp',
-    'AGL': 'agl.webp',
-    'Mate': 'mate.webp',
-    'Belong': 'belong.webp',
-    'Kogan Internet': 'kogan.webp',
-    'Buddy Telco': 'buddy-telco.webp'
   };
 
   function baseBucketKey(rawTier) {
@@ -86,6 +62,18 @@
     return (regular || promo) * 12;
   }
 
+  function totalSixMonth(d) {
+    var promo = parsePrice(d.promoPrice);
+    var regular = parsePrice(d.regularPrice);
+    var months = parseInt(d.promoMonths, 10) || 0;
+    if (promo > 0 && months > 0 && promo !== regular) {
+      var promoCount = Math.min(months, 6);
+      var regularCount = 6 - promoCount;
+      return (promo * promoCount) + (regular * regularCount);
+    }
+    return (regular || promo) * 6;
+  }
+
   function savingsFirstYear(d) {
     var regular = parsePrice(d.regularPrice || d.promoPrice);
     return (regular * 12) - totalFirstYear(d);
@@ -103,6 +91,16 @@
     return esc(s).replace(/"/g, '&quot;');
   }
 
+  function providerLogoUrl(deal) {
+    var raw = deal.url || '';
+    try {
+      var host = new URL(raw).hostname;
+      return 'https://www.google.com/s2/favicons?sz=64&domain=' + host;
+    } catch (e) {
+      return '';
+    }
+  }
+
   var rootEl = document.querySelector('[data-speed-tier-page]');
   if (!rootEl) return;
 
@@ -111,6 +109,7 @@
   var sortSelect = document.querySelector('[data-sort-select]');
   var providerFilter = document.querySelector('[data-provider-filter]');
   var mineInput = document.querySelector('[data-mine-input]');
+  var mineClear = document.querySelector('[data-mine-clear]');
   var planCountEl = document.querySelector('[data-plan-count]');
   var minPriceEl = document.querySelector('[data-min-price]');
 
@@ -122,15 +121,13 @@
 
   if (mineInput && userCurrentBill > 0) {
     mineInput.value = userCurrentBill.toFixed(0);
+    if (mineClear) mineClear.hidden = false;
   }
 
-  function getLogoHtml(provider) {
-    var filename = LOGO_FILENAMES[provider];
-    if (filename) {
-      return '<img class="deal-provider-logo" src="/assets/img/logos/' + filename + '" alt="' + escAttr(provider) + ' logo" loading="lazy" width="28" height="28" onerror="this.style.display=\'none\'">';
-    }
-    var initials = provider.split(/\s+/).map(function (w) { return w[0]; }).slice(0, 2).join('').toUpperCase();
-    return '<span class="deal-provider-initials" aria-hidden="true">' + esc(initials) + '</span>';
+  function topPickLabel() {
+    if (activeSort === 'promoprice') return 'Lowest intro price';
+    if (activeSort === 'regularprice') return 'Lowest ongoing price';
+    return 'Lowest 1st-year cost';
   }
 
   function sortDeals(list) {
@@ -138,11 +135,29 @@
     if (activeSort === 'totalfirstyear') {
       sorted.sort(function (a, b) { return totalFirstYear(a) - totalFirstYear(b); });
     } else if (activeSort === 'promoprice') {
-      sorted.sort(function (a, b) { return (parsePrice(a.promoPrice) || parsePrice(a.regularPrice)) - (parsePrice(b.promoPrice) || parsePrice(b.regularPrice)); });
+      sorted.sort(function (a, b) {
+        return (parsePrice(a.promoPrice) || parsePrice(a.regularPrice)) -
+               (parsePrice(b.promoPrice) || parsePrice(b.regularPrice));
+      });
     } else if (activeSort === 'regularprice') {
-      sorted.sort(function (a, b) { return (parsePrice(a.regularPrice) || parsePrice(a.promoPrice)) - (parsePrice(b.regularPrice) || parsePrice(b.promoPrice)); });
+      sorted.sort(function (a, b) {
+        return (parsePrice(a.regularPrice) || parsePrice(a.promoPrice)) -
+               (parsePrice(b.regularPrice) || parsePrice(b.promoPrice));
+      });
     }
     return sorted;
+  }
+
+  function vsMineHtml(regularPrice) {
+    if (!userCurrentBill || userCurrentBill <= 0) return '';
+    var diff = regularPrice - userCurrentBill;
+    if (Math.abs(diff) < 0.01) {
+      return '<span class="deal-cell-vsmine deal-cell-vsmine--neutral">Same as yours</span>';
+    }
+    if (diff < 0) {
+      return '<span class="deal-cell-vsmine deal-cell-vsmine--good">-$' + Math.abs(diff).toFixed(2) + '/mo vs yours</span>';
+    }
+    return '<span class="deal-cell-vsmine deal-cell-vsmine--warn">+$' + diff.toFixed(2) + '/mo vs yours</span>';
   }
 
   function renderList() {
@@ -157,12 +172,14 @@
 
     if (planCountEl) planCountEl.textContent = sorted.length;
     if (minPriceEl && sorted.length > 0) {
-      var minPromo = Math.min.apply(null, sorted.map(function (d) { return parsePrice(d.promoPrice) || parsePrice(d.regularPrice); }));
+      var minPromo = Math.min.apply(null, sorted.map(function (d) {
+        return parsePrice(d.promoPrice) || parsePrice(d.regularPrice);
+      }));
       minPriceEl.textContent = '$' + minPromo.toFixed(0);
     }
 
     if (sorted.length === 0) {
-      grid.innerHTML = '<div class="deals-empty"><p class="deals-empty-title">No plans found</p><p class="deals-empty-sub">Try changing your provider filter.</p></div>';
+      grid.innerHTML = '<div class="deals-empty"><p class="deals-empty-title" style="font-size:1.1rem;font-weight:700;margin-bottom:6px;">No plans found</p><p class="deals-empty-sub" style="color:var(--w-ink-70);">Try resetting your provider filter.</p></div>';
       return;
     }
 
@@ -173,67 +190,110 @@
       var months = parseInt(d.promoMonths, 10) || 0;
       var hasPromo = promo > 0 && months > 0 && promo !== regular;
       var firstYear = totalFirstYear(d);
+      var sixMonth = totalSixMonth(d);
       var savings = savingsFirstYear(d);
       var meta = PROVIDER_METADATA[d.provider] || {};
 
-      var deltaHtml = '';
+      var deltaAnnualHtml = '';
       if (userCurrentBill > 0) {
         var userAnnual = userCurrentBill * 12;
-        var diff = userAnnual - firstYear;
-        if (diff > 5) {
-          deltaHtml = '<span class="deal-delta deal-delta--cheaper">Save $' + diff.toFixed(0) + '/yr vs current</span>';
-        } else if (diff < -5) {
-          deltaHtml = '<span class="deal-delta deal-delta--pricier">+$' + Math.abs(diff).toFixed(0) + '/yr</span>';
+        var diffAnnual = userAnnual - firstYear;
+        if (diffAnnual > 5) {
+          deltaAnnualHtml = '<span class="deal-essential-saving" style="background:rgba(52,139,39,0.12);color:var(--jrs-green);font-weight:700;display:inline-flex;padding:3px 8px;border-radius:6px;font-size:0.7rem;margin-top:4px;">Save $' + diffAnnual.toFixed(0) + '/yr vs current</span>';
+        } else if (diffAnnual < -5) {
+          deltaAnnualHtml = '<span class="deal-cell-subnote" style="color:#92400E;display:block;margin-top:2px;">+$' + Math.abs(diffAnnual).toFixed(0) + '/yr vs current</span>';
         }
       }
 
-      var speedDisplay = d.typicalEveningSpeed ? d.typicalEveningSpeed + ' Mbps evening' : d.tier;
+      var speedVal = d.typicalEveningSpeed ? ('~' + d.typicalEveningSpeed + ' Mbps') : d.tier;
+      var speedCaption = 'Typical evening';
 
       var badgesHtml = '';
       if (meta.cgnat === 'opt_out_free') {
-        badgesHtml += '<span class="deal-badge deal-badge--info" title="Dynamic public IPv4 available on request">Free CGNAT opt-out</span>';
-      }
-      if (meta.notice === '30_days') {
-        badgesHtml += '<span class="deal-badge deal-badge--warn" title="Requires 30 days notice to cancel">30-day notice</span>';
+        badgesHtml += '<button type="button" class="deal-badge deal-badge--good" title="Free dynamic public IPv4 available on request">Free CGNAT opt-out</button>';
       }
 
+      var offerFacts = [];
+      if (meta.notice === '30_days') {
+        offerFacts.push('<button type="button" class="deal-offer-fact-text deal-offer-fact-text--warn" title="Provider requires 30 days written notice to cancel">30-day notice</button>');
+      }
+      if (hasPromo) {
+        offerFacts.push('<span class="deal-offer-fact-text">Save $' + savings.toFixed(0) + ' intro</span>');
+      }
+
+      var contractMonths = parseInt(d.contractMonths, 10) || 0;
+      var isNoLockIn = contractMonths === 0;
+
       html +=
-        '<article class="deal-entry' + (idx < 3 ? ' is-top-deal' : '') + '">' +
+        '<article class="deal-entry' + (idx === 0 ? ' deal-entry--top' : '') + '">' +
+          (idx === 0 ? '<div class="deal-top-badge">' + esc(topPickLabel()) + '</div>' : '') +
           '<div class="deal-row">' +
-            '<div class="deal-group deal-group-provider">' +
+            '<div class="deal-group deal-group-plan">' +
               '<div class="deal-cell deal-cell-provider">' +
-                getLogoHtml(d.provider) +
-                '<div class="deal-provider-details">' +
+                '<div class="deal-provider-head">' +
+                  '<img class="deal-provider-logo" src="' + escAttr(providerLogoUrl(d)) + '" alt="" width="20" height="20" loading="lazy" onerror="this.remove()">' +
                   '<span class="deal-provider-name">' + esc(d.provider) + '</span>' +
-                  '<span class="deal-plan-tier">' + esc(d.title || d.tier) + '</span>' +
-                  '<span class="deal-speed-badge">' + esc(speedDisplay) + '</span>' +
+                '</div>' +
+                '<span class="deal-plan-tier">' + esc(d.title || d.tier) + '</span>' +
+                (badgesHtml ? '<div class="deal-provider-badges">' + badgesHtml + '</div>' : '') +
+              '</div>' +
+              '<div class="deal-cell deal-cell-speed" data-label="Speed &amp; Tech">' +
+                '<span class="deal-cell-body">' +
+                  '<span class="deal-cell-value">' + esc(speedVal) + '</span>' +
+                  '<span class="deal-cell-caption">' + esc(speedCaption) + '</span>' +
+                '</span>' +
+              '</div>' +
+            '</div>' +
+            '<div class="deal-group deal-group-cost">' +
+              '<div class="deal-cost-primary">' +
+                '<div class="deal-cell deal-cell-promo" data-label="Intro">' +
+                  '<span class="deal-cell-body">' +
+                    '<span class="deal-price-orange">$' + (hasPromo ? promo.toFixed(2) : regular.toFixed(2)) + '<small>/mo</small></span>' +
+                    '<span class="deal-cell-caption">' + (hasPromo ? 'for ' + months + ' mos' : 'ongoing rate') + '</span>' +
+                  '</span>' +
+                '</div>' +
+                '<div class="deal-cell deal-cell-after" data-label="Ongoing">' +
+                  '<span class="deal-cell-body">' +
+                    '<span class="deal-price-navy">$' + regular.toFixed(2) + '<small>/mo</small></span>' +
+                    '<span class="deal-cell-caption">ongoing</span>' +
+                    vsMineHtml(regular) +
+                  '</span>' +
+                '</div>' +
+              '</div>' +
+              '<div class="deal-cost-totals">' +
+                '<div class="deal-cell deal-cell-sixmonth" data-label="6-mo total">' +
+                  '<span class="deal-cell-body">' +
+                    '<span class="deal-price-navy">$' + sixMonth.toFixed(2) + '</span>' +
+                    '<span class="deal-cell-caption">6 months</span>' +
+                  '</span>' +
+                '</div>' +
+                '<div class="deal-cell deal-cell-total" data-label="1-year total">' +
+                  '<span class="deal-cell-body">' +
+                    '<span class="deal-price-total">$' + firstYear.toFixed(2) + '</span>' +
+                    '<span class="deal-cell-caption">first year</span>' +
+                    (savings > 0 ? '<span class="deal-essential-saving">Save $' + savings.toFixed(0) + ' promo</span>' : '') +
+                    deltaAnnualHtml +
+                  '</span>' +
+                '</div>' +
+                '<div class="deal-cell deal-cell-savings" data-label="Savings">' +
+                  '<span class="deal-cell-body">' +
+                    (savings > 0
+                      ? '<span class="deal-savings-amt">$' + savings.toFixed(2) + '</span><span class="deal-savings-pct">Save ' + Math.round((savings / (regular * 12)) * 100) + '%</span>'
+                      : '<span class="deal-cell-caption">—</span>') +
+                  '</span>' +
                 '</div>' +
               '</div>' +
             '</div>' +
-            '<div class="deal-group deal-group-price">' +
-              '<div class="deal-cell deal-cell-promo">' +
-                '<span class="deal-price-amount">$' + (hasPromo ? promo.toFixed(2) : regular.toFixed(2)) + '</span>' +
-                '<span class="deal-price-cycle">/mo</span>' +
-                (hasPromo
-                  ? '<span class="deal-promo-duration">for ' + months + ' mos</span>'
-                  : '<span class="deal-promo-duration">ongoing</span>') +
-              '</div>' +
-              '<div class="deal-cell deal-cell-regular">' +
-                (hasPromo ? '<span class="deal-reverts-amount">Then $' + regular.toFixed(2) + '/mo</span>' : '<span class="deal-reverts-amount">No lock-in</span>') +
-                '<span class="deal-total-first-year">1st yr: $' + firstYear.toFixed(2) + '</span>' +
-                deltaHtml +
-              '</div>' +
-            '</div>' +
             '<div class="deal-group deal-group-offer">' +
-              '<div class="deal-offer-summary">' +
-                (hasPromo ? '<span class="deal-savings-tag">Save $' + savings.toFixed(0) + ' in promo</span>' : '<span class="deal-savings-tag deal-savings-tag--neutral">Standard Rate</span>') +
-                '<div class="deal-badges-wrap">' + badgesHtml + '</div>' +
+              '<div class="deal-offer-summary" data-label="Offer">' +
+                (offerFacts.length ? '<div class="deal-offer-facts">' + offerFacts.join('<span class="deal-offer-facts-sep" aria-hidden="true"> &middot; </span>') + '</div>' : '') +
+                (isNoLockIn ? '<span class="deal-offer-fact-text deal-offer-fact-text--contract">No lock-in</span>' : '') +
               '</div>' +
             '</div>' +
             '<div class="deal-group deal-group-action">' +
               '<div class="deal-cell deal-cell-action">' +
                 '<a class="deal-link" href="' + esc(d.url) + '" target="_blank" rel="nofollow noopener" ' +
-                  'data-outbound="deal" data-provider="' + escAttr(d.provider) + '" data-plan="' + escAttr(d.title) + '" data-tier="' + escAttr(targetTier) + '">' +
+                  'data-outbound="deal" data-provider="' + escAttr(d.provider) + '" data-plan="' + escAttr(d.title || d.tier) + '" data-tier="' + escAttr(targetTier) + '">' +
                   'View plan' +
                   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>' +
                 '</a>' +
@@ -281,12 +341,39 @@
         userCurrentBill = !isNaN(val) && val > 0 ? val : 0;
         if (userCurrentBill > 0) {
           localStorage.setItem('jrs_user_cost', String(userCurrentBill));
+          if (mineClear) mineClear.hidden = false;
         } else {
           localStorage.removeItem('jrs_user_cost');
+          if (mineClear) mineClear.hidden = true;
         }
         renderList();
       });
     }
+
+    if (mineClear) {
+      mineClear.addEventListener('click', function () {
+        if (mineInput) mineInput.value = '';
+        userCurrentBill = 0;
+        localStorage.removeItem('jrs_user_cost');
+        mineClear.hidden = true;
+        renderList();
+      });
+    }
+
+    // Delegated click for outbound tracking
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a[data-outbound="deal"]');
+      if (!link) return;
+      if (typeof gtag === 'function') {
+        gtag('event', 'outbound_deal_click', {
+          event_category: 'Outbound Deal',
+          event_label: link.getAttribute('data-provider') + ' - ' + link.getAttribute('data-plan'),
+          provider: link.getAttribute('data-provider'),
+          plan_name: link.getAttribute('data-plan'),
+          tier: link.getAttribute('data-tier')
+        });
+      }
+    });
   }
 
   function loadDeals() {
@@ -306,6 +393,7 @@
         });
         initFilters();
         renderList();
+        window.__SPEED_TIER_RENDERED__ = true;
       })
       .catch(function (err) {
         console.warn('Could not load live deals catalog:', err);
