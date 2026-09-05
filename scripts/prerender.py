@@ -36,6 +36,38 @@ MARKERS = {
     "CHANGELOG": "[data-changelog-wrap]",
 }
 
+SPEED_PAGES = [
+    ("nbn-50", "NBN 50", REPO_ROOT / "deals" / "nbn-50" / "index.html"),
+    ("nbn-100", "NBN 100", REPO_ROOT / "deals" / "nbn-100" / "index.html"),
+    ("nbn-1000", "NBN 1000", REPO_ROOT / "deals" / "nbn-1000" / "index.html"),
+]
+
+
+def base_bucket_key(raw_tier):
+    if not raw_tier:
+        return "Other"
+    m = re.search(r"(\d+)", str(raw_tier))
+    if not m:
+        return str(raw_tier)
+    speed = int(m.group(1))
+    if speed <= 12:
+        return "NBN 12"
+    if speed <= 30:
+        return "NBN 25"
+    if speed <= 60:
+        return "NBN 50"
+    if speed <= 150:
+        return "NBN 100"
+    if speed <= 350:
+        return "NBN 250"
+    if speed <= 600:
+        return "NBN 500"
+    if speed <= 800:
+        return "NBN 750"
+    if speed <= 1200:
+        return "NBN 1000"
+    return "NBN 2000"
+
 
 def wait_for_server(url, timeout=15):
     deadline = time.time() + timeout
@@ -195,6 +227,16 @@ def main():
                 name: page.eval_on_selector(selector, "el => el.outerHTML")
                 for name, selector in MARKERS.items()
             }
+
+            speed_grids = {}
+            for slug, target_tier, sp_path in SPEED_PAGES:
+                try:
+                    page.goto(f"{base_url}/deals/{slug}/", wait_until="networkidle", timeout=30000)
+                    page.wait_for_selector(".deal-entry, .deal-row", state="attached", timeout=15000)
+                    speed_grids[slug] = page.eval_on_selector("[data-grid]", "el => el.outerHTML")
+                except Exception as e:
+                    print(f"Warning: could not prerender speed page {slug}: {e}")
+
             browser.close()
     finally:
         if server is not None:
@@ -258,6 +300,24 @@ def main():
         {k: len(v) for k, v in captured.items()},
         f"schema items: {len(schema['itemListElement'])}",
     )
+
+    for slug, target_tier, sp_path in SPEED_PAGES:
+        if not sp_path.exists():
+            continue
+        tier_deals = [
+            d for d in all_deals
+            if d.get("serviceType") == "nbn" and base_bucket_key(d.get("tier")) == target_tier
+        ]
+        tier_schema = build_deal_schema(tier_deals)
+        tier_schema["name"] = f"Cheapest {target_tier} Plans Australia"
+        tier_schema_html = '<script type="application/ld+json">\n' + json.dumps(tier_schema, indent=2) + "\n</script>"
+
+        sp_html = sp_path.read_text(encoding="utf-8")
+        if slug in speed_grids:
+            sp_html = splice(sp_html, "GRID", speed_grids[slug])
+        sp_html = splice(sp_html, "SCHEMA", tier_schema_html)
+        sp_path.write_text(sp_html, encoding="utf-8")
+        print(f"Pre-rendered deals/{slug}/index.html: {len(tier_deals)} schema items")
 
 
 if __name__ == "__main__":
