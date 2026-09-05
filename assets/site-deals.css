@@ -4015,17 +4015,27 @@ button.deal-badge[aria-expanded="true"] {
 
 /* Bundle badge on plan cards */
 .deal-badge--bundle {
-  background: #F5F3FF;
-  color: #6D28D9;
-  border: 1px solid rgba(109, 40, 217, 0.25);
+  background: rgba(232, 93, 4, 0.08);
+  color: #9A3412;
+  border: 1px solid rgba(232, 93, 4, 0.25);
   font-weight: 600;
+  display: inline-flex;
+  align-items: center;
 }
 
 button.deal-badge--bundle:hover,
 button.deal-badge--bundle:focus-visible {
-  background: #EDE9FE;
-  border-color: rgba(109, 40, 217, 0.45);
-  color: #5B21B6;
+  background: rgba(232, 93, 4, 0.14);
+  border-color: rgba(232, 93, 4, 0.45);
+  color: #7C2D12;
+}
+
+.deal-badge-svg {
+  width: 12px;
+  height: 12px;
+  display: inline-block;
+  margin-right: 4px;
+  flex-shrink: 0;
 }
 
 /* Bundle breakdown box in detailed view & bundle cards */
@@ -4033,8 +4043,8 @@ button.deal-badge--bundle:focus-visible {
   margin-top: 10px;
   padding: 10px 14px;
   border-radius: 6px;
-  background: #FAF5FF;
-  border: 1px solid #E9D5FF;
+  background: #FFFBF7;
+  border: 1px solid rgba(232, 93, 4, 0.2);
   font-size: 0.82rem;
   line-height: 1.45;
   color: var(--w-ink);
@@ -4049,7 +4059,7 @@ button.deal-badge--bundle:focus-visible {
   align-items: center;
   gap: 6px;
   font-weight: 700;
-  color: #6D28D9;
+  color: #9A3412;
   margin-bottom: 4px;
 }
 
