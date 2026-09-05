@@ -4391,4 +4391,18 @@ button.deal-badge--bundle:focus-visible {
   font-weight: 700;
 }
 
+.deals-speed-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.deals-speed-toolbar .deals-kofi-toolbar-btn {
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  background: #FFFFFF;
+}
+
+
 
