@@ -28,6 +28,7 @@ DEALS_HTML = REPO_ROOT / "deals" / "index.html"
 
 # Must match DATA_URL in deals/index.html.
 DEALS_JSON_URL = "https://raw.githubusercontent.com/jeevanshah/au-plans-scraper/main/data/deals.json"
+BUNDLES_JSON_URL = "https://raw.githubusercontent.com/jeevanshah/au-plans-scraper/main/data/bundles.json"
 
 MARKERS = {
     "UPDATED": "[data-updated]",
@@ -75,12 +76,13 @@ def billing_cycle_label(days: int | None) -> str:
     return f"{days} days"
 
 
-def build_deal_schema(deals: list[dict]) -> dict:
-    """Full ItemList/Product/Offer schema for every deal, independent of
-    whatever's paginated into the visible grid -- Google should know about
-    all of them even if a human only ever scrolls through the first page."""
+def build_deal_schema(deals: list[dict], bundles: list[dict] | None = None) -> dict:
+    """Full ItemList/Product/Offer schema for every deal and bundle package,
+    independent of whatever's paginated into the visible grid -- Google should
+    know about all of them even if a human only ever scrolls through the first page."""
     items = []
-    for d in deals:
+    catalog = list(deals) + (list(bundles) if bundles else [])
+    for d in catalog:
         promo = d.get("promoPrice")
         regular = d.get("regularPrice")
         months = d.get("promoMonths")
@@ -104,7 +106,9 @@ def build_deal_schema(deals: list[dict]) -> dict:
             ongoing = regular if regular is not None else price
             description = f"${ongoing:.2f} {cycle_phrase}, with no introductory period."
 
-        name = f"{d.get('provider', '')} {d.get('tier', '')}".strip()
+        name = d.get("title") or f"{d.get('provider', '')} {d.get('tier', '')}".strip()
+        if not name.startswith(d.get("provider", "")):
+            name = f"{d.get('provider', '')} {name}".strip()
         deal_url = d.get("url") or "https://jrsdigital.net/deals/"
         items.append({
             "@type": "ListItem",
@@ -114,9 +118,13 @@ def build_deal_schema(deals: list[dict]) -> dict:
                 "name": name,
                 "url": deal_url,
                 "brand": {"@type": "Brand", "name": d.get("provider", "")},
-                "category": {"nbn": "Internet Service", "opticomm": "Fibre Internet Service", "mobile": "Mobile Phone Service", "satellite": "Satellite Internet Service"}.get(
-                d.get("serviceType"), "Internet Service"
-            ),
+                "category": {
+                    "nbn": "Internet Service",
+                    "opticomm": "Fibre Internet Service",
+                    "mobile": "Mobile Phone Service",
+                    "satellite": "Satellite Internet Service",
+                    "bundle": "Bundled Internet and Mobile Service",
+                }.get(d.get("serviceType"), "Internet Service"),
                 "description": description,
                 "offers": {
                     "@type": "Offer",
@@ -141,7 +149,7 @@ def build_deal_schema(deals: list[dict]) -> dict:
     return {
         "@context": "https://schema.org",
         "@type": "ItemList",
-        "name": "Australian NBN & Mobile Plan Deals",
+        "name": "Australian NBN, Mobile & Bundle Deals",
         "numberOfItems": len(items),
         "itemListElement": items,
     }
@@ -206,11 +214,24 @@ def main():
             all_deals = json.loads(local_path.read_text(encoding="utf-8"))
         else:
             raise
-    schema = build_deal_schema(all_deals)
+    all_bundles = []
+    try:
+        with urllib.request.urlopen(BUNDLES_JSON_URL, timeout=15) as resp:
+            all_bundles = json.loads(resp.read())
+    except Exception:
+        local_bundles_candidates = [
+            REPO_ROOT / "data" / "bundles.json",
+            REPO_ROOT.parent / "au-plans-scraper" / "data" / "bundles.json",
+        ]
+        local_b_path = next((path for path in local_bundles_candidates if path.exists()), None)
+        if local_b_path:
+            all_bundles = json.loads(local_b_path.read_text(encoding="utf-8"))
+
+    schema = build_deal_schema(all_deals, all_bundles)
     schema_html = '<script type="application/ld+json">\n' + json.dumps(schema, indent=2) + "\n</script>"
 
-    plan_count = schema["numberOfItems"]
-    provider_count = len({d["provider"] for d in all_deals if d.get("provider")})
+    plan_count = len(all_deals)
+    provider_count = len({d["provider"] for d in (all_deals + all_bundles) if d.get("provider")})
     # Two presentations share this one marker: the long descriptive sentence
     # (desktop) and a compact "N plans / M providers" label (mobile) -- see
     # the .deals-hero-longform/.deals-hero-compact CSS toggle in
@@ -218,7 +239,7 @@ def main():
     # avoids a second marker just to restate the same two numbers.
     herostats_html = (
         f'<strong>{plan_count}</strong>'
-        f'<span class="deals-hero-longform"> NBN, OptiComm, mobile and satellite plans from </span>'
+        f'<span class="deals-hero-longform"> NBN, OptiComm, mobile, satellite and bundle plans from </span>'
         f'<span class="deals-hero-compact"> plans</span>'
         f'<span class="deals-hero-dot"> &bull; </span>'
         f'<strong>{provider_count}</strong>'
