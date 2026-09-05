@@ -8742,7 +8742,7 @@
           </button>
           <button type="button" class="deals-filter-btn" data-tab="bundle">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-            Bundles
+            NBN + Mobile Bundles
           </button>
         </div>
 
@@ -8861,6 +8861,14 @@
             <button class="deals-toggle-chip deals-bundle-toggle" data-bundle-toggle type="button" title="Filter mobile plans from providers offering broadband bundle discounts">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
               Bundle Discounts
+            </button>
+          </div>
+          <div class="deals-feature-toggles" data-bundle-toggles hidden>
+            <button class="deals-toggle-chip deals-bundle-type-btn is-active" data-bundle-type="mobile" type="button" title="View broadband plans bundled with mobile phone SIMs">
+              📱 NBN + Mobile SIMs (69)
+            </button>
+            <button class="deals-toggle-chip deals-bundle-type-btn" data-bundle-type="energy_perks" type="button" title="View broadband plans bundled with electricity, gas, or bank perks">
+              ⚡ Energy &amp; Bank Perks (20)
             </button>
           </div>
         </div>
@@ -9267,6 +9275,8 @@
   var bundleToggleBtns = document.querySelectorAll('[data-bundle-toggle]');
   var nbnTogglesWrap = document.querySelector('[data-nbn-toggles]');
   var mobileTogglesWrap = document.querySelector('[data-mobile-toggles]');
+  var bundleTogglesWrap = document.querySelector('[data-bundle-toggles]');
+  var bundleTypeBtns = document.querySelectorAll('[data-bundle-type]');
   var netToggleBtns = document.querySelectorAll('[data-network-toggle]');
   var expiryToggleBtns = document.querySelectorAll('[data-expiry-toggle]');
   var filtersSheet = document.querySelector('[data-filters-sheet]');
@@ -10054,6 +10064,7 @@
   var cgnatOnly = false;
   var noNoticeOnly = false;
   var bundleOnly = false;
+  var activeBundleType = 'mobile'; // 'mobile' | 'energy_perks'
   var tiers = [];
   var visibleCount = VISIBLE_STEP;
   var MINE_STORAGE_KEY = 'dealsMyMonthlyPrice';
@@ -10335,6 +10346,11 @@
       if (exp && ['long', 'monthly'].indexOf(exp) !== -1) {
         activeExpiry = exp;
       }
+
+      var bType = params.get('bundle_type');
+      if (bType && ['mobile', 'energy_perks'].indexOf(bType) !== -1) {
+        activeBundleType = bType;
+      }
     } catch (e) {}
   }
 
@@ -10370,6 +10386,9 @@
       if (bundleOnly && activeTab !== 'bundle') {
         params.set('bundle', '1');
       }
+      if (activeTab === 'bundle' && activeBundleType !== 'mobile') {
+        params.set('bundle_type', activeBundleType);
+      }
       if (activeNetwork && activeTab === 'mobile') {
         params.set('network', activeNetwork);
       }
@@ -10390,6 +10409,8 @@
     var counts = {};
     if (activeTab === 'bundle') {
       BUNDLE_COMBOS.forEach(function (c) {
+        if (activeBundleType === 'mobile' && c.secondaryType !== 'mobile') return;
+        if (activeBundleType === 'energy_perks' && c.secondaryType !== 'energy' && c.secondaryType !== 'bank_perk') return;
         counts[c.provider] = (counts[c.provider] || 0) + 1;
       });
     } else {
@@ -10565,7 +10586,7 @@
   var filterRowToggles = document.querySelector('.deals-filter-row--toggles');
   function renderTierTabs() {
     if (speedFilterCol) speedFilterCol.style.display = activeTab === 'satellite' ? 'none' : '';
-    if (filterRowToggles) filterRowToggles.style.display = (activeTab === 'satellite' || activeTab === 'bundle') ? 'none' : '';
+    if (filterRowToggles) filterRowToggles.style.display = activeTab === 'satellite' ? 'none' : '';
 
     if (nbnTogglesWrap) {
       nbnTogglesWrap.hidden = (activeTab !== 'nbn' && activeTab !== 'opticomm');
@@ -10573,6 +10594,20 @@
 
     if (mobileTogglesWrap) {
       mobileTogglesWrap.hidden = activeTab !== 'mobile';
+    }
+
+    if (bundleTogglesWrap) {
+      bundleTogglesWrap.hidden = activeTab !== 'bundle';
+    }
+
+    if (bundleTypeBtns) {
+      bundleTypeBtns.forEach(function (btn) {
+        if (btn.getAttribute('data-bundle-type') === activeBundleType && activeTab === 'bundle') {
+          btn.classList.add('is-active');
+        } else {
+          btn.classList.remove('is-active');
+        }
+      });
     }
 
     if (activeTab === 'satellite') {
@@ -10594,17 +10629,21 @@
     }
 
     if (activeTab === 'bundle') {
-      tierLabel.textContent = 'Speed tier';
-      var candidateTiers = ['NBN 25', 'NBN 50', 'NBN 100', 'NBN 250', 'NBN 500', 'NBN 750', 'NBN 1000', 'NBN 2000', 'Energy & Perks'];
-      var seenTiers = {};
-      BUNDLE_COMBOS.forEach(function (b) {
-        if (b.secondaryType === 'energy' || b.secondaryType === 'bank_perk') {
-          seenTiers['Energy & Perks'] = true;
-        } else if (b.tier) {
-          seenTiers[b.tier] = true;
-        }
-      });
-      tiers = candidateTiers.filter(function (t) { return seenTiers[t]; });
+      if (activeBundleType === 'mobile') {
+        tierLabel.textContent = 'NBN broadband speed';
+        var candidateTiers = ['NBN 25', 'NBN 50', 'NBN 100', 'NBN 250', 'NBN 500', 'NBN 750', 'NBN 1000', 'NBN 2000'];
+        var seenTiers = {};
+        BUNDLE_COMBOS.forEach(function (b) {
+          if (b.secondaryType === 'mobile' && b.tier) {
+            seenTiers[b.tier] = true;
+          }
+        });
+        tiers = candidateTiers.filter(function (t) { return seenTiers[t]; });
+      } else {
+        tierLabel.textContent = 'Perk category';
+        tiers = ['Energy Bundles', 'Bank Perks'];
+      }
+
       if (activeTier && tiers.indexOf(activeTier) === -1) {
         activeTier = null;
       }
@@ -10807,6 +10846,23 @@
     });
   }
 
+  if (bundleTypeBtns) {
+    bundleTypeBtns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var bt = btn.getAttribute('data-bundle-type');
+        if (activeBundleType === bt) return;
+        activeBundleType = bt;
+        activeTier = null;
+        selectedProviders = [];
+        resetVisible();
+        syncUrlState();
+        renderProviderDropdown();
+        renderTierTabs();
+        renderList();
+      });
+    });
+  }
+
   if (netToggleBtns) {
     netToggleBtns.forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -10978,6 +11034,11 @@
   function renderList() {
     if (activeTab === 'bundle') {
       var filtered = BUNDLE_COMBOS.slice();
+      if (activeBundleType === 'mobile') {
+        filtered = filtered.filter(function (d) { return d.secondaryType === 'mobile'; });
+      } else if (activeBundleType === 'energy_perks') {
+        filtered = filtered.filter(function (d) { return d.secondaryType === 'energy' || d.secondaryType === 'bank_perk'; });
+      }
       if (selectedProviders.length > 0) {
         if (selectedProviders.indexOf('__none__') !== -1) {
           filtered = [];
@@ -10986,10 +11047,10 @@
         }
       }
       if (activeTier) {
-        if (activeTier === 'Energy & Perks') {
-          filtered = filtered.filter(function (d) {
-            return d.secondaryType === 'energy' || d.secondaryType === 'bank_perk';
-          });
+        if (activeTier === 'Energy Bundles') {
+          filtered = filtered.filter(function (d) { return d.secondaryType === 'energy'; });
+        } else if (activeTier === 'Bank Perks') {
+          filtered = filtered.filter(function (d) { return d.secondaryType === 'bank_perk'; });
         } else {
           filtered = filtered.filter(function (d) { return d.tier === activeTier; });
         }
@@ -11854,6 +11915,7 @@
       bundleOnly = false;
       activeNetwork = null;
       activeExpiry = null;
+      activeBundleType = 'mobile';
       resetVisible();
       syncUrlState();
       fullRender();
@@ -12581,6 +12643,12 @@
             };
           }
         });
+        var mCount = BUNDLE_COMBOS.filter(function(b){ return b.secondaryType === 'mobile'; }).length;
+        var epCount = BUNDLE_COMBOS.filter(function(b){ return b.secondaryType === 'energy' || b.secondaryType === 'bank_perk'; }).length;
+        var mBtn = document.querySelector('[data-bundle-type="mobile"]');
+        var epBtn = document.querySelector('[data-bundle-type="energy_perks"]');
+        if (mBtn) mBtn.textContent = '📱 NBN + Mobile SIMs (' + mCount + ')';
+        if (epBtn) epBtn.textContent = '⚡ Energy & Bank Perks (' + epCount + ')';
         if (activeTab === 'bundle') {
           renderProviderDropdown();
           renderTierTabs();
