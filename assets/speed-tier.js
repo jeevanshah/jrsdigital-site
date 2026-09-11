@@ -293,6 +293,7 @@
             '<div class="deal-group deal-group-action">' +
               '<div class="deal-cell deal-cell-action">' +
                 '<a class="deal-link" href="' + esc(d.url) + '" target="_blank" rel="nofollow noopener" ' +
+                  'aria-label="View plan for ' + escAttr(d.provider + ' ' + (d.title || d.tier)) + '" ' +
                   'data-outbound="deal" data-provider="' + escAttr(d.provider) + '" data-plan="' + escAttr(d.title || d.tier) + '" data-tier="' + escAttr(targetTier) + '">' +
                   'View plan' +
                   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>' +

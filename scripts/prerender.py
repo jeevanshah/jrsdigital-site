@@ -431,6 +431,7 @@ def render_speed_page_grid(tier_deals: list[dict], target_tier: str) -> str:
             f'<div class="deal-group deal-group-action">'
             f'<div class="deal-cell deal-cell-action">'
             f'<a class="deal-link" href="{esc(url)}" target="_blank" rel="nofollow noopener" '
+            f'aria-label="View plan for {esc(provider_name)} {esc(plan_title)}" '
             f'data-outbound="deal" data-provider="{esc(provider_name)}" data-plan="{esc(plan_title)}" data-tier="{esc(target_tier)}">'
             f'View plan'
             f'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>'
@@ -446,7 +447,7 @@ def render_speed_page_grid(tier_deals: list[dict], target_tier: str) -> str:
 
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--port", type=int, default=8123)
     parser.add_argument("--base-url", default=None, help="Skip starting a local server and use this URL instead")
     args = parser.parse_args()
@@ -470,17 +471,9 @@ def main():
             page.goto(f"{base_url}/deals/", wait_until="networkidle", timeout=30000)
             page.wait_for_selector(".deal-row, .deals-card", state="attached", timeout=15000)
 
-            # Default pagination only shows the first page of results (cheapest
-            # ~8) -- expand fully via the real "View more" control so the
-            # snapshot represents the whole (default-tab) catalog, not an
-            # arbitrary slice.
-            more_button = page.locator("[data-more]")
-            for _ in range(200):  # generous cap, not an expected iteration count
-                if not more_button.is_visible():
-                    break
-                more_button.click()
-                page.wait_for_timeout(100)
-
+            # Capture initial visible view (top ~9-15 plans) so static HTML payload
+            # is fast and lightweight (<150 KB) without blocking parser or DOM size.
+            # Full catalog of 353 plans is in ItemList JSON-LD and dynamic client fetch.
             captured = {
                 name: page.eval_on_selector(selector, "el => el.outerHTML")
                 for name, selector in MARKERS.items()
@@ -528,7 +521,7 @@ def main():
             all_bundles = json.loads(local_b_path.read_text(encoding="utf-8"))
 
     schema = build_deal_schema(all_deals, all_bundles)
-    schema_html = '<script type="application/ld+json">\n' + json.dumps(schema, indent=2) + "\n</script>"
+    schema_html = '<script type="application/ld+json">' + json.dumps(schema, separators=(',', ':')) + "</script>"
 
     plan_count = len(all_deals)
     provider_count = len({d["provider"] for d in (all_deals + all_bundles) if d.get("provider")})
@@ -568,7 +561,7 @@ def main():
         ]
         tier_schema = build_deal_schema(tier_deals)
         tier_schema["name"] = f"Cheapest {target_tier} Plans Australia"
-        tier_schema_html = '<script type="application/ld+json">\n' + json.dumps(tier_schema, indent=2) + "\n</script>"
+        tier_schema_html = '<script type="application/ld+json">' + json.dumps(tier_schema, separators=(',', ':')) + "</script>"
 
         sp_html = sp_path.read_text(encoding="utf-8")
         grid_html = speed_grids.get(slug) or render_speed_page_grid(tier_deals, target_tier)

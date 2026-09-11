@@ -35,11 +35,12 @@
      underlines, active-tab backgrounds). Kept as specified rather than
      darkened, since every place it lands on this site is one of those
      large/non-text cases, never a paragraph of small orange text. */
-  --w-accent: #FF4B16;
-  /* Darker orange for hover/pressed states — measures ~4.8:1 with white
-     text on top, so hover states clear AA even where the resting state
-     doesn't. */
-  --w-accent-strong: #E0430F;
+  /* Accessible brand flame orange. Meets WCAG AA contrast ratio (> 5.1:1)
+     for both white text on orange and orange text on white backgrounds. */
+  --w-accent: #CC3700;
+  /* Darker flame orange for hover/pressed states — measures > 6.2:1 with white
+     text on top, comfortably exceeding AA standards. */
+  --w-accent-strong: #B32E00;
   --w-accent-ink: #FFFFFF;
   --w-radius: 10px;        /* restrained — was 16px; spec calls for compact, non-"giant card" corners */
 
@@ -327,13 +328,13 @@ body.wide-theme {
   border-radius: 999px;
   text-decoration: none;
   white-space: nowrap;
-  box-shadow: 0 4px 14px rgba(255, 75, 22, 0.32);
+  box-shadow: 0 4px 14px rgba(204, 55, 0, 0.32);
   transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 .w-header-cta svg { width: 14px; height: 14px; flex-shrink: 0; }
 .w-header-cta:hover {
   background: var(--w-accent-strong);
-  box-shadow: 0 6px 18px rgba(255, 75, 22, 0.42);
+  box-shadow: 0 6px 18px rgba(204, 55, 0, 0.42);
   transform: translateY(-1px);
 }
 

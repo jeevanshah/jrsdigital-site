@@ -141,7 +141,7 @@ body.wide-theme {
   height: 30px;
   flex-shrink: 0;
   border-radius: 50%;
-  background: rgba(255, 75, 22, 0.1);
+  background: rgba(204, 55, 0, 0.1);
   color: var(--w-accent);
 }
 
@@ -283,7 +283,7 @@ body.wide-theme {
 }
 
 .deals-hero-moat-routes .is-lowest {
-  background: rgba(255, 75, 22, 0.07);
+  background: rgba(204, 55, 0, 0.07);
 }
 
 .deals-hero-moat-routes .is-lowest dt,
@@ -585,7 +585,7 @@ body.wide-theme {
   background: var(--w-accent);
   border-color: var(--w-accent);
   color: #FFFFFF;
-  box-shadow: 0 -2px 10px rgba(255, 75, 22, 0.2);
+  box-shadow: 0 -2px 10px rgba(204, 55, 0, 0.2);
 }
 
 .deals-toolbar-header {
@@ -1024,7 +1024,7 @@ body.wide-theme {
 }
 
 .deals-ms-action-btn:hover {
-  background: rgba(255, 75, 22, 0.08);
+  background: rgba(204, 55, 0, 0.08);
 }
 
 .deals-multiselect-list {
@@ -1122,7 +1122,7 @@ body.wide-theme {
   background: var(--w-accent);
   color: #FFFFFF;
   border-color: var(--w-accent);
-  box-shadow: 0 2px 6px rgba(255, 75, 22, 0.25);
+  box-shadow: 0 2px 6px rgba(204, 55, 0, 0.25);
 }
 
 .deals-upload-tabs {
@@ -1166,7 +1166,7 @@ body.wide-theme {
 }
 
 .deals-upload-btn.is-active {
-  background: rgba(255, 75, 22, 0.1);
+  background: rgba(204, 55, 0, 0.1);
   color: var(--w-accent);
   border-color: var(--w-accent);
 }
@@ -3491,6 +3491,11 @@ button.deal-badge[aria-expanded="true"] {
 }
 
 /* Reminder Drawer Backdrop & Sheet */
+.audit-backdrop[hidden],
+.reminder-backdrop[hidden] {
+  display: none !important;
+}
+
 .reminder-backdrop {
   position: fixed;
   inset: 0;
@@ -3502,12 +3507,14 @@ button.deal-badge[aria-expanded="true"] {
   align-items: flex-end;
   justify-content: center;
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
 .reminder-backdrop.is-open {
   opacity: 1;
+  visibility: visible;
   pointer-events: auto;
 }
 
@@ -3650,7 +3657,7 @@ button.deal-badge[aria-expanded="true"] {
 
 .reminder-date-input:focus {
   border-color: var(--w-accent);
-  box-shadow: 0 0 0 3px rgba(255, 75, 22, 0.14);
+  box-shadow: 0 0 0 3px rgba(204, 55, 0, 0.14);
 }
 
 .reminder-calc-row:last-child {
@@ -4496,7 +4503,7 @@ button.deal-badge--bundle:focus-visible {
 .deals-speed-select:focus {
   outline: none;
   border-color: var(--w-accent);
-  box-shadow: 0 0 0 2px rgba(255, 75, 22, 0.15);
+  box-shadow: 0 0 0 2px rgba(204, 55, 0, 0.15);
 }
 
 .deals-speed-stats-badge {

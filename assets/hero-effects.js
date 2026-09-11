@@ -67,31 +67,41 @@
   // 3. Big Brand Dynamic Horizontal Scroll Masks (Apple / Airbnb / Google style)
   function initScrollMasks() {
     var scrollContainers = document.querySelectorAll('.deals-filter-group, .deals-tier-tabs, .deals-upload-tabs, .deals-filter-row--toggles');
+    if (!scrollContainers.length) return;
+
     scrollContainers.forEach(function (el) {
+      var rafPending = false;
       function updateMask() {
-        if (el.scrollWidth <= el.clientWidth + 2) {
-          el.style.maskImage = 'none';
-          el.style.webkitMaskImage = 'none';
-          return;
-        }
-        var atStart = el.scrollLeft <= 4;
-        var atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
-        if (atStart) {
-          el.style.maskImage = 'linear-gradient(to right, black calc(100% - 36px), transparent 100%)';
-          el.style.webkitMaskImage = 'linear-gradient(to right, black calc(100% - 36px), transparent 100%)';
-        } else if (atEnd) {
-          el.style.maskImage = 'linear-gradient(to left, black calc(100% - 36px), transparent 100%)';
-          el.style.webkitMaskImage = 'linear-gradient(to left, black calc(100% - 36px), transparent 100%)';
-        } else {
-          el.style.maskImage = 'linear-gradient(to right, transparent 0, black 32px, black calc(100% - 32px), transparent 100%)';
-          el.style.webkitMaskImage = 'linear-gradient(to right, transparent 0, black 32px, black calc(100% - 32px), transparent 100%)';
-        }
+        if (rafPending) return;
+        rafPending = true;
+        requestAnimationFrame(function () {
+          rafPending = false;
+          var sw = el.scrollWidth;
+          var cw = el.clientWidth;
+          if (sw <= cw + 2) {
+            el.style.maskImage = 'none';
+            el.style.webkitMaskImage = 'none';
+            return;
+          }
+          var sl = el.scrollLeft;
+          var atStart = sl <= 4;
+          var atEnd = sl + cw >= sw - 4;
+          var mask;
+          if (atStart) {
+            mask = 'linear-gradient(to right, black calc(100% - 36px), transparent 100%)';
+          } else if (atEnd) {
+            mask = 'linear-gradient(to left, black calc(100% - 36px), transparent 100%)';
+          } else {
+            mask = 'linear-gradient(to right, transparent 0, black 32px, black calc(100% - 32px), transparent 100%)';
+          }
+          el.style.maskImage = mask;
+          el.style.webkitMaskImage = mask;
+        });
       }
       el.addEventListener('scroll', updateMask, { passive: true });
       window.addEventListener('resize', updateMask, { passive: true });
-      // Run initial check and after tabs change
-      updateMask();
-      setTimeout(updateMask, 300);
+      // Schedule initial check after layout has settled
+      requestAnimationFrame(updateMask);
     });
   }
 
