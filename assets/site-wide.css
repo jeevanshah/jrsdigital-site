@@ -274,23 +274,24 @@ body.wide-theme {
 }
 
 .w-footer {
-  padding: 30px 0 60px;
+  padding: 36px 0 60px;
   border-top: 1px solid var(--w-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 20px;
   font-size: 0.85rem;
   color: var(--w-ink-50);
 }
-.w-footer a { color: var(--w-ink-50); text-decoration: none; }
+.w-footer a { color: var(--w-ink-50); text-decoration: none; transition: color 0.15s ease; }
 .w-footer a:hover { color: var(--w-ink); }
-.w-footer-brand { display: flex; flex-direction: column; gap: 2px; }
+.w-footer-brand { display: flex; flex-direction: column; gap: 4px; max-width: 460px; }
+.w-footer-brand span { line-height: 1.45; }
 
 /* Middle icon row — outlined circular buttons rather than filled, so the
    footer stays quiet/white; color only appears on hover. */
-.w-footer-social { display: flex; gap: 10px; }
+.w-footer-social { display: flex; gap: 10px; align-items: center; }
 .w-footer-social a {
   width: 36px;
   height: 36px;
@@ -305,7 +306,12 @@ body.wide-theme {
 .w-footer-social a svg { width: 16px; height: 16px; }
 .w-footer-social a:hover { color: var(--w-accent); border-color: var(--w-accent); }
 
-.w-footer-links { display: flex; gap: 22px; }
+.w-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+}
 
 /* Compact header CTA + the wrapper that groups it with the nav so the two
    sit together on the header's right edge instead of space-between
@@ -406,7 +412,25 @@ body.wide-theme {
 }
 
 @media (max-width: 640px) {
-  .w-footer { flex-direction: column; align-items: flex-start; }
+  .w-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 22px;
+    padding: 30px 0 50px;
+  }
+  .w-footer-brand {
+    max-width: 100%;
+  }
+  .w-footer-links {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 18px;
+    line-height: 1.6;
+  }
+  .w-footer-links a {
+    display: inline-block;
+  }
 }
 
 /* ---------- shared intro block (About / Work / Contact page headers) ---------- */
