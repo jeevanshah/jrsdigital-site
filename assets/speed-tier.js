@@ -1,6 +1,6 @@
 /**
  * Dedicated Speed Tier Landing Page Controller (JRS Digital)
- * Powers /deals/nbn-50/, /deals/nbn-100/, and /deals/nbn-1000/
+ * Powers /deals/nbn-50/, /deals/nbn-100/, /deals/nbn-250/, and /deals/nbn-1000/
  * Reuses site-deals.css design tokens, classes, and calculation models.
  */
 (function () {
