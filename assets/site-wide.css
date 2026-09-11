@@ -679,3 +679,292 @@ body.wide-theme .mockup-caption { color: var(--w-ink-50); }
   .bonsai-stage { height: clamp(320px, 68vh, 560px); }
   .bonsai-overlay-cta { font-size: 0.85rem; padding: 11px 18px; }
 }
+
+/* ==========================================================================
+   Homepage Deals & Telco Comparison Showcase Section
+   ========================================================================== */
+
+.w-deals-showcase {
+  padding: 64px 0 52px;
+  border-top: 1px solid var(--w-border);
+}
+
+.w-deals-header {
+  max-width: 840px;
+  margin-bottom: 36px;
+}
+
+.w-deals-h2 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  font-size: clamp(1.8rem, 2.8vw, 2.5rem);
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  color: var(--w-ink);
+  margin: 0 0 16px;
+}
+
+.w-deals-lead {
+  font-size: 1.05rem;
+  line-height: 1.68;
+  color: var(--w-ink-70);
+  margin: 0;
+}
+
+/* Three Consumer Transparency Pillars */
+.w-deals-pillars {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-bottom: 44px;
+}
+
+.w-pillar-card {
+  background: var(--w-surface);
+  border: 1px solid var(--w-border);
+  border-radius: var(--w-radius);
+  padding: 24px;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.w-pillar-card:hover {
+  border-color: rgba(17, 24, 39, 0.28);
+  transform: translateY(-2px);
+}
+
+.w-pillar-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: rgba(255, 75, 22, 0.08);
+  color: var(--w-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.w-pillar-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.w-pillar-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--w-ink);
+  margin: 0 0 8px;
+}
+
+.w-pillar-desc {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--w-ink-70);
+  margin: 0;
+}
+
+/* Speed-Tier Hub Cards */
+.w-tier-hub-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  font-size: 1.25rem;
+  color: var(--w-ink);
+  margin: 0 0 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.w-speed-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 44px;
+}
+
+.w-speed-card {
+  background: #FFFFFF;
+  border: 1.5px solid var(--w-border);
+  border-radius: var(--w-radius);
+  padding: 22px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.w-speed-card:hover {
+  border-color: var(--w-accent);
+  box-shadow: 0 8px 24px rgba(255, 75, 22, 0.12);
+  transform: translateY(-3px);
+}
+
+.w-speed-card-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--w-accent);
+  margin-bottom: 6px;
+}
+
+.w-speed-card-name {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  font-size: 1.35rem;
+  color: var(--w-ink);
+  margin: 0 0 4px;
+}
+
+.w-speed-card-speed {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--jrs-green);
+  margin: 0 0 8px;
+}
+
+.w-speed-card-desc {
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: var(--w-ink-70);
+  margin: 0 0 16px;
+  flex-grow: 1;
+}
+
+.w-speed-card-cta {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--w-accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.w-speed-card:hover .w-speed-card-cta {
+  color: var(--w-accent-strong);
+}
+
+/* Curated Telco Provider Directory */
+.w-provider-directory {
+  background: #F9FAFB;
+  border: 1px solid var(--w-border);
+  border-radius: 12px;
+  padding: 28px;
+  margin-bottom: 44px;
+}
+
+.w-provider-directory-head {
+  margin-bottom: 18px;
+}
+
+.w-provider-directory-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+  color: var(--w-ink);
+  margin: 0 0 6px;
+}
+
+.w-provider-directory-sub {
+  font-size: 0.9rem;
+  color: var(--w-ink-70);
+  margin: 0;
+}
+
+.w-provider-links-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  gap: 10px;
+}
+
+.w-provider-link-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #FFFFFF;
+  border: 1px solid var(--w-border);
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--w-ink);
+  font-size: 0.86rem;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+
+.w-provider-link-pill img {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.w-provider-link-pill:hover {
+  border-color: var(--w-accent);
+  color: var(--w-accent);
+  background: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transform: translateY(-1px);
+}
+
+/* Featured Telco Bundles Callout */
+.w-bundle-card {
+  display: grid;
+  grid-template-columns: 1.25fr 0.75fr;
+  align-items: center;
+  gap: 32px;
+  background: rgba(255, 75, 22, 0.04);
+  border: 1.5px solid rgba(255, 75, 22, 0.25);
+  border-radius: var(--w-radius);
+  padding: 32px 36px;
+}
+
+.w-bundle-card-content h3 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  font-size: 1.3rem;
+  color: var(--w-ink);
+  margin: 0 0 10px;
+}
+
+.w-bundle-card-content p {
+  font-size: 0.94rem;
+  line-height: 1.6;
+  color: var(--w-ink-70);
+  margin: 0 0 16px;
+}
+
+.w-bundle-card-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.w-bundle-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(255, 75, 22, 0.12);
+  color: var(--w-accent);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 840px) {
+  .w-bundle-card {
+    grid-template-columns: 1fr;
+    padding: 24px;
+    gap: 20px;
+  }
+}
+
