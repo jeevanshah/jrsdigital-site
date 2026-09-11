@@ -145,12 +145,20 @@ def build_deal_schema(deals: list[dict], bundles: list[dict] | None = None) -> d
         if not name.startswith(d.get("provider", "")):
             name = f"{d.get('provider', '')} {name}".strip()
         deal_url = d.get("url") or "https://jrsdigital.net/deals/"
+        price_valid_until = "2026-12-31"
+        if d.get("validUntil") and str(d.get("validUntil")) >= "2026-09-11":
+            price_valid_until = str(d.get("validUntil"))
+        plan_id = str(d.get("id") or f"plan-{len(items) + 1}")
+        image_url = d.get("image") or "https://jrsdigital.net/assets/img/og-default.png"
+
         items.append({
             "@type": "ListItem",
             "position": len(items) + 1,
             "item": {
                 "@type": "Product",
                 "name": name,
+                "image": image_url,
+                "sku": plan_id,
                 "url": deal_url,
                 "brand": {"@type": "Brand", "name": d.get("provider", "")},
                 "category": {
@@ -165,11 +173,44 @@ def build_deal_schema(deals: list[dict], bundles: list[dict] | None = None) -> d
                     "@type": "Offer",
                     "price": f"{price:.2f}",
                     "priceCurrency": "AUD",
+                    "priceValidUntil": price_valid_until,
                     "url": deal_url,
                     "availability": "https://schema.org/InStock",
                     "eligibleRegion": {
                         "@type": "Country",
                         "name": "Australia",
+                    },
+                    "shippingDetails": {
+                        "@type": "OfferShippingDetails",
+                        "shippingRate": {
+                            "@type": "MonetaryAmount",
+                            "value": "0.00",
+                            "currency": "AUD",
+                        },
+                        "shippingDestination": {
+                            "@type": "DefinedRegion",
+                            "addressCountry": "AU",
+                        },
+                        "deliveryTime": {
+                            "@type": "ShippingDeliveryTime",
+                            "handlingTime": {
+                                "@type": "QuantitativeValue",
+                                "minValue": 0,
+                                "maxValue": 0,
+                                "unitCode": "DAY",
+                            },
+                            "transitTime": {
+                                "@type": "QuantitativeValue",
+                                "minValue": 0,
+                                "maxValue": 0,
+                                "unitCode": "DAY",
+                            },
+                        },
+                    },
+                    "hasMerchantReturnPolicy": {
+                        "@type": "MerchantReturnPolicy",
+                        "applicableCountry": "AU",
+                        "returnPolicyCategory": "https://schema.org/MerchantReturnNotPermitted",
                     },
                     "priceSpecification": {
                         "@type": "UnitPriceSpecification",
