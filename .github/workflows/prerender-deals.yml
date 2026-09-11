@@ -31,7 +31,7 @@ jobs:
         run: |
           git config user.name "jrsdigital-site-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add deals/index.html
+          git add deals/
           if git diff --cached --quiet; then
             echo "No pre-render changes to commit"
           else
