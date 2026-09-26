@@ -18,7 +18,7 @@ The full mobile-first UI/UX standard (product identity, anti-slop blacklist, har
 
 ## Affiliate context
 
-Commission Factory rejected the application. Do not assume Commission Factory affiliate access or invent affiliate URLs. The current offer model uses explicit feed metadata (`deal_channel`, `deal_channel_label`, public/direct price and URL fields), with WhistleOut specials as the current partner-offer example and direct provider routes as fallbacks.
+The publisher is applying for the Commission Factory affiliate network. Do not add copy claiming the site rejects commissions or cannot earn affiliate revenue, and do not invent unverified affiliate URLs. The current offer model uses explicit feed metadata (`deal_channel`, `deal_channel_label`, public/direct price and URL fields), with WhistleOut specials as the current partner-offer example and direct provider routes as fallbacks.
 
 ## Guardrail
 
