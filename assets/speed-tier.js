@@ -108,6 +108,7 @@
   var grid = document.querySelector('[data-grid]');
   var sortSelect = document.querySelector('[data-sort-select]');
   var providerFilter = document.querySelector('[data-provider-filter]');
+  var uploadFilter = document.querySelector('[data-upload-filter]');
   var mineInput = document.querySelector('[data-mine-input]');
   var mineClear = document.querySelector('[data-mine-clear]');
   var planCountEl = document.querySelector('[data-plan-count]');
@@ -117,7 +118,36 @@
   var tierDeals = [];
   var activeSort = 'totalfirstyear';
   var selectedProvider = '';
+  var selectedUpload = '';
   var userCurrentBill = parseFloat(localStorage.getItem('jrs_user_cost')) || 0;
+
+  function getUploadSpeed(d) {
+    if (!d || !d.tier) return 0;
+    var m = String(d.tier).match(/\/(\d+(\.\d+)?)/);
+    return m ? parseFloat(m[1]) : 0;
+  }
+
+  function readUrlParams() {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      if (params.has('upload')) selectedUpload = params.get('upload');
+      if (params.has('provider')) selectedProvider = params.get('provider');
+      if (params.has('sort')) activeSort = params.get('sort');
+    } catch (e) {}
+  }
+
+  function updateUrlParams() {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      if (selectedUpload) params.set('upload', selectedUpload); else params.delete('upload');
+      if (selectedProvider) params.set('provider', selectedProvider); else params.delete('provider');
+      if (activeSort && activeSort !== 'totalfirstyear') params.set('sort', activeSort); else params.delete('sort');
+      var newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+      window.history.replaceState({}, '', newUrl);
+    } catch (e) {}
+  }
+
+  readUrlParams();
 
   if (mineInput && userCurrentBill > 0) {
     mineInput.value = userCurrentBill.toFixed(0);
@@ -166,6 +196,13 @@
     var filtered = tierDeals;
     if (selectedProvider) {
       filtered = filtered.filter(function (d) { return d.provider === selectedProvider; });
+    }
+    if (selectedUpload) {
+      var reqUp = parseFloat(selectedUpload);
+      filtered = filtered.filter(function (d) {
+        var up = getUploadSpeed(d);
+        return up === reqUp;
+      });
     }
 
     var sorted = sortDeals(filtered);
@@ -322,16 +359,47 @@
         optHtml += '<option value="' + escAttr(p) + '">' + esc(p) + '</option>';
       });
       providerFilter.innerHTML = optHtml;
+      if (selectedProvider) providerFilter.value = selectedProvider;
 
       providerFilter.addEventListener('change', function () {
         selectedProvider = providerFilter.value;
+        updateUrlParams();
+        renderList();
+      });
+    }
+
+    if (uploadFilter) {
+      var uploadSpeeds = [];
+      tierDeals.forEach(function (d) {
+        var up = getUploadSpeed(d);
+        if (up > 0 && uploadSpeeds.indexOf(up) === -1) {
+          uploadSpeeds.push(up);
+        }
+      });
+      uploadSpeeds.sort(function (a, b) { return a - b; });
+
+      if (uploadFilter.options.length <= 1 && uploadSpeeds.length > 1) {
+        var upHtml = '<option value="">All Uploads (' + uploadSpeeds.join(', ') + ' Mbps)</option>';
+        uploadSpeeds.forEach(function (up) {
+          upHtml += '<option value="' + up + '">' + up + ' Mbps Upload</option>';
+        });
+        uploadFilter.innerHTML = upHtml;
+      }
+
+      if (selectedUpload) uploadFilter.value = selectedUpload;
+
+      uploadFilter.addEventListener('change', function () {
+        selectedUpload = uploadFilter.value;
+        updateUrlParams();
         renderList();
       });
     }
 
     if (sortSelect) {
+      if (activeSort) sortSelect.value = activeSort;
       sortSelect.addEventListener('change', function () {
         activeSort = sortSelect.value;
+        updateUrlParams();
         renderList();
       });
     }

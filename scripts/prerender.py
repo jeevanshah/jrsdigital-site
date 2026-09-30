@@ -44,6 +44,7 @@ SPEED_PAGES = [
     ("nbn-250", "NBN 250", REPO_ROOT / "deals" / "nbn-250" / "index.html"),
     ("nbn-1000", "NBN 1000", REPO_ROOT / "deals" / "nbn-1000" / "index.html"),
 ]
+MOBILE_HTML = REPO_ROOT / "deals" / "mobile-plans" / "index.html"
 
 
 def base_bucket_key(raw_tier):
@@ -446,6 +447,256 @@ def render_speed_page_grid(tier_deals: list[dict], target_tier: str) -> str:
     return '<div class="deals-table-body is-compact" data-grid="">' + ''.join(items_html) + '</div>'
 
 
+def render_mobile_page_grid(mobile_deals: list[dict]) -> str:
+    """Renders the static pre-rendered grid for the dedicated mobile plans landing page.
+    Matches the exact semantic class hierarchy of site-deals.css and mobile-plans.js."""
+    def calc_costs(d):
+        try:
+            promo = float(d.get("promoPrice") or 0)
+        except Exception:
+            promo = 0.0
+        try:
+            regular = float(d.get("regularPrice") or 0)
+        except Exception:
+            regular = 0.0
+        try:
+            promo_months = int(d.get("promoMonths") or 0)
+        except Exception:
+            promo_months = 0
+        try:
+            days = int(d.get("billingCycleDays") or 30)
+        except Exception:
+            days = 30
+
+        has_promo = promo > 0 and promo_months > 0 and promo != regular
+        effective_reg = regular if regular > 0 else promo
+
+        if 360 <= days <= 370:
+            cycle_label = "year"
+            annual_cost = promo if promo > 0 else regular
+            reg_annual = effective_reg
+            six_month = annual_cost / 2
+        elif 170 <= days <= 190:
+            cycle_label = "6 months"
+            annual_cost = (promo if promo > 0 else regular) * 2
+            reg_annual = effective_reg * 2
+            six_month = promo if promo > 0 else regular
+        elif days == 28:
+            cycle_label = "28 days"
+            promo_cycles = min(promo_months, 13)
+            reg_cycles = 13 - promo_cycles
+            annual_cost = (promo * promo_cycles) + (effective_reg * reg_cycles) if has_promo else (effective_reg * 13)
+            reg_annual = effective_reg * 13
+            promo6 = min(promo_months, 6.5)
+            reg6 = 6.5 - promo6
+            six_month = (promo * promo6) + (effective_reg * reg6) if has_promo else (effective_reg * 6.5)
+        elif days == 7:
+            cycle_label = "7 days"
+            annual_cost = effective_reg * 52
+            reg_annual = effective_reg * 52
+            six_month = annual_cost / 2
+        else:
+            cycle_label = "month"
+            p_months = min(promo_months, 12)
+            r_months = 12 - p_months
+            annual_cost = (promo * p_months) + (effective_reg * r_months) if has_promo else (effective_reg * 12)
+            reg_annual = effective_reg * 12
+            p6 = min(promo_months, 6)
+            r6 = 6 - p6
+            six_month = (promo * p6) + (effective_reg * r6) if has_promo else (effective_reg * 6)
+
+        monthly_equiv = annual_cost / 12
+        reg_monthly_equiv = reg_annual / 12
+        annual_savings = max(0.0, reg_annual - annual_cost)
+
+        return {
+            "promo": promo,
+            "regular": effective_reg,
+            "has_promo": has_promo,
+            "promo_months": promo_months,
+            "days": days,
+            "cycle_label": cycle_label,
+            "annual_cost": annual_cost,
+            "six_month": six_month,
+            "monthly_equiv": monthly_equiv,
+            "reg_monthly_equiv": reg_monthly_equiv,
+            "annual_savings": annual_savings,
+        }
+
+    decorated = []
+    for d in mobile_deals:
+        costs = calc_costs(d)
+        decorated.append((costs["annual_cost"], d, costs))
+    decorated.sort(key=lambda x: x[0])
+
+    if not decorated:
+        return '<div class="deals-table-body is-compact" data-grid=""><div class="deals-empty"><p class="deals-empty-title">No mobile plans found</p></div></div>'
+
+    network_meta = {
+        'ALDImobile': {'network': 'Telstra Wholesale', 'code': 'telstra_wholesale'},
+        'Boost Mobile': {'network': 'Telstra Retail', 'code': 'telstra_retail'},
+        'Telstra': {'network': 'Telstra Retail', 'code': 'telstra_retail'},
+        'Mate': {'network': 'Telstra Wholesale', 'code': 'telstra_wholesale'},
+        'amaysim': {'network': 'Optus Network', 'code': 'optus'},
+        'Moose Mobile': {'network': 'Optus Network', 'code': 'optus'},
+        'Dodo': {'network': 'Optus Network', 'code': 'optus'},
+        'Aussie Broadband': {'network': 'Optus Network', 'code': 'optus'},
+        'TPG': {'network': 'Vodafone Network', 'code': 'vodafone'},
+        'Felix': {'network': 'Vodafone Network', 'code': 'vodafone'},
+        'Kogan Mobile': {'network': 'Vodafone Network', 'code': 'vodafone'},
+        'Vodafone': {'network': 'Vodafone Network', 'code': 'vodafone'}
+    }
+
+    def esc(s):
+        return html.escape(str(s or ''))
+
+    items_html = []
+    for idx, (_, d, c) in enumerate(decorated):
+        provider_name = esc(d.get('provider', ''))
+        plan_title = esc(d.get('title') or d.get('tier') or '')
+        tier_val = esc(d.get('tier') or '')
+        tech = esc(d.get('techType') or '4G/5G')
+        meta = network_meta.get(d.get('provider'), {'network': 'Mobile Network', 'code': 'other'})
+        tech_label = f"{tech} &bull; {esc(meta['network'])}"
+
+        badges_html = ''
+        if meta['code'] == 'telstra_retail':
+            badges_html = '<button type="button" class="deal-badge deal-badge--good" title="Full Telstra Retail Network: 99.6% Australian population coverage">Telstra Retail (99.6%)</button>'
+        elif meta['code'] == 'telstra_wholesale':
+            badges_html = '<button type="button" class="deal-badge deal-badge--neutral" title="Telstra Wholesale Network: 98.8% Australian population coverage">Telstra Wholesale (98.8%)</button>'
+        elif meta['code'] == 'optus':
+            badges_html = '<button type="button" class="deal-badge deal-badge--neutral" title="Optus Mobile Network: 98.5% Australian population coverage">Optus Net (98.5%)</button>'
+        elif meta['code'] == 'vodafone':
+            badges_html = '<button type="button" class="deal-badge deal-badge--neutral" title="Vodafone Mobile Network: 96% Australian population coverage">Vodafone Net (96%)</button>'
+
+        offer_facts = []
+        if c['days'] == 28:
+            offer_facts.append('<button type="button" class="deal-offer-fact-text deal-offer-fact-text--warn" title="28-day recharge cycle renews 13 times per year">28-day cycle (13x/yr)</button>')
+        elif c['days'] >= 360:
+            offer_facts.append('<span class="deal-offer-fact-text" style="color:#059669;font-weight:600;">365-day upfront pack</span>')
+
+        if c['has_promo'] and c['annual_savings'] > 0:
+            offer_facts.append(f'<span class="deal-offer-fact-text">Save ${c["annual_savings"]:.0f} intro</span>')
+
+        url = d.get("url") or "#"
+        try:
+            domain = urllib.parse.urlparse(url).hostname or ''
+            logo_url = f"https://www.google.com/s2/favicons?sz=64&domain={domain}" if domain else ""
+        except Exception:
+            logo_url = ''
+        logo_html = f'<img class="deal-provider-logo" src="{esc(logo_url)}" alt="" width="20" height="20" loading="lazy" onerror="this.remove()">' if logo_url else ''
+
+        top_entry_cls = ' deal-entry--top' if idx == 0 else ''
+        top_badge = '<div class="deal-top-badge">Lowest 1st-year cost</div>' if idx == 0 else ''
+        badges_wrap = f'<div class="deal-provider-badges">{badges_html}</div>' if badges_html else ''
+
+        promo_display_price = c['promo'] if c['has_promo'] else c['regular']
+        if c['days'] >= 360:
+            promo_caption = 'for 365 days'
+            cycle_suffix = 'yr'
+            ongoing_caption = f"${c['monthly_equiv']:.2f}/mo equiv"
+            ongoing_display = c['monthly_equiv']
+        elif c['days'] == 28:
+            cycle_suffix = c['cycle_label']
+            promo_caption = f"for {c['promo_months']} mos" if c['has_promo'] else f"per {c['cycle_label']}"
+            ongoing_caption = f"per 28 days (${c['monthly_equiv']:.2f}/mo)"
+            ongoing_display = c['regular']
+        else:
+            cycle_suffix = c['cycle_label']
+            promo_caption = f"for {c['promo_months']} mos" if c['has_promo'] else f"per {c['cycle_label']}"
+            ongoing_caption = "ongoing"
+            ongoing_display = c['regular']
+
+        savings_html = (
+            f'<span class="deal-savings-amt">${c["annual_savings"]:.2f}</span><span class="deal-savings-pct">Save {round((c["annual_savings"] / (c["reg_monthly_equiv"] * 12)) * 100)}%</span>'
+            if c['annual_savings'] > 0 else '<span class="deal-cell-caption">—</span>'
+        )
+        first_year_savings = f'<span class="deal-essential-saving">Save ${c["annual_savings"]:.0f} intro</span>' if c['annual_savings'] > 0 else ''
+
+        offer_facts_joined = '<span class="deal-offer-facts-sep" aria-hidden="true"> &middot; </span>'.join(offer_facts)
+        offer_facts_html = f'<div class="deal-offer-facts">{offer_facts_joined}</div>' if offer_facts else ''
+        no_lock_in_html = '<span class="deal-offer-fact-text deal-offer-fact-text--contract">No lock-in</span>'
+
+        item = (
+            f'<article class="deal-entry{top_entry_cls}">'
+            f'{top_badge}'
+            f'<div class="deal-row">'
+            f'<div class="deal-group deal-group-plan">'
+            f'<div class="deal-cell deal-cell-provider">'
+            f'<div class="deal-provider-head">'
+            f'{logo_html}'
+            f'<span class="deal-provider-name">{provider_name}</span>'
+            f'</div>'
+            f'<span class="deal-plan-tier">{plan_title}</span>'
+            f'{badges_wrap}'
+            f'</div>'
+            f'<div class="deal-cell deal-cell-speed" data-label="Data &amp; Network">'
+            f'<span class="deal-cell-body">'
+            f'<span class="deal-cell-value">{tier_val}</span>'
+            f'<span class="deal-cell-caption">{tech_label}</span>'
+            f'</span>'
+            f'</div>'
+            f'</div>'
+            f'<div class="deal-group deal-group-cost">'
+            f'<div class="deal-cost-primary">'
+            f'<div class="deal-cell deal-cell-promo" data-label="Recharge">'
+            f'<span class="deal-cell-body">'
+            f'<span class="deal-price-orange">${promo_display_price:.2f}<small>/{cycle_suffix}</small></span>'
+            f'<span class="deal-cell-caption">{esc(promo_caption)}</span>'
+            f'</span>'
+            f'</div>'
+            f'<div class="deal-cell deal-cell-after" data-label="Ongoing / Mo">'
+            f'<span class="deal-cell-body">'
+            f'<span class="deal-price-navy">${ongoing_display:.2f}<small>/mo</small></span>'
+            f'<span class="deal-cell-caption">{esc(ongoing_caption)}</span>'
+            f'</span>'
+            f'</div>'
+            f'</div>'
+            f'<div class="deal-cost-totals">'
+            f'<div class="deal-cell deal-cell-sixmonth" data-label="6-mo total">'
+            f'<span class="deal-cell-body">'
+            f'<span class="deal-price-navy">${c["six_month"]:.2f}</span>'
+            f'<span class="deal-cell-caption">6 months</span>'
+            f'</span>'
+            f'</div>'
+            f'<div class="deal-cell deal-cell-total" data-label="1-year total">'
+            f'<span class="deal-cell-body">'
+            f'<span class="deal-price-total">${c["annual_cost"]:.2f}</span>'
+            f'<span class="deal-cell-caption">first year (${c["monthly_equiv"]:.2f}/mo)</span>'
+            f'{first_year_savings}'
+            f'</span>'
+            f'</div>'
+            f'<div class="deal-cell deal-cell-savings" data-label="Savings">'
+            f'<span class="deal-cell-body">'
+            f'{savings_html}'
+            f'</span>'
+            f'</div>'
+            f'</div>'
+            f'</div>'
+            f'<div class="deal-group deal-group-offer">'
+            f'<div class="deal-offer-summary" data-label="Offer">'
+            f'{offer_facts_html}'
+            f'{no_lock_in_html}'
+            f'</div>'
+            f'</div>'
+            f'<div class="deal-group deal-group-action">'
+            f'<div class="deal-cell deal-cell-action">'
+            f'<a class="deal-link" href="{esc(url)}" target="_blank" rel="nofollow noopener" '
+            f'aria-label="View mobile plan for {esc(provider_name)} {esc(plan_title)}" '
+            f'data-outbound="deal" data-provider="{esc(provider_name)}" data-plan="{esc(plan_title)}" data-tier="Mobile SIM">'
+            f'View plan'
+            f'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>'
+            f'</a>'
+            f'</div>'
+            f'</div>'
+            f'</div>'
+            f'</article>'
+        )
+        items_html.append(item)
+
+    return '<div class="deals-table-body is-compact" data-grid="">' + ''.join(items_html) + '</div>'
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--port", type=int, default=8123)
@@ -487,6 +738,15 @@ def main():
                     speed_grids[slug] = page.eval_on_selector("[data-grid]", "el => el.outerHTML")
                 except Exception as e:
                     print(f"Notice: Playwright capture for {slug} will use direct renderer ({e})")
+
+            mobile_grid = None
+            if MOBILE_HTML.exists():
+                try:
+                    page.goto(f"{base_url}/deals/mobile-plans/", wait_until="networkidle", timeout=30000)
+                    page.wait_for_function("() => window.__MOBILE_PLANS_RENDERED__ === true", timeout=15000)
+                    mobile_grid = page.eval_on_selector("[data-grid]", "el => el.outerHTML")
+                except Exception as e:
+                    print(f"Notice: Playwright capture for mobile-plans will use direct renderer ({e})")
 
             browser.close()
     finally:
@@ -569,6 +829,19 @@ def main():
         sp_html = splice(sp_html, "SCHEMA", tier_schema_html)
         sp_path.write_text(sp_html, encoding="utf-8")
         print(f"Pre-rendered deals/{slug}/index.html: {len(tier_deals)} schema items")
+
+    if MOBILE_HTML.exists():
+        mobile_deals = [d for d in all_deals if d.get("serviceType") == "mobile"]
+        mobile_schema = build_deal_schema(mobile_deals)
+        mobile_schema["name"] = "Best Australian Mobile Plans"
+        mobile_schema_html = '<script type="application/ld+json">' + json.dumps(mobile_schema, separators=(',', ':')) + "</script>"
+
+        m_html = MOBILE_HTML.read_text(encoding="utf-8")
+        m_grid_html = mobile_grid or render_mobile_page_grid(mobile_deals)
+        m_html = splice(m_html, "GRID", m_grid_html)
+        m_html = splice(m_html, "SCHEMA", mobile_schema_html)
+        MOBILE_HTML.write_text(m_html, encoding="utf-8")
+        print(f"Pre-rendered deals/mobile-plans/index.html: {len(mobile_deals)} schema items")
 
 
 if __name__ == "__main__":
