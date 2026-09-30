@@ -3978,12 +3978,14 @@ button.deal-badge[aria-expanded="true"] {
   gap: 24px;
 }
 
-.deals-support-content {
+.deals-support-content,
+.deals-support-copy {
   flex: 1 1 auto;
   max-width: 740px;
 }
 
-.deals-support-badge {
+.deals-support-badge,
+.deals-support-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -3995,9 +3997,12 @@ button.deal-badge[aria-expanded="true"] {
   margin-bottom: 8px;
 }
 
-.deals-support-badge-icon {
+.deals-support-badge-icon,
+.deals-support-badge svg,
+.deals-support-pill svg {
   width: 14px;
   height: 14px;
+  flex-shrink: 0;
 }
 
 .deals-support-title {
