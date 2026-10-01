@@ -598,6 +598,11 @@ def render_mobile_page_grid(mobile_deals: list[dict]) -> str:
             cycle_suffix = 'yr'
             ongoing_caption = f"${c['monthly_equiv']:.2f}/mo equiv"
             ongoing_display = c['monthly_equiv']
+        elif c['days'] >= 170 and c['days'] <= 190:
+            cycle_suffix = c['cycle_label']
+            promo_caption = f"for {c['cycle_label']}"
+            ongoing_caption = f"${(c['regular'] / 6):.2f}/mo equiv"
+            ongoing_display = c['regular'] / 6
         elif c['days'] == 28:
             cycle_suffix = c['cycle_label']
             promo_caption = f"for {c['promo_months']} mos" if c['has_promo'] else f"per {c['cycle_label']}"

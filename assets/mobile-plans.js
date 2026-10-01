@@ -335,6 +335,9 @@
       var ongoingCaption = '';
       if (c.days >= 360) {
         ongoingCaption = '$' + c.monthlyEquiv.toFixed(2) + '/mo equiv';
+      } else if (c.days >= 170 && c.days <= 190) {
+        ongoingDisplayPrice = c.regular / 6;
+        ongoingCaption = '$' + (c.regular / 6).toFixed(2) + '/mo equiv';
       } else if (c.days === 28) {
         ongoingCaption = 'per 28 days ($' + c.monthlyEquiv.toFixed(2) + '/mo)';
       } else {
