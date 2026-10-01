@@ -765,6 +765,7 @@ def main():
     local_candidates = [
         REPO_ROOT / "data" / "deals.json",
         REPO_ROOT.parent / "au-plans-scraper" / "data" / "deals.json",
+        REPO_ROOT.parent / "Desktop" / "au-plans-scraper" / "data" / "deals.json",
     ]
     local_path = next((path for path in local_candidates if path.exists()), None)
     if local_path:
@@ -787,6 +788,7 @@ def main():
         local_bundles_candidates = [
             REPO_ROOT / "data" / "bundles.json",
             REPO_ROOT.parent / "au-plans-scraper" / "data" / "bundles.json",
+            REPO_ROOT.parent / "Desktop" / "au-plans-scraper" / "data" / "bundles.json",
         ]
         local_b_path = next((path for path in local_bundles_candidates if path.exists()), None)
         if local_b_path:
