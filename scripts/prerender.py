@@ -544,7 +544,9 @@ def render_mobile_page_grid(mobile_deals: list[dict]) -> str:
         'TPG': {'network': 'Vodafone Network', 'code': 'vodafone'},
         'Felix': {'network': 'Vodafone Network', 'code': 'vodafone'},
         'Kogan Mobile': {'network': 'Vodafone Network', 'code': 'vodafone'},
-        'Vodafone': {'network': 'Vodafone Network', 'code': 'vodafone'}
+        'Vodafone': {'network': 'Vodafone Network', 'code': 'vodafone'},
+        'Lyca Mobile': {'network': 'Vodafone Network', 'code': 'vodafone'},
+        'Lycamobile': {'network': 'Vodafone Network', 'code': 'vodafone'}
     }
 
     def esc(s):
@@ -754,19 +756,24 @@ def main():
             server.terminate()
             server.wait(timeout=5)
 
-    try:
-        with urllib.request.urlopen(DEALS_JSON_URL, timeout=15) as resp:
-            all_deals = json.loads(resp.read())
-    except Exception:
-        local_candidates = [
-            REPO_ROOT / "data" / "deals.json",
-            REPO_ROOT.parent / "au-plans-scraper" / "data" / "deals.json",
-        ]
-        local_path = next((path for path in local_candidates if path.exists()), None)
-        if local_path:
+    all_deals = None
+    local_candidates = [
+        REPO_ROOT / "data" / "deals.json",
+        REPO_ROOT.parent / "au-plans-scraper" / "data" / "deals.json",
+    ]
+    local_path = next((path for path in local_candidates if path.exists()), None)
+    if local_path:
+        try:
             all_deals = json.loads(local_path.read_text(encoding="utf-8"))
-        else:
-            raise
+        except Exception:
+            pass
+
+    if not all_deals:
+        try:
+            with urllib.request.urlopen(DEALS_JSON_URL, timeout=15) as resp:
+                all_deals = json.loads(resp.read())
+        except Exception:
+            raise RuntimeError("Could not load deals data from local or remote source.")
     all_bundles = []
     try:
         with urllib.request.urlopen(BUNDLES_JSON_URL, timeout=15) as resp:

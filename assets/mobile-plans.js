@@ -21,7 +21,9 @@
     'TPG': { network: 'Vodafone Network', popCoverage: '96.0%', code: 'vodafone', logoHost: 'www.tpg.com.au' },
     'Felix': { network: 'Vodafone Network', popCoverage: '96.0%', code: 'vodafone', logoHost: 'www.felixmobile.com.au' },
     'Kogan Mobile': { network: 'Vodafone Network', popCoverage: '96.0%', code: 'vodafone', logoHost: 'www.koganmobile.com.au' },
-    'Vodafone': { network: 'Vodafone Network', popCoverage: '96.0%', code: 'vodafone', logoHost: 'www.vodafone.com.au' }
+    'Vodafone': { network: 'Vodafone Network', popCoverage: '96.0%', code: 'vodafone', logoHost: 'www.vodafone.com.au' },
+    'Lyca Mobile': { network: 'Vodafone Network', popCoverage: '96.0%', code: 'vodafone', logoHost: 'www.lycamobile.com.au' },
+    'Lycamobile': { network: 'Vodafone Network', popCoverage: '96.0%', code: 'vodafone', logoHost: 'www.lycamobile.com.au' }
   };
 
   function parsePrice(val) {
