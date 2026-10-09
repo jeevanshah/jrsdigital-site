@@ -27,14 +27,27 @@ jobs:
       - name: Pre-render deals page
         run: python scripts/prerender.py
 
+      - name: Build provider pages
+        run: python scripts/build_provider_pages.py
+
       - name: Commit if changed
+        id: commit
         run: |
           git config user.name "jrsdigital-site-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add deals/
+          git add deals/ sitemap.xml
           if git diff --cached --quiet; then
             echo "No pre-render changes to commit"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             git commit -m "chore: pre-render deals page [skip ci]"
             git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
+
+      # Give GitHub Pages time to deploy, then tell Bing/IndexNow which pages changed.
+      - name: Ping IndexNow
+        if: steps.commit.outputs.changed == 'true'
+        run: |
+          sleep 120
+          python scripts/indexnow_ping.py

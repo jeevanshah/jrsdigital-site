@@ -1,0 +1,60 @@
+/* Provider guide pages (/deals/providers/) and the provider list on /deals/.
+   Generated pages: see scripts/build_provider_pages.py. Uses wide-theme tokens only. */
+
+.provider-hero { display: grid; gap: 1.5rem; }
+
+.provider-checked,
+.provider-note { color: var(--w-ink-70); font-size: 0.92rem; margin: 0.5rem 0 0; }
+
+.provider-stale {
+  margin: 0.75rem 0 0;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--w-border);
+  border-left: 3px solid var(--w-accent);
+  border-radius: var(--w-radius);
+  background: var(--w-surface);
+  color: var(--w-ink);
+  font-size: 0.92rem;
+}
+
+.provider-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+}
+.provider-facts > div {
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--w-border);
+  border-radius: var(--w-radius);
+  background: var(--w-surface);
+}
+.provider-facts dt { color: var(--w-ink-70); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.provider-facts dd { margin: 0.25rem 0 0; color: var(--w-ink); font-weight: 700; font-size: 1.05rem; }
+
+.provider-cis { margin: 0; font-size: 0.92rem; }
+.provider-cis a,
+.provider-hub-all a { color: var(--w-accent-strong); text-decoration: underline; text-underline-offset: 2px; }
+
+.provider-section { margin-top: 1.5rem; }
+.provider-table td:first-child { white-space: nowrap; }
+
+.provider-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.provider-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.provider-table th,
+.provider-table td { text-align: left; padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--w-border); vertical-align: top; }
+.provider-table thead th { color: var(--w-ink-70); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.provider-table tbody th a { color: var(--w-ink); font-weight: 700; }
+.provider-table--index td:nth-child(n+2) { white-space: nowrap; }
+
+.provider-link-list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0; }
+.provider-link-list a {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--w-border);
+  border-radius: 999px;
+  color: var(--w-ink);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+.provider-link-list a:hover,
+.provider-link-list a:focus-visible { border-color: var(--w-accent); color: var(--w-accent-strong); }

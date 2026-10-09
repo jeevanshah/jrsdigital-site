@@ -23,8 +23,6 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-from playwright.sync_api import sync_playwright
-
 REPO_ROOT = Path(__file__).parent.parent
 DEALS_HTML = REPO_ROOT / "deals" / "index.html"
 
@@ -721,6 +719,10 @@ def main():
             stderr=subprocess.DEVNULL,
         )
         wait_for_server(base_url)
+
+    # Imported here so build_provider_pages.py can reuse this module's
+    # renderers without needing Playwright installed.
+    from playwright.sync_api import sync_playwright
 
     try:
         with sync_playwright() as p:
