@@ -34,6 +34,17 @@ RAW = "https://raw.githubusercontent.com/jeevanshah/au-plans-scraper/main/data/"
 TEMPLATE = REPO_ROOT / "deals" / "nbn-50" / "index.html"
 OUT_DIR = REPO_ROOT / "deals" / "providers"
 HUB_HTML = REPO_ROOT / "deals" / "index.html"
+HOME_HTML = REPO_ROOT / "index.html"
+HWC_HTML = REPO_ROOT / "how-we-compare" / "index.html"
+CHANGES_DIR = REPO_ROOT / "deals" / "price-changes"
+HOME_TIERS = [  # (label, bucket or "mobile", page path)
+    ("NBN 25", "NBN 25", "/deals/"),
+    ("NBN 50", "NBN 50", "/deals/nbn-50/"),
+    ("NBN 100", "NBN 100", "/deals/nbn-100/"),
+    ("NBN 250", "NBN 250", "/deals/nbn-250/"),
+    ("NBN 1000", "NBN 1000", "/deals/nbn-1000/"),
+    ("Mobile SIM", "mobile", "/deals/mobile-plans/"),
+]
 SITEMAP = REPO_ROOT / "sitemap.xml"
 STALE_AFTER_FAILURES = 3
 BROADBAND_TYPES = ("nbn", "opticomm", "satellite")
@@ -193,7 +204,7 @@ def page(parts: dict, *, title: str, description: str, path: str, robots: str,
 </head>
 <body class="wide-theme">
   <div class="w-shell">
-    {parts['header']}
+    {set_active_nav(parts['header'], path)}
 
     <main id="main-content">
 {main}
@@ -205,6 +216,14 @@ def page(parts: dict, *, title: str, description: str, path: str, robots: str,
 </body>
 </html>
 """
+
+
+def set_active_nav(header: str, path: str) -> str:
+    header = header.replace(' class="active" aria-current="page"', "")
+    for prefix in ("/deals/price-changes/", "/deals/providers/", "/deals/mobile-plans/", "/deals/"):
+        if path.startswith(prefix):
+            return header.replace(f'<a href="{prefix}">', f'<a href="{prefix}" class="active" aria-current="page">', 1)
+    return header
 
 
 def breadcrumb(items: list[tuple[str, str | None]]) -> tuple[str, dict]:
@@ -469,7 +488,8 @@ def update_hub(rows):
 def update_sitemap(slugs, today):
     xml = SITEMAP.read_text(encoding="utf-8")
     nl = "\r\n" if "\r\n" in xml else "\n"
-    entries = [("/deals/providers/", "0.8")] + [(f"/deals/providers/{s}/", "0.7") for s in sorted(slugs)]
+    entries = ([("/deals/providers/", "0.8"), ("/deals/price-changes/", "0.8"), ("/how-we-compare/", "0.6")]
+               + [(f"/deals/providers/{s}/", "0.7") for s in sorted(slugs)])
     block = nl.join(f"  <url>{nl}    <loc>{SITE}{p}</loc>{nl}    <lastmod>{today}</lastmod>{nl}"
                     f"    <changefreq>daily</changefreq>{nl}    <priority>{pr}</priority>{nl}  </url>"
                     for p, pr in entries)
@@ -480,6 +500,179 @@ def update_sitemap(slugs, today):
         xml = xml.replace("</urlset>", f"  {start}{nl}{block}{nl}  {end}{nl}</urlset>")
     SITEMAP.write_text(xml, encoding="utf-8")
 
+
+
+# ---------------------------------------------------------------- homepage, price changes, how we compare
+
+def clean_title(t) -> str:
+    """Some scraped mobile titles repeat themselves ("160GB 160GB")."""
+    words = str(t or "").split()
+    half = len(words) // 2
+    if words and len(words) % 2 == 0 and words[:half] == words[half:]:
+        return " ".join(words[:half])
+    return " ".join(words)
+
+
+def price_line(d: dict) -> str:
+    promo, reg, m = d.get("promoPrice"), d.get("regularPrice"), d.get("promoMonths")
+    cycle = int(d.get("billingCycleDays") or 30)
+    if 360 <= cycle <= 370:
+        return f"{money(promo or reg)} paid once for the year"
+    unit = "/mo" if 29 <= cycle <= 31 else f" per {billing_cycle_label(cycle)}"
+    if promo and reg and m and promo != reg:
+        span = f"{m} months" if 29 <= cycle <= 31 else f"{m} renewals"
+        return f"{money(promo)}{unit} for {span}, then {money(reg)}{unit}"
+    return f"{money(reg or promo)}{unit}"
+
+
+def change_text(e: dict) -> str:
+    ch = e["changes"]
+    unit = "/mo"
+    cycle = e.get("billingCycleDays")
+    if cycle and not (29 <= int(cycle) <= 31):
+        unit = " per " + billing_cycle_label(cycle)
+    bits = []
+    if "regularPrice" in ch:
+        a, b = ch["regularPrice"]
+        bits.append(f"Ongoing {'up' if b > a else 'down'} {money(a)} &rarr; {money(b)}{unit}")
+    if "promoPrice" in ch:
+        a, b = ch["promoPrice"]
+        months = (ch.get("promoMonths") or [None, None])[1]
+        monthly = not cycle or 29 <= int(cycle) <= 31
+        tail = f" for {months} months" if (months and monthly and int(months) > 1) else ""
+        bits.append(f"Promo {'up' if b > a else 'down'} {money(a)} &rarr; {money(b)}{unit}{tail}")
+    return "; ".join(bits)
+
+
+def change_rows(events: list[dict]) -> str:
+    return "".join(
+        f'<div class="home-change"><time datetime="{e["date"]}">{fmt_date(e["date"], short=True)}</time>'
+        f'<span><a href="/deals/providers/{slugify(e["provider"])}/"><strong>{esc(e["provider"])}</strong></a>'
+        f' &middot; {esc(clean_title(e.get("title") or e.get("tier")))}</span><span>{change_text(e)}</span></div>'
+        for e in events)
+
+
+def build_home(deals, history, meta, rows, today):
+    if not HOME_HTML.exists() or "PRERENDER:HOMETIERS" not in HOME_HTML.read_text(encoding="utf-8"):
+        return
+    providers = {d["provider"] for d in deals if d.get("provider")}
+    checks = [v.get("last_success") for v in meta.values() if v.get("last_success")]
+    checked = fmt_date(max(checks)[:10]) if checks else fmt_date(today)
+    stats = (f"{len(deals)} plans &middot; {len(providers)} providers &middot; Prices checked {checked} "
+             f"from each provider's official plan pages")
+
+    tiers, calc = [], {}
+    for label, bucket, href in HOME_TIERS:
+        if bucket == "mobile":
+            pool = [d for d in deals if d.get("serviceType") == "mobile"]
+        else:
+            pool = [d for d in deals if d.get("serviceType") == "nbn" and base_bucket_key(d.get("tier")) == bucket]
+        if not pool:
+            continue
+        best = min(pool, key=first_year)
+        key = slugify(label)
+        item = {"label": label, "count": len(pool), "provider": best.get("provider"),
+                "plan": clean_title(best.get("title") or best.get("tier")), "priceLine": price_line(best),
+                "firstYear": round(first_year(best), 2), "href": href}
+        tiers.append(item)
+        calc[key] = item
+
+    tier_rows = "".join(
+        f'<a class="home-row" href="{t["href"]}"><span class="home-row-tier"><b>{esc(t["label"])}</b>'
+        f'<span>{t["count"]} plans</span></span><span class="home-row-plan"><span><strong>{esc(t["provider"])}</strong>'
+        f' &middot; {esc(t["plan"])}</span><span>{t["priceLine"]}</span></span>'
+        f'<span class="home-row-price">First year<strong>{money(t["firstYear"])}</strong></span>'
+        f'<span class="home-row-arrow" aria-hidden="true">&rarr;</span></a>' for t in tiers)
+
+    default = calc.get("nbn-50") or next(iter(calc.values()))
+    options = "".join(f'<option value="{k}"{" selected" if v is default else ""}>{esc(v["label"])}</option>'
+                      for k, v in calc.items())
+    diff = 75 * 12 - default["firstYear"]
+    save = (f'<p class="home-save">{money(diff)} less than you&rsquo;d pay this year</p>' if diff > 0.5 else
+            f'<p class="home-save is-neutral">You already pay less than the cheapest {esc(default["label"])} plan we track.</p>')
+    result = (f'<p class="home-label">Cheapest {esc(default["label"])} plan we track</p>'
+              f'<p class="home-plan"><strong>{esc(default["provider"])}</strong> &middot; {esc(default["plan"])}</p>'
+              f'<p class="home-price-line">{default["priceLine"]}</p>'
+              f'<div class="home-figure"><p class="home-first-year">First year <strong>{money(default["firstYear"])}</strong></p>{save}</div>'
+              f'<a class="home-more" href="{default["href"]}">See all {default["count"]} {esc(default["label"])} plans &rarr;</a>')
+    calc_json = json.dumps({k: {**v, "priceLine": html.unescape(v["priceLine"])} for k, v in calc.items()},
+                           separators=(",", ":")).replace("</", "<\\/")
+    calc_data = f'<script type="application/json" id="home-calc-data">{calc_json}</script>'
+
+    week_ago = (dt.date.fromisoformat(today) - dt.timedelta(days=7)).isoformat()
+    recent = [e for e in history if e["date"] >= week_ago]
+    if len(recent) < 4:
+        recent = history[:6]
+    changes = change_rows(recent[:8])
+
+    featured = sorted(rows, key=lambda r: -r["plans"])[:12]
+    prov_links = "".join(f'<a href="/deals/providers/{r["slug"]}/">{esc(r["provider"])}</a>'
+                         for r in sorted(featured, key=lambda r: r["provider"].lower()))
+    prov_links += f'<a class="home-link-strong" href="/deals/providers/">All {len(rows)} providers &rarr;</a>'
+
+    h = HOME_HTML.read_text(encoding="utf-8")
+    for name, val in (("HOMESTATS", stats), ("HOMECALCOPTIONS", options), ("HOMECALCRESULT", result),
+                      ("HOMETIERS", tier_rows), ("HOMECHANGES", changes), ("HOMEPROVIDERS", prov_links),
+                      ("HOMECALCDATA", calc_data)):
+        h = splice(h, name, val)
+    HOME_HTML.write_text(h, encoding="utf-8")
+
+
+def build_changes_page(parts, history, today):
+    cutoff = (dt.date.fromisoformat(today) - dt.timedelta(days=90)).isoformat()
+    events = [e for e in history if e["date"] >= cutoff]
+    rises = sum(1 for e in events if "regularPrice" in e["changes"]
+                and e["changes"]["regularPrice"][1] > e["changes"]["regularPrice"][0])
+    crumbs, crumbs_ld = breadcrumb([("Home", "/"), ("Deals", "/deals/"), ("Price changes", None)])
+    groups, cur = [], None
+    for e in events:
+        if e["date"] != cur:
+            cur = e["date"]
+            groups.append(f'<h2 class="w-h2 provider-day">{fmt_date(cur)}</h2>')
+        groups.append(change_rows([e]))
+    month = dt.date.fromisoformat(today).strftime("%b %Y")
+    main = f"""{crumbs}
+
+      <section class="deals-speed-hero provider-hero">
+        <div class="deals-hero-copy">
+          <p class="deals-eyebrow">Price tracker</p>
+          <h1 class="deals-h1">NBN and mobile <span class="deals-h1-accent">price changes</span>.</h1>
+          <p class="deals-hero-sub">Every price change our daily checks recorded in the last 90 days: <strong>{len(events)}</strong> changes, including <strong>{rises}</strong> ongoing price rises. Updated {fmt_date(today)}.</p>
+          <p class="provider-note">"Ongoing" is the price you pay after the promo ends. Changes to promo prices are listed too.</p>
+        </div>
+      </section>
+
+      <section class="w-section provider-section home-rows">
+        {''.join(groups) or '<p>No price changes recorded yet.</p>'}
+      </section>
+"""
+    CHANGES_DIR.mkdir(parents=True, exist_ok=True)
+    (CHANGES_DIR / "index.html").write_text(page(
+        parts, title=f"NBN & Mobile Price Changes ({month}) | JRS Digital",
+        description=f"Every Australian NBN and mobile plan price change we recorded in the last 90 days, "
+                    f"including {rises} ongoing price rises. Updated daily.",
+        path="/deals/price-changes/", robots="index, follow, max-snippet:-1",
+        main=main, schema=[crumbs_ld]).replace(
+        '<link rel="stylesheet" href="/assets/site-providers.css">',
+        '<link rel="stylesheet" href="/assets/site-providers.css">\n<link rel="stylesheet" href="/assets/site-home.css">'),
+        encoding="utf-8")
+
+
+def build_hwc(deals, meta, today):
+    if not HWC_HTML.exists():
+        return
+    providers = {d["provider"] for d in deals if d.get("provider")}
+    stale = []
+    for p in sorted(providers):
+        last, is_stale = provider_freshness(meta, p)
+        if is_stale and last:
+            stale.append(f'<a href="/deals/providers/{slugify(p)}/">{esc(p)}</a> (last confirmed {fmt_date(last)})')
+    stale_txt = ("Right now we're waiting on fresh prices from " + ", ".join(stale) + "."
+                 if stale else "Right now every provider we track was checked successfully.")
+    h = HWC_HTML.read_text(encoding="utf-8")
+    h = splice(h, "HWCSTATS", f"{len(deals)} plans from {len(providers)} providers")
+    h = splice(h, "HWCSTALE", stale_txt)
+    HWC_HTML.write_text(h, encoding="utf-8")
 
 def main():
     today = dt.date.today().isoformat()
@@ -519,6 +712,9 @@ def main():
 
     (OUT_DIR / "index.html").write_text(build_index(parts, rows, today), encoding="utf-8")
     update_hub(rows)
+    build_home(deals, history, meta, rows, today)
+    build_changes_page(parts, history, today)
+    build_hwc(deals, meta, today)
     update_sitemap(indexable, today)
     print(f"Built {len(rows)} provider pages ({len(indexable)} indexable) + providers index")
 

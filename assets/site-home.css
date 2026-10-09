@@ -1,0 +1,117 @@
+/* Homepage (comparison hub) and /how-we-compare/. Wide-theme tokens only;
+   rows and dividers, no cards (see deals/UI_UX_GUARDRAILS.md). */
+
+.home-main { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+.home-intro { padding: 36px 0 24px; }
+.home-intro h1 { margin: 0; font-size: 30px; line-height: 1.2; font-weight: 600; letter-spacing: -0.015em; max-width: 720px; }
+.home-meta { margin: 12px 0 0; color: var(--w-ink-70); font-size: 15px; }
+
+.home-calc {
+  border-top: 1px solid var(--w-border);
+  border-bottom: 1px solid var(--w-border);
+  padding: 24px 0;
+  display: flex; flex-wrap: wrap; gap: 24px 48px; align-items: flex-end;
+}
+.home-calc-inputs, .home-calc-result { flex: 1 1 320px; min-width: 0; }
+.home-calc h2, .home-section h2 { margin: 0 0 12px; font-size: 20px; font-weight: 600; }
+.home-calc h2 { font-size: 18px; }
+.home-calc-fields { display: flex; flex-wrap: wrap; gap: 12px; }
+.home-field { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--w-ink-70); }
+.home-money {
+  display: flex; align-items: center; height: 44px; padding: 0 12px;
+  border: 1px solid #C9CED6; border-radius: 6px; background: #fff; color: var(--w-ink); font-size: 16px;
+}
+.home-money:focus-within { border-color: var(--w-ink); }
+.home-money input { border: 0; outline: none; width: 72px; padding: 0 6px; font: inherit; font-size: 16px; background: transparent; color: var(--w-ink); }
+.home-field select {
+  height: 44px; min-width: 160px; padding: 0 12px; font: inherit; font-size: 16px;
+  border: 1px solid #C9CED6; border-radius: 6px; background: #fff; color: var(--w-ink);
+}
+.home-note { margin: 10px 0 0; font-size: 13px; color: var(--w-ink-70); }
+.home-calc-result p { margin: 0; }
+.home-label { font-size: 13px; color: var(--w-ink-70); }
+.home-plan { margin-top: 4px !important; font-size: 16px; }
+.home-price-line { margin-top: 2px !important; font-size: 14px; color: var(--w-ink-70); }
+.home-figure { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin-top: 10px; }
+.home-first-year { font-size: 14px; color: var(--w-ink-70); }
+.home-first-year strong, .home-row-price strong { color: var(--w-ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+.home-first-year strong { font-size: 24px; }
+.home-save { font-size: 15px; font-weight: 600; color: var(--jrs-green-strong); }
+.home-save.is-neutral { font-weight: 400; color: var(--w-ink-70); }
+.home-more { display: inline-block; margin-top: 10px; font-size: 15px; font-weight: 600; color: var(--w-accent-strong); }
+
+.home-section { padding: 36px 0 8px; }
+.home-section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; }
+.home-section-head h2 { margin: 0; }
+.home-section-head p, .home-sub { margin: 0; font-size: 13px; color: var(--w-ink-70); }
+.home-sub { margin-top: 6px; font-size: 15px; }
+.home-section-head a, .home-link-strong { font-size: 15px; font-weight: 600; color: var(--w-accent-strong); }
+
+.home-rows { margin-top: 12px; border-top: 1px solid var(--w-border); }
+.home-row {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 24px;
+  padding: 16px 0; border-bottom: 1px solid var(--w-border);
+  color: var(--w-ink); text-decoration: none;
+}
+a.home-row:hover .home-row-tier, a.home-row:focus-visible .home-row-tier { color: var(--w-accent-strong); }
+.home-row-tier { flex: 0 0 150px; display: flex; flex-direction: column; }
+.home-row-tier b { font-weight: 600; font-size: 17px; }
+.home-row-tier span, .home-row-plan span:last-child { font-size: 13px; color: var(--w-ink-70); }
+.home-row-plan { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; font-size: 15px; }
+.home-row-plan span:last-child { font-size: 14px; }
+.home-row-price { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; margin-left: auto; font-size: 12px; color: var(--w-ink-70); }
+.home-row-price strong { font-size: 20px; }
+.home-row-arrow { flex: 0 0 auto; color: var(--w-accent-strong); font-size: 18px; }
+
+.home-change { display: flex; flex-wrap: wrap; gap: 2px 24px; padding: 12px 0; border-bottom: 1px solid var(--w-border); font-size: 15px; }
+.home-change time { flex: 0 0 90px; color: var(--w-ink-70); font-variant-numeric: tabular-nums; }
+.home-change span:nth-child(2) { flex: 1 1 280px; min-width: 0; }
+.home-change span:last-child { font-variant-numeric: tabular-nums; }
+
+.home-providers { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 14px; font-size: 15px; }
+.home-providers a { color: var(--w-ink); text-decoration: underline; text-decoration-color: #C9CED6; text-underline-offset: 3px; padding: 6px 0; }
+.home-providers a.home-link-strong { color: var(--w-accent-strong); text-decoration: none; }
+
+.home-trust { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px 32px; margin-top: 14px; }
+.home-trust div { border-top: 2px solid var(--w-ink); padding-top: 12px; }
+.home-trust h3 { margin: 0; font-size: 16px; font-weight: 600; }
+.home-trust p { margin: 6px 0 0; font-size: 15px; color: var(--w-ink-70); }
+
+.home-pm {
+  margin: 40px 0 0; padding: 20px 0;
+  border-top: 1px solid var(--w-border); border-bottom: 1px solid var(--w-border);
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px;
+}
+.home-pm h2 { margin: 0; font-size: 17px; font-weight: 600; }
+.home-pm p { margin: 4px 0 0; font-size: 15px; color: var(--w-ink-70); }
+.home-pm a {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px;
+  border: 1px solid var(--w-ink); border-radius: 6px; color: var(--w-ink); text-decoration: none; font-size: 15px; font-weight: 600;
+}
+.home-pm a:hover, .home-pm a:focus-visible { background: var(--w-ink); color: #fff; }
+
+/* How we compare */
+.hwc { display: flex; flex-wrap: wrap; gap: 32px 64px; align-items: flex-start; padding-bottom: 48px; }
+.hwc article { flex: 999 1 560px; min-width: 0; max-width: 700px; line-height: 1.65; }
+.hwc h1 { margin: 16px 0 0; font-size: 30px; line-height: 1.2; font-weight: 600; letter-spacing: -0.015em; }
+.hwc-byline { margin: 10px 0 0; font-size: 14px; color: var(--w-ink-70); }
+.hwc-lede { margin: 20px 0 0; font-size: 17px; }
+.hwc section { margin-top: 32px; border-top: 1px solid var(--w-border); padding-top: 20px; scroll-margin-top: 24px; }
+.hwc h2 { margin: 0; font-size: 20px; font-weight: 600; }
+.hwc ul { margin: 10px 0 0; padding-left: 20px; }
+.hwc li + li { margin-top: 6px; }
+.hwc-example { margin-top: 14px; background: #F7F8FA; border-radius: 6px; padding: 16px 18px; font-variant-numeric: tabular-nums; }
+.hwc-example p { margin: 0; }
+.hwc-example p:first-child { font-size: 14px; color: var(--w-ink-70); }
+.hwc aside { flex: 1 1 220px; min-width: 0; padding-top: 72px; }
+.hwc aside p { margin: 0; font-size: 13px; font-weight: 600; color: var(--w-ink-70); }
+.hwc aside nav { display: flex; flex-direction: column; gap: 2px; margin-top: 8px; font-size: 15px; }
+.hwc aside a { color: var(--w-ink); text-decoration: none; padding: 6px 0; }
+.hwc aside a:hover { color: var(--w-accent-strong); }
+@media (max-width: 860px) { .hwc aside { display: none; } }
+
+/* site.css sets Playfair on h1–h3; the comparison pages use Plus Jakarta. */
+.home-main h1, .home-main h2, .home-main h3 { font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; }
+.home-change a { color: var(--w-ink); text-decoration: none; }
+.home-change a:hover, .home-change a:focus-visible { color: var(--w-accent-strong); text-decoration: underline; }

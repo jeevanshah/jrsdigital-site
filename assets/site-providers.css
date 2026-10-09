@@ -58,3 +58,6 @@
 }
 .provider-link-list a:hover,
 .provider-link-list a:focus-visible { border-color: var(--w-accent); color: var(--w-accent-strong); }
+
+.home-rows .provider-day { margin: 28px 0 4px; padding: 0; font-size: 1rem; font-weight: 600; color: var(--w-ink); }
+.home-rows .provider-day:first-child { margin-top: 8px; }

@@ -86,6 +86,18 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://jrsdigital.net/deals/price-changes/</loc>
+    <lastmod>2026-10-09</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://jrsdigital.net/how-we-compare/</loc>
+    <lastmod>2026-10-09</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://jrsdigital.net/deals/providers/activ8me/</loc>
     <lastmod>2026-10-09</lastmod>
     <changefreq>daily</changefreq>
