@@ -37,6 +37,7 @@ MARKERS = {
 }
 
 SPEED_PAGES = [
+    ("nbn-25", "NBN 25", REPO_ROOT / "deals" / "nbn-25" / "index.html"),
     ("nbn-50", "NBN 50", REPO_ROOT / "deals" / "nbn-50" / "index.html"),
     ("nbn-100", "NBN 100", REPO_ROOT / "deals" / "nbn-100" / "index.html"),
     ("nbn-250", "NBN 250", REPO_ROOT / "deals" / "nbn-250" / "index.html"),

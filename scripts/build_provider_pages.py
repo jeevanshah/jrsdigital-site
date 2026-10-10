@@ -38,7 +38,7 @@ HOME_HTML = REPO_ROOT / "index.html"
 HWC_HTML = REPO_ROOT / "how-we-compare" / "index.html"
 CHANGES_DIR = REPO_ROOT / "deals" / "price-changes"
 HOME_TIERS = [  # (label, bucket or "mobile", page path)
-    ("NBN 25", "NBN 25", "/deals/"),
+    ("NBN 25", "NBN 25", "/deals/nbn-25/"),
     ("NBN 50", "NBN 50", "/deals/nbn-50/"),
     ("NBN 100", "NBN 100", "/deals/nbn-100/"),
     ("NBN 250", "NBN 250", "/deals/nbn-250/"),
@@ -674,6 +674,22 @@ def build_hwc(deals, meta, today):
     h = splice(h, "HWCSTALE", stale_txt)
     HWC_HTML.write_text(h, encoding="utf-8")
 
+def update_tier_best(deals):
+    """Speed pages with a TIERBEST marker show the tier's cheapest first-year cost."""
+    for label, bucket, href in HOME_TIERS:
+        if not href.startswith("/deals/nbn-"):
+            continue
+        path = REPO_ROOT / href.strip("/") / "index.html"
+        if not path.exists():
+            continue
+        h = path.read_text(encoding="utf-8")
+        if "PRERENDER:TIERBEST:START" not in h:
+            continue
+        pool = [d for d in deals if d.get("serviceType") == "nbn" and base_bucket_key(d.get("tier")) == bucket]
+        if pool:
+            path.write_text(splice(h, "TIERBEST", money(min(first_year(d) for d in pool))), encoding="utf-8")
+
+
 def main():
     today = dt.date.today().isoformat()
     deals = load("deals.json", [])
@@ -715,6 +731,7 @@ def main():
     build_home(deals, history, meta, rows, today)
     build_changes_page(parts, history, today)
     build_hwc(deals, meta, today)
+    update_tier_best(deals)
     update_sitemap(indexable, today)
     print(f"Built {len(rows)} provider pages ({len(indexable)} indexable) + providers index")
 
