@@ -505,12 +505,22 @@ def update_sitemap(slugs, today):
 # ---------------------------------------------------------------- homepage, price changes, how we compare
 
 def clean_title(t) -> str:
-    """Some scraped mobile titles repeat themselves ("160GB 160GB")."""
-    words = str(t or "").split()
+    """Clean scraped plan titles from repeated words or duplicated provider prefix."""
+    s = str(t or "").strip()
+    words = s.split()
     half = len(words) // 2
     if words and len(words) % 2 == 0 and words[:half] == words[half:]:
-        return " ".join(words[:half])
-    return " ".join(words)
+        s = " ".join(words[:half])
+    # Collapse repeated consecutive words/phrases (e.g. "Carbon Fixed Wireless Carbon Fixed Wireless" or "NBN NBN")
+    prev = ""
+    while s != prev:
+        prev = s
+        s = re.sub(r'\b(.+?)\s+\1\b', r'\1', s, flags=re.IGNORECASE).strip()
+    # Collapse repeated speed pattern like '250/20 NBN 250/20' -> 'NBN 250/20'
+    s = re.sub(r'(\d+(?:/\d+)?)\s+NBN\s+\1', r'NBN \1', s, flags=re.IGNORECASE)
+    s = re.sub(r'\bNBN\s+NBN\b', 'NBN', s, flags=re.IGNORECASE)
+    return " ".join(s.split())
+
 
 
 def price_line(d: dict) -> str:
@@ -544,12 +554,63 @@ def change_text(e: dict) -> str:
     return "; ".join(bits)
 
 
+def change_pills(e: dict) -> str:
+    ch = e["changes"]
+    unit = "/mo"
+    cycle = e.get("billingCycleDays")
+    if cycle and not (29 <= int(cycle) <= 31):
+        unit = " per " + billing_cycle_label(cycle)
+    pills = []
+    if "regularPrice" in ch:
+        a, b = ch["regularPrice"]
+        is_down = (b < a)
+        cls = "is-drop" if is_down else "is-rise"
+        arrow = "&darr;" if is_down else "&uarr;"
+        label = "Ongoing drop" if is_down else "Ongoing rise"
+        pills.append(
+            f'<span class="home-change-pill {cls}">'
+            f'<span class="home-pill-badge">{arrow} {label}</span>'
+            f'<span class="home-pill-math"><del>{money(a)}</del> &rarr; <strong>{money(b)}</strong>{unit}</span>'
+            f'</span>'
+        )
+    if "promoPrice" in ch:
+        a, b = ch["promoPrice"]
+        is_down = (b < a)
+        cls = "is-drop" if is_down else "is-rise"
+        arrow = "&darr;" if is_down else "&uarr;"
+        label = "Promo drop" if is_down else "Promo rise"
+        months = (ch.get("promoMonths") or [None, None])[1]
+        monthly = not cycle or 29 <= int(cycle) <= 31
+        tail = f' <span class="home-pill-tail">({months} mos)</span>' if (months and monthly and int(months) > 1) else ""
+        pills.append(
+            f'<span class="home-change-pill {cls}">'
+            f'<span class="home-pill-badge">{arrow} {label}</span>'
+            f'<span class="home-pill-math"><del>{money(a)}</del> &rarr; <strong>{money(b)}</strong>{unit}{tail}</span>'
+            f'</span>'
+        )
+    return "".join(pills) if pills else f'<span class="home-change-fallback">{change_text(e)}</span>'
+
+
 def change_rows(events: list[dict]) -> str:
-    return "".join(
-        f'<div class="home-change"><time datetime="{e["date"]}">{fmt_date(e["date"], short=True)}</time>'
-        f'<span><a href="/deals/providers/{slugify(e["provider"])}/"><strong>{esc(e["provider"])}</strong></a>'
-        f' &middot; {esc(clean_title(e.get("title") or e.get("tier")))}</span><span>{change_text(e)}</span></div>'
-        for e in events)
+    rows = []
+    for e in events:
+        prov = esc(e["provider"])
+        prov_slug = slugify(e["provider"])
+        title = esc(clean_title(e.get("title") or e.get("tier")))
+        date_fmt = fmt_date(e["date"], short=True)
+        ch_html = change_pills(e)
+        rows.append(
+            f'<div class="home-change">'
+            f'<time datetime="{e["date"]}" class="home-change-date">{date_fmt}</time>'
+            f'<div class="home-change-plan">'
+            f'<a href="/deals/providers/{prov_slug}/" class="home-change-provider"><strong>{prov}</strong></a>'
+            f'<span class="home-change-dot">&middot;</span>'
+            f'<span class="home-change-name">{title}</span>'
+            f'</div>'
+            f'<div class="home-change-badges">{ch_html}</div>'
+            f'</div>'
+        )
+    return "".join(rows)
 
 
 def build_home(deals, history, meta, rows, today):
@@ -578,11 +639,25 @@ def build_home(deals, history, meta, rows, today):
         calc[key] = item
 
     tier_rows = "".join(
-        f'<a class="home-row" href="{t["href"]}"><span class="home-row-tier"><b>{esc(t["label"])}</b>'
-        f'<span>{t["count"]} plans</span></span><span class="home-row-plan"><span><strong>{esc(t["provider"])}</strong>'
-        f' &middot; {esc(t["plan"])}</span><span>{t["priceLine"]}</span></span>'
-        f'<span class="home-row-price">First year<strong>{money(t["firstYear"])}</strong></span>'
-        f'<span class="home-row-arrow" aria-hidden="true">&rarr;</span></a>' for t in tiers)
+        f'<a class="home-row" href="{t["href"]}">'
+        f'<div class="home-row-tier">'
+        f'<span class="home-tier-badge">{esc(t["label"])}</span>'
+        f'<span class="home-tier-count">{t["count"]} plans</span>'
+        f'</div>'
+        f'<div class="home-row-plan">'
+        f'<div class="home-plan-head">'
+        f'<strong class="home-provider-name">{esc(t["provider"])}</strong>'
+        f'<span class="home-plan-dot">&middot;</span>'
+        f'<span class="home-plan-name">{esc(t["plan"])}</span>'
+        f'</div>'
+        f'<div class="home-plan-pricing">{t["priceLine"]}</div>'
+        f'</div>'
+        f'<div class="home-row-price">'
+        f'<span class="home-price-caption">First year</span>'
+        f'<strong class="home-price-val">{money(t["firstYear"])}</strong>'
+        f'</div>'
+        f'<div class="home-row-arrow" aria-hidden="true">&rarr;</div>'
+        f'</a>' for t in tiers)
 
     default = calc.get("nbn-50") or next(iter(calc.values()))
     options = "".join(f'<option value="{k}"{" selected" if v is default else ""}>{esc(v["label"])}</option>'
