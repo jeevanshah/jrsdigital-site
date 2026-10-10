@@ -59,11 +59,34 @@
 
     <main id="main-content" class="home-main">
       <section class="home-intro" aria-labelledby="home-title">
+        <div class="home-intro-badge">
+          <span class="home-intro-badge-dot"></span>
+          <span>Live Australian Telecom Comparison</span>
+        </div>
         <h1 id="home-title">NBN and mobile plans, ranked by what you'll pay in the first year.</h1>
-        <p class="home-meta"><!-- PRERENDER:HOMESTATS:START -->267 plans &middot; 38 providers &middot; Prices checked 8 October 2026 from each provider's official plan pages<!-- PRERENDER:HOMESTATS:END --></p>
+        <p class="home-meta"><!-- PRERENDER:HOMESTATS:START -->271 plans &middot; 38 providers &middot; Prices checked 10 October 2026 from each provider's official plan pages<!-- PRERENDER:HOMESTATS:END --></p>
+        <div class="home-hero-actions">
+          <a class="home-btn-primary" href="/deals/">
+            <span>Explore Deals Comparison Engine</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+          <a class="home-btn-secondary" href="#calculator">
+            <span>Check your bill savings</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m19 9-7 7-7-7"/></svg>
+          </a>
+        </div>
+        <div class="home-hero-quicklinks">
+          <span class="home-quicklinks-label">Quick shortcuts:</span>
+          <a href="/deals/">All NBN Plans</a>
+          <a href="/deals/mobile-plans/">Mobile SIMs</a>
+          <a href="/deals/nbn-50/">NBN 50</a>
+          <a href="/deals/nbn-100/">NBN 100</a>
+          <a href="/deals/nbn-1000/">Gigabit</a>
+          <a href="/deals/providers/">38 Telcos</a>
+        </div>
       </section>
 
-      <section class="home-calc" aria-labelledby="calc-title" data-home-calc>
+      <section class="home-calc" id="calculator" aria-labelledby="calc-title" data-home-calc>
         <div class="home-calc-inputs">
           <h2 id="calc-title">What do you pay now?</h2>
           <div class="home-calc-fields">
@@ -76,7 +99,7 @@
           </div>
           <p class="home-note">Stays in your browser. We don't store it.</p>
         </div>
-        <div class="home-calc-result" aria-live="polite"><!-- PRERENDER:HOMECALCRESULT:START --><p class="home-label">Cheapest NBN 50 plan we track</p><p class="home-plan"><strong>Kogan Internet</strong> &middot; Silver NBN 50</p><p class="home-price-line">$69.90/mo for 12 months, then $80.90/mo</p><div class="home-figure"><p class="home-first-year">First year <strong>$838.80</strong></p><p class="home-save">$61.20 less than you&rsquo;d pay this year</p></div><a class="home-more" href="/deals/nbn-50/">See all 27 NBN 50 plans &rarr;</a><!-- PRERENDER:HOMECALCRESULT:END --></div>
+        <div class="home-calc-result" aria-live="polite"><!-- PRERENDER:HOMECALCRESULT:START --><p class="home-label">Cheapest NBN 50 plan we track</p><p class="home-plan"><strong>Kogan Internet</strong> &middot; Silver NBN 50</p><p class="home-price-line">$69.90/mo for 12 months, then $80.90/mo</p><div class="home-figure"><p class="home-first-year">First year <strong>$838.80</strong></p><p class="home-save">$61.20 less than you&rsquo;d pay this year</p></div><div class="home-calc-links"><a class="home-more" href="/deals/nbn-50/">See all 26 NBN 50 plans &rarr;</a><a class="home-calc-deals-link" href="/deals/">Open full deals table &rarr;</a></div><!-- PRERENDER:HOMECALCRESULT:END --></div>
       </section>
 
       <section class="home-section" aria-labelledby="tiers-title">
@@ -84,7 +107,64 @@
           <h2 id="tiers-title">Cheapest plan at each speed</h2>
           <p>Promo months plus ongoing months, over 12 months</p>
         </div>
-        <div class="home-rows"><!-- PRERENDER:HOMETIERS:START --><a class="home-row" href="/deals/nbn-25/"><span class="home-row-tier"><b>NBN 25</b><span>30 plans</span></span><span class="home-row-plan"><span><strong>Flip</strong> &middot; Premium NBN 25/10</span><span>$48/mo for 12 months, then $65.90/mo</span></span><span class="home-row-price">First year<strong>$576</strong></span><span class="home-row-arrow" aria-hidden="true">&rarr;</span></a><a class="home-row" href="/deals/nbn-50/"><span class="home-row-tier"><b>NBN 50</b><span>27 plans</span></span><span class="home-row-plan"><span><strong>Kogan Internet</strong> &middot; Silver NBN 50</span><span>$69.90/mo for 12 months, then $80.90/mo</span></span><span class="home-row-price">First year<strong>$838.80</strong></span><span class="home-row-arrow" aria-hidden="true">&rarr;</span></a><a class="home-row" href="/deals/nbn-100/"><span class="home-row-tier"><b>NBN 100</b><span>25 plans</span></span><span class="home-row-plan"><span><strong>Kogan Internet</strong> &middot; Gold NBN 100</span><span>$69.90/mo for 12 months, then $85.90/mo</span></span><span class="home-row-price">First year<strong>$838.80</strong></span><span class="home-row-arrow" aria-hidden="true">&rarr;</span></a><a class="home-row" href="/deals/nbn-250/"><span class="home-row-tier"><b>NBN 250</b><span>5 plans</span></span><span class="home-row-plan"><span><strong>SpinTel</strong> &middot; NBN 250/25</span><span>$79/mo for 6 months, then $89.95/mo</span></span><span class="home-row-price">First year<strong>$1,013.70</strong></span><span class="home-row-arrow" aria-hidden="true">&rarr;</span></a><a class="home-row" href="/deals/nbn-1000/"><span class="home-row-tier"><b>NBN 1000</b><span>29 plans</span></span><span class="home-row-plan"><span><strong>SpinTel</strong> &middot; NBN 1000/100</span><span>$76/mo for 6 months, then $104.95/mo</span></span><span class="home-row-price">First year<strong>$1,085.70</strong></span><span class="home-row-arrow" aria-hidden="true">&rarr;</span></a><a class="home-row" href="/deals/mobile-plans/"><span class="home-row-tier"><b>Mobile SIM</b><span>66 plans</span></span><span class="home-row-plan"><span><strong>Kogan Mobile</strong> &middot; 220GB</span><span>$149 paid once for the year</span></span><span class="home-row-price">First year<strong>$149</strong></span><span class="home-row-arrow" aria-hidden="true">&rarr;</span></a><!-- PRERENDER:HOMETIERS:END --></div>
+        <div class="home-rows"><!-- PRERENDER:HOMETIERS:START --><a class="home-row" href="/deals/nbn-25/"><span class="home-row-tier"><b>NBN 25</b><span>29 plans</span></span><span class="home-row-plan"><span><strong>Flip</strong> &middot; Premium NBN 25/10</span><span>$48/mo for 12 months, then $65.90/mo</span></span><span class="home-row-price">First year<strong>$576</strong></span><span class="home-row-arrow" aria-hidden="true">&rarr;</span></a><a class="home-row" href="/deals/nbn-50/"><span class="home-row-tier"><b>NBN 50</b><span>26 plans</span></span><span class="home-row-plan"><span><strong>Kogan Internet</strong> &middot; Silver NBN 50</span><span>$69.90/mo for 12 months, then $80.90/mo</span></span><span class="home-row-price">First year<strong>$838.80</strong></span><span class="home-row-arrow" aria-hidden="true">&rarr;</span></a><a class="home-row" href="/deals/nbn-100/"><span class="home-row-tier"><b>NBN 100</b><span>25 plans</span></span><span class="home-row-plan"><span><strong>Kogan Internet</strong> &middot; Gold NBN 100</span><span>$69.90/mo for 12 months, then $85.90/mo</span></span><span class="home-row-price">First year<strong>$838.80</strong></span><span class="home-row-arrow" aria-hidden="true">&rarr;</span></a><a class="home-row" href="/deals/nbn-250/"><span class="home-row-tier"><b>NBN 250</b><span>7 plans</span></span><span class="home-row-plan"><span><strong>Carbon Comms</strong> &middot; Carbon Fixed Wireless Carbon Fixed Wireless Plus Homefast 250/20 NBN NBN 250/20</span><span>$84/mo</span></span><span class="home-row-price">First year<strong>$1,008</strong></span><span class="home-row-arrow" aria-hidden="true">&rarr;</span></a><a class="home-row" href="/deals/nbn-1000/"><span class="home-row-tier"><b>NBN 1000</b><span>30 plans</span></span><span class="home-row-plan"><span><strong>SpinTel</strong> &middot; NBN 1000/100</span><span>$76/mo for 6 months, then $104.95/mo</span></span><span class="home-row-price">First year<strong>$1,085.70</strong></span><span class="home-row-arrow" aria-hidden="true">&rarr;</span></a><a class="home-row" href="/deals/mobile-plans/"><span class="home-row-tier"><b>Mobile SIM</b><span>66 plans</span></span><span class="home-row-plan"><span><strong>Kogan Mobile</strong> &middot; 220GB</span><span>$149 paid once for the year</span></span><span class="home-row-price">First year<strong>$149</strong></span><span class="home-row-arrow" aria-hidden="true">&rarr;</span></a><!-- PRERENDER:HOMETIERS:END --></div>
+        <div class="home-rows-footer">
+          <span class="home-rows-footer-text">Looking for 40+ Mbps upload, OptiComm, Satellite, or bundle discounts?</span>
+          <a class="home-btn-outline" href="/deals/">
+            <span>Compare all 267 plans with live filters</span>
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+        </div>
+      </section>
+
+      <section class="home-section home-deals-spotlight" aria-labelledby="spotlight-title">
+        <div class="home-spotlight-card">
+          <div class="home-spotlight-head">
+            <span class="home-spotlight-badge">Our Flagship Comparison Engine</span>
+            <h2 id="spotlight-title">Why use the JRS Digital Deals Engine?</h2>
+            <p>Most comparison sites promote 6-month intro rates that double later and hide network restrictions. We built an engine designed around mathematical honesty and full technical disclosure.</p>
+          </div>
+          <div class="home-spotlight-grid">
+            <div class="home-spotlight-item">
+              <div class="home-spotlight-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/></svg>
+              </div>
+              <h3>True 1st-Year Outlay</h3>
+              <p>We compute promo months plus ongoing months across 12 full months. 28-day mobile plans are normalized to 13 renewals per year so you see what you actually spend.</p>
+            </div>
+
+            <div class="home-spotlight-item">
+              <div class="home-spotlight-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>
+              </div>
+              <h3>CGNAT &amp; Network Filtering</h3>
+              <p>Essential for home servers, gaming, and remote work. Filter telcos with free CGNAT opt-out, static public IPv4, 30-day cancellation lock-in warnings, and 40+ Mbps upload.</p>
+            </div>
+
+            <div class="home-spotlight-item">
+              <div class="home-spotlight-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m20.59 13.41-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+              </div>
+              <h3>Cheaper Hidden Routes</h3>
+              <p>We track direct telco portals and verified partner campaigns. If a provider offers a cheaper rate on a partner link than on their own site, we show you the lower price.</p>
+            </div>
+
+            <div class="home-spotlight-item">
+              <div class="home-spotlight-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+              </div>
+              <h3>Zero Paid Rankings</h3>
+              <p>No telco can buy a higher ranking on our tables. Results are ordered strictly by transparent math (lowest first-year cost). All pricing is verified daily from official CIS docs.</p>
+            </div>
+          </div>
+          <div class="home-spotlight-footer">
+            <a class="home-btn-primary" href="/deals/">
+              <span>Launch Deals Comparison Engine</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+            <a class="home-link-subtle" href="/how-we-compare/">How our ranking math works &rarr;</a>
+          </div>
+        </div>
       </section>
 
       <section class="home-section" aria-labelledby="changes-title">
@@ -92,13 +172,13 @@
           <h2 id="changes-title">Latest price changes</h2>
           <a href="/deals/price-changes/">All price changes &rarr;</a>
         </div>
-        <div class="home-rows"><!-- PRERENDER:HOMECHANGES:START --><div class="home-change"><time datetime="2026-10-07">7 Oct 2026</time><span><a href="/deals/providers/optus/"><strong>Optus</strong></a> &middot; Basic NBN 25/10</span><span>Promo up $68 &rarr; $73/mo</span></div><div class="home-change"><time datetime="2026-10-07">7 Oct 2026</time><span><a href="/deals/providers/optus/"><strong>Optus</strong></a> &middot; Everyday NBN 50/20</span><span>Promo up $82 &rarr; $87/mo</span></div><div class="home-change"><time datetime="2026-10-07">7 Oct 2026</time><span><a href="/deals/providers/optus/"><strong>Optus</strong></a> &middot; Ultrafast NBN 1000/100</span><span>Promo up $114 &rarr; $119/mo</span></div><div class="home-change"><time datetime="2026-10-05">5 Oct 2026</time><span><a href="/deals/providers/telstra/"><strong>Telstra</strong></a> &middot; Essential NBN 50</span><span>Promo down $99 &rarr; $69/mo for 6 months</span></div><div class="home-change"><time datetime="2026-10-05">5 Oct 2026</time><span><a href="/deals/providers/telstra/"><strong>Telstra</strong></a> &middot; Premium NBN 100</span><span>Promo down $99 &rarr; $69/mo for 6 months</span></div><div class="home-change"><time datetime="2026-10-05">5 Oct 2026</time><span><a href="/deals/providers/telstra/"><strong>Telstra</strong></a> &middot; Ultimate NBN 750</span><span>Promo down $119 &rarr; $79/mo for 6 months</span></div><div class="home-change"><time datetime="2026-10-05">5 Oct 2026</time><span><a href="/deals/providers/telstra/"><strong>Telstra</strong></a> &middot; Ultrafast NBN 1000</span><span>Promo down $129 &rarr; $89/mo for 6 months</span></div><div class="home-change"><time datetime="2026-10-05">5 Oct 2026</time><span><a href="/deals/providers/boost-mobile/"><strong>Boost Mobile</strong></a> &middot; 160GB</span><span>Promo down $180 &rarr; $160 per 6 months</span></div><!-- PRERENDER:HOMECHANGES:END --></div>
+        <div class="home-rows"><!-- PRERENDER:HOMECHANGES:START --><div class="home-change"><time datetime="2026-10-10">10 Oct 2026</time><span><a href="/deals/providers/vodafone/"><strong>Vodafone</strong></a> &middot; Medium Plan 220GB</span><span>Ongoing down $55 &rarr; $50/mo; Promo down $55 &rarr; $50/mo</span></div><div class="home-change"><time datetime="2026-10-10">10 Oct 2026</time><span><a href="/deals/providers/vodafone/"><strong>Vodafone</strong></a> &middot; Large Plan 420GB</span><span>Ongoing down $65 &rarr; $55/mo; Promo down $65 &rarr; $55/mo</span></div><div class="home-change"><time datetime="2026-10-10">10 Oct 2026</time><span><a href="/deals/providers/vodafone/"><strong>Vodafone</strong></a> &middot; nbn Home Fast+ NBN 500/50</span><span>Promo up $79 &rarr; $89/mo</span></div><div class="home-change"><time datetime="2026-10-10">10 Oct 2026</time><span><a href="/deals/providers/vodafone/"><strong>Vodafone</strong></a> &middot; nbn Home Superfast NBN 750/50</span><span>Promo up $84 &rarr; $94/mo</span></div><div class="home-change"><time datetime="2026-10-10">10 Oct 2026</time><span><a href="/deals/providers/vodafone/"><strong>Vodafone</strong></a> &middot; nbn Home Ultrafast NBN 1000/100</span><span>Promo up $94 &rarr; $104/mo</span></div><div class="home-change"><time datetime="2026-10-09">9 Oct 2026</time><span><a href="/deals/providers/pentanet/"><strong>Pentanet</strong></a> &middot; Family NBN 100/20</span><span>Promo down $89 &rarr; $84/mo for 9 months</span></div><div class="home-change"><time datetime="2026-10-09">9 Oct 2026</time><span><a href="/deals/providers/pentanet/"><strong>Pentanet</strong></a> &middot; Pro+ NBN 100/40</span><span>Promo down $99 &rarr; $94/mo for 9 months</span></div><div class="home-change"><time datetime="2026-10-09">9 Oct 2026</time><span><a href="/deals/providers/pentanet/"><strong>Pentanet</strong></a> &middot; Family NBN 500/50</span><span>Promo down $89 &rarr; $84/mo for 9 months</span></div><!-- PRERENDER:HOMECHANGES:END --></div>
       </section>
 
       <section class="home-section" aria-labelledby="prov-title">
         <h2 id="prov-title">Compare by provider</h2>
         <p class="home-sub">Every plan, CGNAT policy, notice period and price change for each provider.</p>
-        <div class="home-providers"><!-- PRERENDER:HOMEPROVIDERS:START --><a href="/deals/providers/amaysim/">amaysim</a><a href="/deals/providers/aussie-broadband/">Aussie Broadband</a><a href="/deals/providers/boost-mobile/">Boost Mobile</a><a href="/deals/providers/carbon-comms/">Carbon Comms</a><a href="/deals/providers/dodo/">Dodo</a><a href="/deals/providers/launtel/">Launtel</a><a href="/deals/providers/leaptel/">Leaptel</a><a href="/deals/providers/mate/">Mate</a><a href="/deals/providers/neptune-internet/">Neptune Internet</a><a href="/deals/providers/swoop/">Swoop</a><a href="/deals/providers/tpg/">TPG</a><a href="/deals/providers/vodafone/">Vodafone</a><a class="home-link-strong" href="/deals/providers/">All 38 providers &rarr;</a><!-- PRERENDER:HOMEPROVIDERS:END --></div>
+        <div class="home-providers"><!-- PRERENDER:HOMEPROVIDERS:START --><a href="/deals/providers/amaysim/">amaysim</a><a href="/deals/providers/aussie-broadband/">Aussie Broadband</a><a href="/deals/providers/boost-mobile/">Boost Mobile</a><a href="/deals/providers/carbon-comms/">Carbon Comms</a><a href="/deals/providers/dodo/">Dodo</a><a href="/deals/providers/future-broadband/">Future Broadband</a><a href="/deals/providers/launtel/">Launtel</a><a href="/deals/providers/leaptel/">Leaptel</a><a href="/deals/providers/mate/">Mate</a><a href="/deals/providers/neptune-internet/">Neptune Internet</a><a href="/deals/providers/swoop/">Swoop</a><a href="/deals/providers/tpg/">TPG</a><a class="home-link-strong" href="/deals/providers/">All 38 providers &rarr;</a><!-- PRERENDER:HOMEPROVIDERS:END --></div>
       </section>
 
       <section class="home-section" aria-labelledby="trust-title">
@@ -155,7 +235,7 @@
     </div>
   </div>
 
-  <!-- PRERENDER:HOMECALCDATA:START --><script type="application/json" id="home-calc-data">{"nbn-25":{"label":"NBN 25","count":30,"provider":"Flip","plan":"Premium NBN 25/10","priceLine":"$48/mo for 12 months, then $65.90/mo","firstYear":576.0,"href":"/deals/nbn-25/"},"nbn-50":{"label":"NBN 50","count":27,"provider":"Kogan Internet","plan":"Silver NBN 50","priceLine":"$69.90/mo for 12 months, then $80.90/mo","firstYear":838.8,"href":"/deals/nbn-50/"},"nbn-100":{"label":"NBN 100","count":25,"provider":"Kogan Internet","plan":"Gold NBN 100","priceLine":"$69.90/mo for 12 months, then $85.90/mo","firstYear":838.8,"href":"/deals/nbn-100/"},"nbn-250":{"label":"NBN 250","count":5,"provider":"SpinTel","plan":"NBN 250/25","priceLine":"$79/mo for 6 months, then $89.95/mo","firstYear":1013.7,"href":"/deals/nbn-250/"},"nbn-1000":{"label":"NBN 1000","count":29,"provider":"SpinTel","plan":"NBN 1000/100","priceLine":"$76/mo for 6 months, then $104.95/mo","firstYear":1085.7,"href":"/deals/nbn-1000/"},"mobile-sim":{"label":"Mobile SIM","count":66,"provider":"Kogan Mobile","plan":"220GB","priceLine":"$149 paid once for the year","firstYear":149.0,"href":"/deals/mobile-plans/"}}</script><!-- PRERENDER:HOMECALCDATA:END -->
+  <!-- PRERENDER:HOMECALCDATA:START --><script type="application/json" id="home-calc-data">{"nbn-25":{"label":"NBN 25","count":29,"provider":"Flip","plan":"Premium NBN 25/10","priceLine":"$48/mo for 12 months, then $65.90/mo","firstYear":576.0,"href":"/deals/nbn-25/"},"nbn-50":{"label":"NBN 50","count":26,"provider":"Kogan Internet","plan":"Silver NBN 50","priceLine":"$69.90/mo for 12 months, then $80.90/mo","firstYear":838.8,"href":"/deals/nbn-50/"},"nbn-100":{"label":"NBN 100","count":25,"provider":"Kogan Internet","plan":"Gold NBN 100","priceLine":"$69.90/mo for 12 months, then $85.90/mo","firstYear":838.8,"href":"/deals/nbn-100/"},"nbn-250":{"label":"NBN 250","count":7,"provider":"Carbon Comms","plan":"Carbon Fixed Wireless Carbon Fixed Wireless Plus Homefast 250/20 NBN NBN 250/20","priceLine":"$84/mo","firstYear":1008.0,"href":"/deals/nbn-250/"},"nbn-1000":{"label":"NBN 1000","count":30,"provider":"SpinTel","plan":"NBN 1000/100","priceLine":"$76/mo for 6 months, then $104.95/mo","firstYear":1085.7,"href":"/deals/nbn-1000/"},"mobile-sim":{"label":"Mobile SIM","count":66,"provider":"Kogan Mobile","plan":"220GB","priceLine":"$149 paid once for the year","firstYear":149.0,"href":"/deals/mobile-plans/"}}</script><!-- PRERENDER:HOMECALCDATA:END -->
   <script>
   (function () {
     var root = document.querySelector('[data-home-calc]');
@@ -180,7 +260,10 @@
         '<p class="home-plan"><strong>' + esc(t.provider) + '</strong> &middot; ' + esc(t.plan) + '</p>' +
         '<p class="home-price-line">' + esc(t.priceLine) + '</p>' +
         '<div class="home-figure"><p class="home-first-year">First year <strong>' + money(t.firstYear) + '</strong></p>' + save + '</div>' +
-        '<a class="home-more" href="' + t.href + '">See all ' + t.count + ' ' + esc(t.label) + ' plans &rarr;</a>';
+        '<div class="home-calc-links">' +
+          '<a class="home-more" href="' + t.href + '">See all ' + t.count + ' ' + esc(t.label) + ' plans &rarr;</a>' +
+          '<a class="home-calc-deals-link" href="/deals/">Open full deals table &rarr;</a>' +
+        '</div>';
     }
     bill.addEventListener('input', render);
     tier.addEventListener('change', render);

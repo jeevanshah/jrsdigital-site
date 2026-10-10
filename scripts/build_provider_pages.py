@@ -594,7 +594,10 @@ def build_home(deals, history, meta, rows, today):
               f'<p class="home-plan"><strong>{esc(default["provider"])}</strong> &middot; {esc(default["plan"])}</p>'
               f'<p class="home-price-line">{default["priceLine"]}</p>'
               f'<div class="home-figure"><p class="home-first-year">First year <strong>{money(default["firstYear"])}</strong></p>{save}</div>'
-              f'<a class="home-more" href="{default["href"]}">See all {default["count"]} {esc(default["label"])} plans &rarr;</a>')
+              f'<div class="home-calc-links">'
+              f'<a class="home-more" href="{default["href"]}">See all {default["count"]} {esc(default["label"])} plans &rarr;</a>'
+              f'<a class="home-calc-deals-link" href="/deals/">Open full deals table &rarr;</a>'
+              f'</div>')
     calc_json = json.dumps({k: {**v, "priceLine": html.unescape(v["priceLine"])} for k, v in calc.items()},
                            separators=(",", ":")).replace("</", "<\\/")
     calc_data = f'<script type="application/json" id="home-calc-data">{calc_json}</script>'
