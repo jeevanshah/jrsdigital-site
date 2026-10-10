@@ -767,6 +767,52 @@ def update_tier_best(deals):
         if pool:
             path.write_text(splice(h, "TIERBEST", money(min(first_year(d) for d in pool))), encoding="utf-8")
 
+MONTH_YEAR_RE = re.compile(
+    r"\b(?:(?:January|February|March|April|May|June|July|August|September|"
+    r"October|November|December) )?20\d\d\b")
+
+
+def update_page_meta(deals, today):
+    """Keep tier-page titles and descriptions current: the month in the title
+    and the cheapest plan in the description. Both are what searchers scan on
+    "best X plans" results, so stale copy costs clicks."""
+    month_year = dt.date.fromisoformat(today).strftime("%B %Y")
+    for label, bucket, href in HOME_TIERS:
+        path = REPO_ROOT / href.strip("/") / "index.html"
+        if not path.exists():
+            continue
+        if bucket == "mobile":
+            pool = [d for d in deals if d.get("serviceType") == "mobile"]
+        else:
+            pool = [d for d in deals if d.get("serviceType") == "nbn"
+                    and base_bucket_key(d.get("tier")) == bucket]
+        if not pool:
+            continue
+        best = min(pool, key=first_year)
+        n_prov = len({d.get("provider") for d in pool})
+        cost = money(round(first_year(best)))
+        if bucket == "mobile":
+            desc = (f"Cheapest SIM-only plan today: {best.get('provider')} at {cost} for the year. "
+                    f"Compare {len(pool)} plans from {n_prov} providers by true yearly cost, "
+                    f"28-day billing included. Checked daily.")
+        else:
+            desc = (f"Cheapest {label} plan today: {best.get('provider')} at {cost} for the first year. "
+                    f"Compare {len(pool)} plans from {n_prov} providers by first-year cost, "
+                    f"not promo price. Checked daily.")
+        desc = esc(desc)
+        raw = path.read_bytes().decode("utf-8")
+        nl = "\r\n" if "\r\n" in raw else "\n"
+        h = raw
+
+        def retitle(m):
+            return m.group(1) + MONTH_YEAR_RE.sub(month_year, m.group(2), count=1) + m.group(3)
+        h = re.sub(r"(<title>)(.*?)(</title>)", retitle, h, count=1)
+        h = re.sub(r'(<meta (?:property="og:title"|name="twitter:title") content=")([^"]*)(")', retitle, h)
+        h = re.sub(r'(<meta (?:name="description"|property="og:description"|name="twitter:description") content=")[^"]*(")',
+                   lambda m: m.group(1) + desc + m.group(2), h)
+        if h != raw:
+            path.write_bytes(h.replace("\r\n", "\n").replace("\n", nl).encode("utf-8"))
+
 
 def main():
     today = dt.date.today().isoformat()
@@ -810,6 +856,7 @@ def main():
     build_changes_page(parts, history, today)
     build_hwc(deals, meta, today)
     update_tier_best(deals)
+    update_page_meta(deals, today)
     update_sitemap(indexable, today)
     print(f"Built {len(rows)} provider pages ({len(indexable)} indexable) + providers index")
 
