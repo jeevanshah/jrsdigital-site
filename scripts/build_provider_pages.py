@@ -42,6 +42,8 @@ HOME_TIERS = [  # (label, bucket or "mobile", page path)
     ("NBN 50", "NBN 50", "/deals/nbn-50/"),
     ("NBN 100", "NBN 100", "/deals/nbn-100/"),
     ("NBN 250", "NBN 250", "/deals/nbn-250/"),
+    ("NBN 500", "NBN 500", "/deals/nbn-500/"),
+    ("NBN 750", "NBN 750", "/deals/nbn-750/"),
     ("NBN 1000", "NBN 1000", "/deals/nbn-1000/"),
     ("Mobile SIM", "mobile", "/deals/mobile-plans/"),
 ]
@@ -49,7 +51,10 @@ SITEMAP = REPO_ROOT / "sitemap.xml"
 STALE_AFTER_FAILURES = 3
 BROADBAND_TYPES = ("nbn", "opticomm", "satellite")
 TYPE_LABEL = {"nbn": "NBN", "opticomm": "OptiComm", "satellite": "satellite", "mobile": "mobile"}
-SPEED_PAGES = {"NBN 50": "nbn-50", "NBN 100": "nbn-100", "NBN 250": "nbn-250", "NBN 1000": "nbn-1000"}
+SPEED_PAGES = {"NBN 25": "nbn-25", "NBN 50": "nbn-50", "NBN 100": "nbn-100", "NBN 250": "nbn-250",
+               "NBN 500": "nbn-500", "NBN 750": "nbn-750", "NBN 1000": "nbn-1000", "NBN 2000": "nbn-2000"}
+# Every page whose title/description/TIERBEST the nightly build keeps current
+TIER_PAGES = HOME_TIERS + [("NBN 2000", "NBN 2000", "/deals/nbn-2000/")]
 CHEVRON = ('<svg class="deals-faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
            'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
            '<path d="m6 9 6 6 6-6"/></svg>')
@@ -754,7 +759,7 @@ def build_hwc(deals, meta, today):
 
 def update_tier_best(deals):
     """Speed pages with a TIERBEST marker show the tier's cheapest first-year cost."""
-    for label, bucket, href in HOME_TIERS:
+    for label, bucket, href in TIER_PAGES:
         if not href.startswith("/deals/nbn-"):
             continue
         path = REPO_ROOT / href.strip("/") / "index.html"
@@ -769,7 +774,7 @@ def update_tier_best(deals):
 
 MONTH_YEAR_RE = re.compile(
     r"\b(?:(?:January|February|March|April|May|June|July|August|September|"
-    r"October|November|December) )?20\d\d\b")
+    r"October|November|December) )?20[2-9]\d\b")
 
 
 def update_page_meta(deals, today):
@@ -777,7 +782,7 @@ def update_page_meta(deals, today):
     and the cheapest plan in the description. Both are what searchers scan on
     "best X plans" results, so stale copy costs clicks."""
     month_year = dt.date.fromisoformat(today).strftime("%B %Y")
-    for label, bucket, href in HOME_TIERS:
+    for label, bucket, href in TIER_PAGES:
         path = REPO_ROOT / href.strip("/") / "index.html"
         if not path.exists():
             continue

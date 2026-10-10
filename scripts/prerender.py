@@ -41,7 +41,10 @@ SPEED_PAGES = [
     ("nbn-50", "NBN 50", REPO_ROOT / "deals" / "nbn-50" / "index.html"),
     ("nbn-100", "NBN 100", REPO_ROOT / "deals" / "nbn-100" / "index.html"),
     ("nbn-250", "NBN 250", REPO_ROOT / "deals" / "nbn-250" / "index.html"),
+    ("nbn-500", "NBN 500", REPO_ROOT / "deals" / "nbn-500" / "index.html"),
+    ("nbn-750", "NBN 750", REPO_ROOT / "deals" / "nbn-750" / "index.html"),
     ("nbn-1000", "NBN 1000", REPO_ROOT / "deals" / "nbn-1000" / "index.html"),
+    ("nbn-2000", "NBN 2000", REPO_ROOT / "deals" / "nbn-2000" / "index.html"),
 ]
 MOBILE_HTML = REPO_ROOT / "deals" / "mobile-plans" / "index.html"
 
