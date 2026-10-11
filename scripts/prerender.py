@@ -281,7 +281,7 @@ def render_speed_page_grid(tier_deals: list[dict], target_tier: str) -> str:
 
     provider_metadata = {
         'Aussie Broadband': {'cgnat': 'opt_out_free', 'notice': 'none'},
-        'Superloop': {'cgnat': 'opt_out_free', 'notice': '30_days'},
+        'Superloop': {'cgnat': 'paid_only', 'notice': '30_days'},
         'Leaptel': {'cgnat': 'opt_out_free', 'notice': 'none'},
         'Tangerine': {'cgnat': 'opt_out_free', 'notice': 'none'},
         'More Telecom': {'cgnat': 'opt_out_free', 'notice': 'none'},

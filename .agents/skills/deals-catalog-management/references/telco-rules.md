@@ -8,7 +8,7 @@ CGNAT shares public IPv4 addresses across multiple customers. This impacts home 
 | :--- | :--- | :--- | :--- |
 | **Aussie Broadband** | Free Opt-out | $0/mo (dynamic public IPv4) / $5/mo static | Opt-out available via app / support chat |
 | **Leaptel** | Free Opt-out | $0/mo (dynamic public IPv4) / $10/mo static | Public dynamic IPv4 provided on request |
-| **Superloop** | Free Opt-out | $0/mo (dynamic public IPv4) / $5/mo static | Available through portal toggle |
+| **Superloop** | CGNAT Enforced | $5/mo static IP | No official free opt-out; requires $5/mo Static IP to bypass |
 | **Tangerine** | Free Opt-out | $0/mo (dynamic) | Request via customer support |
 | **Neptune Internet** | Free Opt-out | $0/mo | Native IPv6 + public dynamic IPv4 |
 | **Dodo** | CGNAT Enforced | $5/mo static IP | No free opt-out |

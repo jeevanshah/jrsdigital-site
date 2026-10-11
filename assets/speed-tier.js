@@ -12,7 +12,7 @@
 
   var PROVIDER_METADATA = {
     'Aussie Broadband': { cgnat: 'opt_out_free', notice: 'none', cisUrl: 'https://www.aussiebroadband.com.au/legal/' },
-    'Superloop': { cgnat: 'opt_out_free', notice: '30_days', cisUrl: 'https://www.superloop.com/terms' },
+    'Superloop': { cgnat: 'paid_only', notice: '30_days', cisUrl: 'https://www.superloop.com/terms' },
     'Leaptel': { cgnat: 'opt_out_free', notice: 'none', cisUrl: 'https://www.leaptel.com.au/terms' },
     'Tangerine': { cgnat: 'opt_out_free', notice: 'none', cisUrl: 'https://www.tangerinetelecom.com.au/terms' },
     'More Telecom': { cgnat: 'opt_out_free', notice: 'none', cisUrl: 'https://www.more.com.au/policies' },
