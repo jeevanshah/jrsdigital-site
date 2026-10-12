@@ -322,8 +322,23 @@ def render_speed_page_grid(tier_deals: list[dict], target_tier: str) -> str:
         savings = (effective_regular * 12) - first_year if has_promo else 0
         meta = provider_metadata.get(d.get("provider"), {})
 
-        speed_val = f"~{d['typicalEveningSpeed']} Mbps" if d.get('typicalEveningSpeed') else (d.get('tier') or '')
-        speed_caption = "Typical evening"
+        if d.get('typicalEveningSpeed'):
+            speed_val = f"~{d['typicalEveningSpeed']} Mbps"
+            tech = d.get('techType') or ''
+            speed_caption = f"{tech} • Typical evening" if tech else "Typical evening"
+        else:
+            raw_tier = d.get('tier') or d.get('title') or ''
+            m = re.search(r'(\d+(?:/\d+)?)\s*(?:Mbps)?', raw_tier)
+            if m:
+                speed_val = f"{m.group(1)} Mbps"
+            elif d.get('downloadSpeed'):
+                speed_val = f"{d['downloadSpeed']} Mbps"
+            elif d.get('tier'):
+                speed_val = re.sub(r'^NBN\s*', '', d['tier'], flags=re.I)
+            else:
+                speed_val = 'Standard speed'
+            tech = d.get('techType') or ''
+            speed_caption = f"{tech} • Speed tier" if tech else "Speed tier"
 
         badges_html = ''
         if meta.get('cgnat') == 'opt_out_free':
@@ -366,8 +381,12 @@ def render_speed_page_grid(tier_deals: list[dict], target_tier: str) -> str:
         no_lock_in_html = '<span class="deal-offer-fact-text deal-offer-fact-text--contract">No lock-in</span>' if is_no_lock_in else ''
 
         provider_name = esc(d.get('provider', ''))
-        plan_title = esc(d.get('title') or d.get('tier') or '')
+        raw_title = d.get('title') or d.get('tier') or ''
+        plan_title = esc(re.sub(r'NBN\s+NBN', 'NBN', raw_title, flags=re.I).strip())
         logo_html = f'<img class="deal-provider-logo" src="{esc(logo_url)}" alt="" width="20" height="20" loading="lazy" onerror="this.remove()">' if logo_url else ''
+
+        tier_str = re.sub(r'^NBN\s*', '', d.get('tier') or '', flags=re.I).strip()
+        tier_chip_html = f'<span class="deal-tier-chip">NBN {esc(tier_str)}</span>' if tier_str else ''
 
         item = (
             f'<article class="deal-entry{top_entry_cls}">'
@@ -376,8 +395,11 @@ def render_speed_page_grid(tier_deals: list[dict], target_tier: str) -> str:
             f'<div class="deal-group deal-group-plan">'
             f'<div class="deal-cell deal-cell-provider">'
             f'<div class="deal-provider-head">'
+            f'<div class="deal-provider-identity">'
             f'{logo_html}'
             f'<span class="deal-provider-name">{provider_name}</span>'
+            f'</div>'
+            f'{tier_chip_html}'
             f'</div>'
             f'<span class="deal-plan-tier">{plan_title}</span>'
             f'{badges_wrap}'
@@ -626,6 +648,8 @@ def render_mobile_page_grid(mobile_deals: list[dict]) -> str:
         offer_facts_html = f'<div class="deal-offer-facts">{offer_facts_joined}</div>' if offer_facts else ''
         no_lock_in_html = '<span class="deal-offer-fact-text deal-offer-fact-text--contract">No lock-in</span>'
 
+        tier_chip_html = f'<span class="deal-tier-chip">{esc(tier_val)}</span>' if tier_val else ''
+
         item = (
             f'<article class="deal-entry{top_entry_cls}">'
             f'{top_badge}'
@@ -633,8 +657,11 @@ def render_mobile_page_grid(mobile_deals: list[dict]) -> str:
             f'<div class="deal-group deal-group-plan">'
             f'<div class="deal-cell deal-cell-provider">'
             f'<div class="deal-provider-head">'
+            f'<div class="deal-provider-identity">'
             f'{logo_html}'
             f'<span class="deal-provider-name">{provider_name}</span>'
+            f'</div>'
+            f'{tier_chip_html}'
             f'</div>'
             f'<span class="deal-plan-tier">{plan_title}</span>'
             f'{badges_wrap}'

@@ -344,6 +344,8 @@
         ongoingCaption = 'ongoing';
       }
 
+      var tierChipHtml = dataVal ? ('<span class="deal-tier-chip">' + esc(dataVal) + '</span>') : '';
+
       html +=
         '<article class="deal-entry' + (idx === 0 ? ' deal-entry--top' : '') + '">' +
           (idx === 0 ? '<div class="deal-top-badge">' + esc(topPickLabel()) + '</div>' : '') +
@@ -351,8 +353,11 @@
             '<div class="deal-group deal-group-plan">' +
               '<div class="deal-cell deal-cell-provider">' +
                 '<div class="deal-provider-head">' +
-                  '<img class="deal-provider-logo" src="' + escAttr(providerLogoUrl(d)) + '" alt="" width="20" height="20" loading="lazy" onerror="this.remove()">' +
-                  '<span class="deal-provider-name">' + esc(d.provider) + '</span>' +
+                  '<div class="deal-provider-identity">' +
+                    '<img class="deal-provider-logo" src="' + escAttr(providerLogoUrl(d)) + '" alt="" width="20" height="20" loading="lazy" onerror="this.remove()">' +
+                    '<span class="deal-provider-name">' + esc(d.provider) + '</span>' +
+                  '</div>' +
+                  tierChipHtml +
                 '</div>' +
                 '<span class="deal-plan-tier">' + esc(d.title || d.tier) + '</span>' +
                 (badgesHtml ? '<div class="deal-provider-badges">' + badgesHtml + '</div>' : '') +

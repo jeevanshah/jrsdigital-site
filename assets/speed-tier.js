@@ -243,8 +243,30 @@
         }
       }
 
-      var speedVal = d.typicalEveningSpeed ? ('~' + d.typicalEveningSpeed + ' Mbps') : d.tier;
-      var speedCaption = 'Typical evening';
+      var speedVal = '';
+      var speedCaption = '';
+      if (d.typicalEveningSpeed) {
+        speedVal = '~' + d.typicalEveningSpeed + ' Mbps';
+        speedCaption = (d.techType ? d.techType + ' • ' : '') + 'Typical evening';
+      } else {
+        var rawTier = d.tier || d.title || '';
+        var speedMatch = rawTier.match(/(\d+(?:\/\d+)?)\s*(?:Mbps)?/i);
+        if (speedMatch) {
+          speedVal = speedMatch[1] + ' Mbps';
+        } else if (d.downloadSpeed) {
+          speedVal = d.downloadSpeed + (d.uploadSpeed ? '/' + d.uploadSpeed : '') + ' Mbps';
+        } else if (d.tier) {
+          speedVal = d.tier.replace(/^NBN\s*/i, '');
+        } else {
+          speedVal = 'Standard speed';
+        }
+        speedCaption = (d.techType ? d.techType + ' • ' : '') + 'Speed tier';
+      }
+
+      var tierStr = (d.tier || '').replace(/^NBN\s*/i, '').trim();
+      var tierChipHtml = tierStr ? ('<span class="deal-tier-chip">NBN ' + esc(tierStr) + '</span>') : '';
+      var rawTitle = d.title || d.tier || '';
+      var displayPlan = rawTitle.replace(/NBN\s+NBN/gi, 'NBN').trim();
 
       var badgesHtml = '';
       if (meta.cgnat === 'opt_out_free') {
@@ -269,10 +291,13 @@
             '<div class="deal-group deal-group-plan">' +
               '<div class="deal-cell deal-cell-provider">' +
                 '<div class="deal-provider-head">' +
-                  '<img class="deal-provider-logo" src="' + escAttr(providerLogoUrl(d)) + '" alt="" width="20" height="20" loading="lazy" onerror="this.remove()">' +
-                  '<span class="deal-provider-name">' + esc(d.provider) + '</span>' +
+                  '<div class="deal-provider-identity">' +
+                    '<img class="deal-provider-logo" src="' + escAttr(providerLogoUrl(d)) + '" alt="" width="20" height="20" loading="lazy" onerror="this.remove()">' +
+                    '<span class="deal-provider-name">' + esc(d.provider) + '</span>' +
+                  '</div>' +
+                  tierChipHtml +
                 '</div>' +
-                '<span class="deal-plan-tier">' + esc(d.title || d.tier) + '</span>' +
+                '<span class="deal-plan-tier">' + esc(displayPlan) + '</span>' +
                 (badgesHtml ? '<div class="deal-provider-badges">' + badgesHtml + '</div>' : '') +
               '</div>' +
               '<div class="deal-cell deal-cell-speed" data-label="Speed &amp; Tech">' +

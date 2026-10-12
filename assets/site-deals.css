@@ -1583,6 +1583,17 @@ body.wide-theme {
   gap: 6px;
 }
 
+.deal-provider-identity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.deal-tier-chip {
+  display: none;
+}
+
 .deal-provider-logo {
   flex-shrink: 0;
   width: 20px;
@@ -2476,13 +2487,7 @@ button.deal-badge[aria-expanded="true"] {
   }
 
   .deal-offer-summary::before {
-    content: attr(data-label);
-    flex-basis: 100%;
-    font-size: 0.64rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: var(--w-ink-50);
+    display: none;
   }
 
   .deal-offer-summary .deal-badge-note {
@@ -2525,6 +2530,12 @@ button.deal-badge[aria-expanded="true"] {
     order: 5;
   }
 
+  .deal-cell-speed .deal-cell-value {
+    font-weight: 700;
+    font-size: 0.94rem;
+    color: var(--w-ink);
+  }
+
   .deal-cell-savings {
     order: 6;
   }
@@ -2554,6 +2565,36 @@ button.deal-badge[aria-expanded="true"] {
     border-bottom: 1px solid var(--w-border);
   }
 
+  .deal-provider-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .deal-provider-identity {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .deal-tier-chip {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: var(--w-surface);
+    color: var(--w-ink-70);
+    border: 1px solid var(--w-border);
+    white-space: nowrap;
+  }
+
   .deals-table-body.is-compact .deal-provider-badges {
     display: none;
   }
@@ -2563,7 +2604,7 @@ button.deal-badge[aria-expanded="true"] {
   }
 
   .deals-table-body.is-compact .deal-plan-notes-toggle {
-    display: inline-flex;
+    display: none;
   }
 
   /* Side by side instead of stacked -- View deal + Remind me were two full-
