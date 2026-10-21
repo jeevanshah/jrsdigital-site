@@ -34,6 +34,7 @@ MARKERS = {
     "UPDATED": "[data-updated]",
     "GRID": "[data-grid]",
     "CHANGELOG": "[data-changelog-wrap]",
+    "MOBILESUMMARY": "[data-mobile-summary] .deals-mobile-summary-text",
 }
 
 SPEED_PAGES = [
@@ -95,6 +96,52 @@ def splice(html: str, name: str, replacement: str) -> str:
         raise RuntimeError(f"Expected exactly one {name} marker pair, found {count}")
     return new_html
 
+
+
+
+def load_render_data(filename, url, data_dir=None, required=False):
+    """Pin one feed snapshot; published data takes priority over local caches."""
+    if data_dir is None:
+        try:
+            with urllib.request.urlopen(url, timeout=15) as response:
+                data = json.loads(response.read())
+            if not isinstance(data, list) or (required and not data):
+                raise RuntimeError(f"Invalid catalog: {filename}")
+            return data
+        except (OSError, ValueError):
+            pass
+    candidates = ([data_dir / filename] if data_dir else [
+        REPO_ROOT / "data" / filename,
+        REPO_ROOT.parent / "au-plans-scraper" / "data" / filename,
+        REPO_ROOT.parent / "Desktop" / "au-plans-scraper" / "data" / filename,
+    ])
+    for path in candidates:
+        if path.is_file():
+            data = json.loads(path.read_text(encoding="utf-8-sig"))
+            if not isinstance(data, list) or (required and not data):
+                raise RuntimeError(f"Invalid catalog: {filename}")
+            if data_dir is None:
+                print(f"Notice: published {filename} unavailable; using local snapshot {path}")
+            return data
+    if required:
+        raise RuntimeError(f"Could not load required catalog: {filename}")
+    return []
+
+
+def update_speed_summary(content: str, tier_deals: list[dict]) -> str:
+    """Keep every static count/intro-price field aligned with its table feed."""
+    prices = []
+    for deal in tier_deals:
+        value = deal.get("promoPrice") or deal.get("regularPrice")
+        if isinstance(value, (int, float)) and not isinstance(value, bool) and value > 0:
+            prices.append(float(value))
+    minimum = f"${min(prices):.2f}" if prices else "Unavailable"
+    for attribute, value in (("data-plan-count", str(len(tier_deals))),
+                             ("data-min-price", minimum),
+                             ("data-min-intro", minimum + "/mo" if prices else minimum)):
+        pattern = r'(<span\b[^>]*\b' + attribute + r'(?:="[^"]*")?[^>]*>).*?(</span>)'
+        content = re.sub(pattern, lambda match: match[1] + value + match[2], content, flags=re.S)
+    return content
 
 def billing_cycle_label(days: int | None) -> str:
     """Human-readable cadence matching the labels used by the live table."""
@@ -737,7 +784,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--port", type=int, default=8123)
     parser.add_argument("--base-url", default=None, help="Skip starting a local server and use this URL instead")
+    parser.add_argument("--data-dir", type=Path, help="Use a local scraper data snapshot for rendering")
+    parser.add_argument("--browser-executable", type=Path, help="Use an existing Chromium binary")
     args = parser.parse_args()
+
+    all_deals = load_render_data("deals.json", DEALS_JSON_URL, args.data_dir, required=True)
+    all_bundles = load_render_data("bundles.json", BUNDLES_JSON_URL, args.data_dir)
 
     server = None
     base_url = args.base_url
@@ -757,10 +809,13 @@ def main():
 
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch()
+            browser = p.chromium.launch(executable_path=str(args.browser_executable) if args.browser_executable else None)
             page = browser.new_page()
+            # Capture HTML and schema from one feed snapshot, not two fetch times.
+            page.route(DEALS_JSON_URL, lambda route: route.fulfill(json=all_deals))
+            page.route(BUNDLES_JSON_URL, lambda route: route.fulfill(json=all_bundles))
             page.goto(f"{base_url}/deals/", wait_until="networkidle", timeout=30000)
-            page.wait_for_selector(".deal-row, .deals-card", state="attached", timeout=15000)
+            page.wait_for_function("() => window.__DEALS_RENDERED__ === true", timeout=15000)
 
             # Capture initial visible view (top ~9-15 plans) so static HTML payload
             # is fast and lightweight (<150 KB) without blocking parser or DOM size.
@@ -793,39 +848,6 @@ def main():
         if server is not None:
             server.terminate()
             server.wait(timeout=5)
-
-    all_deals = None
-    local_candidates = [
-        REPO_ROOT / "data" / "deals.json",
-        REPO_ROOT.parent / "au-plans-scraper" / "data" / "deals.json",
-        REPO_ROOT.parent / "Desktop" / "au-plans-scraper" / "data" / "deals.json",
-    ]
-    local_path = next((path for path in local_candidates if path.exists()), None)
-    if local_path:
-        try:
-            all_deals = json.loads(local_path.read_text(encoding="utf-8"))
-        except Exception:
-            pass
-
-    if not all_deals:
-        try:
-            with urllib.request.urlopen(DEALS_JSON_URL, timeout=15) as resp:
-                all_deals = json.loads(resp.read())
-        except Exception:
-            raise RuntimeError("Could not load deals data from local or remote source.")
-    all_bundles = []
-    try:
-        with urllib.request.urlopen(BUNDLES_JSON_URL, timeout=15) as resp:
-            all_bundles = json.loads(resp.read())
-    except Exception:
-        local_bundles_candidates = [
-            REPO_ROOT / "data" / "bundles.json",
-            REPO_ROOT.parent / "au-plans-scraper" / "data" / "bundles.json",
-            REPO_ROOT.parent / "Desktop" / "au-plans-scraper" / "data" / "bundles.json",
-        ]
-        local_b_path = next((path for path in local_bundles_candidates if path.exists()), None)
-        if local_b_path:
-            all_bundles = json.loads(local_b_path.read_text(encoding="utf-8"))
 
     schema = build_deal_schema(all_deals, all_bundles)
     schema_html = '<script type="application/ld+json">' + json.dumps(schema, separators=(',', ':')) + "</script>"
@@ -874,6 +896,7 @@ def main():
         grid_html = speed_grids.get(slug) or render_speed_page_grid(tier_deals, target_tier)
         sp_html = splice(sp_html, "GRID", grid_html)
         sp_html = splice(sp_html, "SCHEMA", tier_schema_html)
+        sp_html = update_speed_summary(sp_html, tier_deals)
         sp_path.write_text(sp_html, encoding="utf-8")
         print(f"Pre-rendered deals/{slug}/index.html: {len(tier_deals)} schema items")
 

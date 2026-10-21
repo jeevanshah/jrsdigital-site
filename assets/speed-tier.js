@@ -112,8 +112,9 @@
   var uploadFilter = document.querySelector('[data-upload-filter]');
   var mineInput = document.querySelector('[data-mine-input]');
   var mineClear = document.querySelector('[data-mine-clear]');
-  var planCountEl = document.querySelector('[data-plan-count]');
+  var planCountEls = document.querySelectorAll('[data-plan-count]');
   var minPriceEl = document.querySelector('[data-min-price]');
+  var minIntroEl = document.querySelector('[data-min-intro]');
 
   var allDeals = [];
   var tierDeals = [];
@@ -208,12 +209,16 @@
 
     var sorted = sortDeals(filtered);
 
-    if (planCountEl) planCountEl.textContent = sorted.length;
-    if (minPriceEl && sorted.length > 0) {
+    planCountEls.forEach(function (element) { element.textContent = sorted.length; });
+    if (sorted.length > 0) {
       var minPromo = Math.min.apply(null, sorted.map(function (d) {
         return parsePrice(d.promoPrice) || parsePrice(d.regularPrice);
       }));
-      minPriceEl.textContent = '$' + minPromo.toFixed(0);
+      if (minPriceEl) minPriceEl.textContent = '$' + minPromo.toFixed(2);
+      if (minIntroEl) minIntroEl.textContent = '$' + minPromo.toFixed(2) + '/mo';
+    } else {
+      if (minPriceEl) minPriceEl.textContent = 'Unavailable';
+      if (minIntroEl) minIntroEl.textContent = 'Unavailable';
     }
 
     if (sorted.length === 0) {

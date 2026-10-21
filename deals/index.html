@@ -310,10 +310,10 @@
         </div>
 
         <div class="deals-mobile-summary-bar" data-mobile-summary>
-          <p class="deals-mobile-summary-text">
-            <strong data-mobile-count>0</strong> <span data-mobile-scope>plans</span> found<br>
+          <!-- PRERENDER:MOBILESUMMARY:START --><p class="deals-mobile-summary-text">
+            <strong data-mobile-count>184</strong> <span data-mobile-scope>NBN plans</span> found<br>
             <span class="deals-mobile-summary-sort">Sorted by <span data-mobile-sort-label>lowest first-year cost</span></span>
-          </p>
+          </p><!-- PRERENDER:MOBILESUMMARY:END -->
           <div class="deals-mobile-summary-actions">
             <a class="deals-mobile-support-btn" href="https://ko-fi.com/jrsnet" target="_blank" rel="noopener" title="Support independent Australian plan comparison on Ko-fi">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
@@ -4435,6 +4435,7 @@
       updateLastUpdated();
       renderHeroMoat();
       fullRender();
+      window.__DEALS_RENDERED__ = true;
     })
     .catch(function () {
       gridBody.innerHTML = '<p class="deals-error">Couldn&#8217;t load deals right now. Please check back shortly.</p>';
